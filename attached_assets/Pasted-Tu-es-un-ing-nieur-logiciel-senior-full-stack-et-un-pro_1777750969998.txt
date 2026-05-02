@@ -1,0 +1,544 @@
+Tu es un ingénieur logiciel senior full-stack et un product designer senior.
+
+Ta mission est de concevoir et développer une application web SaaS complète appelée VisaFlow France pour gérer et accompagner les étudiants d’Afrique francophone admis dans des écoles privées françaises (INSEEC, ECE, etc.) dans toute leur procédure de visa étudiant France.
+
+Objectif produit
+Construire une plateforme web moderne permettant de suivre de A à Z la procédure d’un étudiant depuis son admission dans une école privée française jusqu’à l’obtention du visa puis l’arrivée en France.
+
+Le produit doit avoir 3 espaces majeurs :
+
+Espace étudiant
+
+Espace équipe / conseiller
+
+Espace admin
+
+L’application doit être pensée comme un véritable outil opérationnel interne + portail étudiant.
+
+Stack technique imposée
+Frontend : Next.js 14+ avec App Router
+
+Langage : TypeScript
+
+UI : Tailwind CSS
+
+Components : shadcn/ui ou bibliothèque équivalente propre
+
+Backend : Next.js server actions ou API routes
+
+Base de données : PostgreSQL avec Prisma ORM
+
+Authentification : NextAuth/Auth.js ou Clerk
+
+Stockage fichiers : S3 compatible ou Supabase Storage
+
+Emails : Resend
+
+Validation : Zod
+
+State management : React Query + state local propre
+
+Logs erreurs : Sentry
+
+Contraintes d’architecture
+architecture propre, modulaire et maintenable,
+
+séparation claire entre domaine métier, UI et accès données,
+
+RBAC strict,
+
+code typé,
+
+validations côté serveur,
+
+audit logs,
+
+responsive mobile-first,
+
+design premium mais sobre,
+
+prêt pour production.
+
+Utilisateurs et rôles
+1. Étudiant
+Peut :
+
+créer son compte,
+
+compléter son profil,
+
+voir son dashboard,
+
+suivre ses étapes,
+
+voir ses checklists,
+
+uploader ses documents,
+
+répondre aux commentaires,
+
+voir ses tâches et rendez-vous,
+
+recevoir des notifications.
+
+2. Conseiller / Advisor
+Peut :
+
+voir ses étudiants assignés,
+
+accéder aux fiches dossiers,
+
+commenter,
+
+demander des corrections,
+
+valider ou rejeter des documents,
+
+changer certains statuts,
+
+gérer ses tâches,
+
+suivre les urgences.
+
+3. Reviewer
+Peut :
+
+revoir les documents,
+
+valider ou rejeter,
+
+laisser des commentaires internes,
+
+participer au contrôle qualité du dossier.
+
+4. Admin
+Peut :
+
+tout voir,
+
+gérer utilisateurs et rôles,
+
+configurer workflows,
+
+configurer checklists,
+
+gérer templates,
+
+voir analytics,
+
+voir audit logs,
+
+forcer certains statuts avec justification.
+
+5. Superadmin
+Même droits que admin + paramètres système avancés.
+
+Parcours métier à intégrer
+Le workflow standard doit inclure ces étapes :
+
+Admission reçue
+
+Admission confirmée
+
+Paiement acompte école
+
+Dossier Campus France créé
+
+Dossier Campus France complété
+
+Frais Campus France payés
+
+Entretien Campus France planifié
+
+Entretien Campus France passé
+
+Avis Campus France obtenu
+
+Dossier financier préparé
+
+Hébergement obtenu
+
+Assurance obtenue
+
+Compte France-Visas créé
+
+Formulaire visa complété
+
+Rendez-vous TLS/VFS pris
+
+Dépôt biométrique effectué
+
+Visa en instruction
+
+Visa accordé ou refusé
+
+Départ préparé
+
+Arrivée en France
+
+Validation VLS-TS effectuée
+
+Prévoir une logique conditionnelle : pour certains pays, les étapes Campus France sont obligatoires avant France-Visas.
+
+Fonctionnalités principales à développer
+A. Auth et onboarding
+signup/login/logout,
+
+reset password,
+
+rôles,
+
+onboarding étudiant,
+
+collecte des infos personnelles et académiques,
+
+choix du pays, école, programme, rentrée,
+
+génération automatique du workflow.
+
+B. Dashboard étudiant
+progression globale,
+
+étape actuelle,
+
+prochaine action,
+
+documents manquants,
+
+commentaires récents,
+
+tâches,
+
+rendez-vous,
+
+alertes.
+
+C. Dossier étudiant
+Créer une fiche dossier complète avec onglets :
+
+Overview
+
+Workflow
+
+Documents
+
+Checklist
+
+Comments
+
+Tasks
+
+Appointments
+
+History
+
+Risk
+
+D. Workflow engine
+statuts par étape,
+
+dépendances,
+
+blocages,
+
+validation manuelle,
+
+override admin,
+
+horodatage,
+
+historique.
+
+E. Checklists dynamiques
+checklist par étape,
+
+items cochables,
+
+items obligatoires / optionnels,
+
+personnalisation par admin,
+
+adaptation par pays/profil.
+
+F. Gestion documentaire
+upload,
+
+preview,
+
+catégorisation,
+
+statut du document,
+
+historique,
+
+reviewer,
+
+motif de rejet,
+
+nouvelle version.
+
+G. Collaboration équipe
+commentaires visibles étudiant,
+
+notes internes équipe,
+
+mentions,
+
+demandes de correction,
+
+timeline d’échanges.
+
+H. Assignation
+assigner conseiller principal,
+
+assigner reviewer,
+
+file d’attente non assignée,
+
+vue charge de travail.
+
+I. Tâches
+auto-création à partir du workflow,
+
+tâches manuelles,
+
+échéances,
+
+priorités,
+
+rappels.
+
+J. Rendez-vous
+Campus France,
+
+TLS/VFS,
+
+autres,
+
+calendrier,
+
+alertes de proximité.
+
+K. Notifications
+email,
+
+in-app,
+
+architecture prête pour WhatsApp/SMS plus tard.
+
+L. Admin panel
+Construire un vrai back-office admin avec :
+
+gestion utilisateurs,
+
+gestion rôles,
+
+gestion pays,
+
+gestion écoles,
+
+gestion programmes,
+
+gestion workflows,
+
+gestion templates,
+
+reporting,
+
+audit logs,
+
+paramètres système.
+
+M. Scoring risque
+Calculer un score de risque dossier basé sur :
+
+documents manquants,
+
+retards,
+
+incohérences,
+
+historique de refus,
+
+absence de rendez-vous,
+
+absence d’étape critique validée.
+
+Afficher ce score dans les vues conseiller/admin.
+
+Modèle de données attendu
+Crée les modèles Prisma minimum pour :
+
+User
+
+Role
+
+Student
+
+StudentProfile
+
+School
+
+Program
+
+Country
+
+Workflow
+
+WorkflowStep
+
+StudentStep
+
+Checklist
+
+ChecklistItem
+
+Document
+
+DocumentReview
+
+Comment
+
+Task
+
+Appointment
+
+Notification
+
+AuditLog
+
+Template
+
+RiskScore
+
+Assignment
+
+Génère les relations propres entre ces entités.
+
+Permissions et sécurité
+Implémente un RBAC strict.
+
+Règles clés :
+
+un étudiant voit uniquement son dossier,
+
+un conseiller voit uniquement ses étudiants assignés,
+
+seuls reviewer/admin peuvent valider des documents,
+
+seuls admin/superadmin peuvent modifier les workflows,
+
+tout changement critique doit être enregistré dans AuditLog.
+
+UX/UI attendue
+Style :
+
+premium,
+
+clair,
+
+moderne,
+
+très lisible,
+
+professionnel,
+
+dashboard SaaS haut de gamme,
+
+excellent sur mobile.
+
+Créer :
+
+sidebar adaptée par rôle,
+
+topbar,
+
+cards KPI,
+
+tables filtrables,
+
+vues Kanban/list,
+
+timeline dossier,
+
+statuts colorés,
+
+composants de revue documentaire,
+
+formulaires soignés.
+
+Livrables attendus dans Replit
+Code complet de l’application
+
+Structure claire du projet
+
+Base Prisma
+
+Seed de données de démo
+
+Auth fonctionnelle
+
+Pages principales par rôle
+
+Dashboard étudiant
+
+Dashboard conseiller
+
+Admin panel
+
+Workflow engine initial
+
+Upload de documents
+
+Commentaires et notes internes
+
+Notifications in-app basiques
+
+Audit log
+
+README complet avec instructions d’installation et de déploiement
+
+Ordre d’exécution demandé
+Travaille dans cet ordre :
+
+définir l’architecture,
+
+créer le schéma Prisma,
+
+créer l’authentification et les rôles,
+
+créer le layout global,
+
+créer le dashboard étudiant,
+
+créer le dashboard conseiller,
+
+créer l’admin panel,
+
+créer le moteur de workflow,
+
+créer la gestion documentaire,
+
+créer la collaboration/commentaires,
+
+créer les notifications,
+
+créer le scoring risque,
+
+ajouter les seeds,
+
+finaliser avec README.
+
+Exigence finale
+Ne fais pas un simple prototype visuel.
+Construis une base réelle, cohérente, extensible et propre, avec un vrai back-office admin permettant à une équipe d’assister directement les étudiants dans leurs procédures visa.
+
+Commence par proposer :
+
+l’architecture du projet,
+
+le schéma de base de données,
+
+l’arborescence du code,
+
+puis implémente progressivement le produit.
