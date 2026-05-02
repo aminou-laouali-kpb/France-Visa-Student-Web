@@ -1,6 +1,6 @@
 import { pgTable, serial, integer, boolean, text, timestamp, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { studentsTable } from "./students";
 
 export const riskLevelEnum = pgEnum("risk_level", ["low", "medium", "high"]);

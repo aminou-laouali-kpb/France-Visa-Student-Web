@@ -1,6 +1,6 @@
 import { pgTable, serial, text, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const countriesTable = pgTable("countries", {
   id: serial("id").primaryKey(),

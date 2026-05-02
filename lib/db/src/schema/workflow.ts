@@ -1,6 +1,6 @@
 import { pgTable, serial, text, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { countriesTable } from "./countries";
 
 export const workflowTemplatesTable = pgTable("workflow_templates", {
