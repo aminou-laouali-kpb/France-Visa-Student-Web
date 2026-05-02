@@ -3,20 +3,52 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: VisaFlow France API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User management
+  - name: students
+    description: Student profiles and dossiers
+  - name: schools
+    description: Schools and programs
+  - name: countries
+    description: Countries
+  - name: workflows
+    description: Workflow templates
+  - name: student-steps
+    description: Student workflow steps
+  - name: checklists
+    description: Checklists
+  - name: documents
+    description: Document management
+  - name: comments
+    description: Comments and notes
+  - name: tasks
+    description: Tasks
+  - name: appointments
+    description: Appointments
+  - name: notifications
+    description: Notifications
+  - name: audit-logs
+    description: Audit logs
+  - name: risk-scores
+    description: Risk scoring
+  - name: dashboard
+    description: Dashboard summaries
+  - name: storage
+    description: File storage
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +56,1205 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── USERS ───────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfile"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  # ─── COUNTRIES ───────────────────────────────────────────────────────────────
+  /countries:
+    get:
+      operationId: listCountries
+      tags: [countries]
+      summary: List all countries
+      responses:
+        "200":
+          description: List of countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Country"
+    post:
+      operationId: createCountry
+      tags: [countries]
+      summary: Create country (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCountryBody"
+      responses:
+        "201":
+          description: Created country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Country"
+
+  /countries/{countryId}:
+    patch:
+      operationId: updateCountry
+      tags: [countries]
+      summary: Update country
+      parameters:
+        - name: countryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCountryBody"
+      responses:
+        "200":
+          description: Updated country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Country"
+
+  # ─── SCHOOLS ─────────────────────────────────────────────────────────────────
+  /schools:
+    get:
+      operationId: listSchools
+      tags: [schools]
+      summary: List all schools
+      responses:
+        "200":
+          description: List of schools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/School"
+    post:
+      operationId: createSchool
+      tags: [schools]
+      summary: Create school (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSchoolBody"
+      responses:
+        "201":
+          description: Created school
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/School"
+
+  /schools/{schoolId}:
+    get:
+      operationId: getSchool
+      tags: [schools]
+      summary: Get school with programs
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: School with programs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchoolWithPrograms"
+
+  /schools/{schoolId}/programs:
+    post:
+      operationId: createProgram
+      tags: [schools]
+      summary: Create program for school
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProgramBody"
+      responses:
+        "201":
+          description: Created program
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Program"
+
+  /programs:
+    get:
+      operationId: listPrograms
+      tags: [schools]
+      summary: List all programs
+      responses:
+        "200":
+          description: List of programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Program"
+
+  # ─── STUDENTS ────────────────────────────────────────────────────────────────
+  /students:
+    get:
+      operationId: listStudents
+      tags: [students]
+      summary: List students (advisor sees assigned, admin sees all)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: advisorId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: countryId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: schoolId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: riskLevel
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentSummary"
+    post:
+      operationId: createStudent
+      tags: [students]
+      summary: Create student with profile and generate workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStudentBody"
+      responses:
+        "201":
+          description: Created student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{studentId}:
+    get:
+      operationId: getStudent
+      tags: [students]
+      summary: Get full student dossier
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student dossier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentDossier"
+    patch:
+      operationId: updateStudent
+      tags: [students]
+      summary: Update student profile
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudentBody"
+      responses:
+        "200":
+          description: Updated student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{studentId}/assign:
+    patch:
+      operationId: assignStudent
+      tags: [students]
+      summary: Assign advisor/reviewer to student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignStudentBody"
+      responses:
+        "200":
+          description: Assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  # ─── WORKFLOW STEPS ──────────────────────────────────────────────────────────
+  /students/{studentId}/steps:
+    get:
+      operationId: listStudentSteps
+      tags: [student-steps]
+      summary: List workflow steps for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student steps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentStep"
+
+  /students/{studentId}/steps/{stepId}:
+    patch:
+      operationId: updateStudentStep
+      tags: [student-steps]
+      summary: Update a student's workflow step status
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudentStepBody"
+      responses:
+        "200":
+          description: Updated step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentStep"
+
+  # ─── CHECKLISTS ──────────────────────────────────────────────────────────────
+  /students/{studentId}/steps/{stepId}/checklist:
+    get:
+      operationId: getStepChecklist
+      tags: [checklists]
+      summary: Get checklist items for a step
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Checklist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChecklistItem"
+
+  /students/{studentId}/checklist-items/{itemId}:
+    patch:
+      operationId: updateChecklistItem
+      tags: [checklists]
+      summary: Toggle or update checklist item
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChecklistItemBody"
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItem"
+
+  # ─── DOCUMENTS ───────────────────────────────────────────────────────────────
+  /students/{studentId}/documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List documents for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Create document record after upload
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDocumentBody"
+      responses:
+        "201":
+          description: Created document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /students/{studentId}/documents/{documentId}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get document details
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    patch:
+      operationId: updateDocument
+      tags: [documents]
+      summary: Update document status
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentBody"
+      responses:
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /students/{studentId}/documents/{documentId}/review:
+    post:
+      operationId: reviewDocument
+      tags: [documents]
+      summary: Submit document review (validate or reject)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewDocumentBody"
+      responses:
+        "201":
+          description: Review submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentReview"
+
+  # ─── STORAGE ─────────────────────────────────────────────────────────────────
+  /storage/upload-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Request a presigned upload URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUploadUrlBody"
+      responses:
+        "200":
+          description: Presigned URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+
+  /storage/objects/{objectPath}:
+    get:
+      operationId: getObjectUrl
+      tags: [storage]
+      summary: Get a signed download URL for an object
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Signed download URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DownloadUrlResponse"
+
+  # ─── COMMENTS ────────────────────────────────────────────────────────────────
+  /students/{studentId}/comments:
+    get:
+      operationId: listComments
+      tags: [comments]
+      summary: List comments for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: internal
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createComment
+      tags: [comments]
+      summary: Create comment on student dossier
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /students/{studentId}/comments/{commentId}:
+    delete:
+      operationId: deleteComment
+      tags: [comments]
+      summary: Delete a comment
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── TASKS ───────────────────────────────────────────────────────────────────
+  /students/{studentId}/tasks:
+    get:
+      operationId: listStudentTasks
+      tags: [tasks]
+      summary: List tasks for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create task for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskBody"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/my:
+    get:
+      operationId: listMyTasks
+      tags: [tasks]
+      summary: List tasks assigned to the current advisor
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: My tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  # ─── APPOINTMENTS ────────────────────────────────────────────────────────────
+  /students/{studentId}/appointments:
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: List appointments for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+    post:
+      operationId: createAppointment
+      tags: [appointments]
+      summary: Create appointment for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAppointmentBody"
+      responses:
+        "201":
+          description: Created appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /appointments/{appointmentId}:
+    patch:
+      operationId: updateAppointment
+      tags: [appointments]
+      summary: Update appointment
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAppointmentBody"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+    delete:
+      operationId: deleteAppointment
+      tags: [appointments]
+      summary: Delete appointment
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications for current user
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── AUDIT LOGS ──────────────────────────────────────────────────────────────
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit-logs]
+      summary: List audit logs (admin)
+      parameters:
+        - name: studentId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: userId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+
+  # ─── RISK SCORES ─────────────────────────────────────────────────────────────
+  /students/{studentId}/risk-score:
+    get:
+      operationId: getStudentRiskScore
+      tags: [risk-scores]
+      summary: Get risk score for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Risk score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskScore"
+    post:
+      operationId: recalculateRiskScore
+      tags: [risk-scores]
+      summary: Recalculate risk score for student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated risk score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskScore"
+
+  # ─── DASHBOARD ───────────────────────────────────────────────────────────────
+  /dashboard/student:
+    get:
+      operationId: getStudentDashboard
+      tags: [dashboard]
+      summary: Student's own dashboard summary
+      responses:
+        "200":
+          description: Student dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentDashboard"
+
+  /dashboard/advisor:
+    get:
+      operationId: getAdvisorDashboard
+      tags: [dashboard]
+      summary: Advisor dashboard — portfolio overview
+      responses:
+        "200":
+          description: Advisor dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdvisorDashboard"
+
+  /dashboard/admin:
+    get:
+      operationId: getAdminDashboard
+      tags: [dashboard]
+      summary: Admin global dashboard
+      responses:
+        "200":
+          description: Admin dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  /dashboard/portfolio:
+    get:
+      operationId: getPortfolioStats
+      tags: [dashboard]
+      summary: Portfolio statistics by country/school/step
+      responses:
+        "200":
+          description: Portfolio stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioStats"
+
+  # ─── WORKFLOWS (ADMIN CONFIG) ─────────────────────────────────────────────────
+  /workflow-templates:
+    get:
+      operationId: listWorkflowTemplates
+      tags: [workflows]
+      summary: List workflow templates
+      responses:
+        "200":
+          description: Templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowTemplate"
+    post:
+      operationId: createWorkflowTemplate
+      tags: [workflows]
+      summary: Create workflow template (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowTemplateBody"
+      responses:
+        "201":
+          description: Created template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowTemplate"
+
+  /workflow-templates/{templateId}/steps:
+    get:
+      operationId: listWorkflowTemplateSteps
+      tags: [workflows]
+      summary: List steps for a workflow template
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Steps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowStep"
+    post:
+      operationId: createWorkflowStep
+      tags: [workflows]
+      summary: Create workflow step
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowStepBody"
+      responses:
+        "201":
+          description: Created step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowStep"
+
+  /workflow-steps/{stepId}:
+    patch:
+      operationId: updateWorkflowStep
+      tags: [workflows]
+      summary: Update workflow step (admin)
+      parameters:
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkflowStepBody"
+      responses:
+        "200":
+          description: Updated step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowStep"
+
 components:
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +1264,1299 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    # ── User ──────────────────────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [student, advisor, reviewer, admin, superadmin]
+        avatarUrl:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - clerkId
+        - email
+        - firstName
+        - lastName
+        - role
+        - isActive
+        - createdAt
+
+    UpdateUserBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        isActive:
+          type: boolean
+
+    # ── Country ───────────────────────────────────────────────────────────────
+    Country:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        requiresCampusFrance:
+          type: boolean
+        visaCenter:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - code
+        - requiresCampusFrance
+
+    CreateCountryBody:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        requiresCampusFrance:
+          type: boolean
+        visaCenter:
+          type: string
+      required:
+        - name
+        - code
+        - requiresCampusFrance
+
+    # ── School ────────────────────────────────────────────────────────────────
+    School:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - city
+
+    SchoolWithPrograms:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+        programs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Program"
+      required:
+        - id
+        - name
+        - city
+        - programs
+
+    CreateSchoolBody:
+      type: object
+      properties:
+        name:
+          type: string
+        city:
+          type: string
+        website:
+          type: string
+        logoUrl:
+          type: string
+      required:
+        - name
+        - city
+
+    Program:
+      type: object
+      properties:
+        id:
+          type: integer
+        schoolId:
+          type: integer
+        name:
+          type: string
+        level:
+          type: string
+        duration:
+          type: ["string", "null"]
+      required:
+        - id
+        - schoolId
+        - name
+        - level
+
+    CreateProgramBody:
+      type: object
+      properties:
+        name:
+          type: string
+        level:
+          type: string
+        duration:
+          type: string
+      required:
+        - name
+        - level
+
+    # ── Student ───────────────────────────────────────────────────────────────
+    StudentSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        nationalityCode:
+          type: ["string", "null"]
+        countryId:
+          type: ["integer", "null"]
+        countryName:
+          type: ["string", "null"]
+        schoolId:
+          type: ["integer", "null"]
+        schoolName:
+          type: ["string", "null"]
+        programId:
+          type: ["integer", "null"]
+        programName:
+          type: ["string", "null"]
+        advisorId:
+          type: ["integer", "null"]
+        advisorName:
+          type: ["string", "null"]
+        status:
+          type: string
+        completionScore:
+          type: integer
+        riskLevel:
+          type: ["string", "null"]
+        riskScore:
+          type: ["integer", "null"]
+        intakeDate:
+          type: ["string", "null"]
+        currentStepName:
+          type: ["string", "null"]
+        lastActivityAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - status
+        - completionScore
+        - createdAt
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
+        gender:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        nationalityCode:
+          type: ["string", "null"]
+        countryId:
+          type: ["integer", "null"]
+        schoolId:
+          type: ["integer", "null"]
+        programId:
+          type: ["integer", "null"]
+        advisorId:
+          type: ["integer", "null"]
+        reviewerId:
+          type: ["integer", "null"]
+        status:
+          type: string
+        completionScore:
+          type: integer
+        intakeDate:
+          type: ["string", "null"]
+        passportNumber:
+          type: ["string", "null"]
+        passportExpiry:
+          type: ["string", "null"]
+        financingType:
+          type: ["string", "null"]
+        hasVisaRefusalHistory:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - status
+        - completionScore
+        - hasVisaRefusalHistory
+        - createdAt
+
+    StudentDossier:
+      type: object
+      properties:
+        student:
+          $ref: "#/components/schemas/Student"
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentStep"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        appointments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
+        riskScore:
+          $ref: "#/components/schemas/RiskScore"
+        advisor:
+          $ref: "#/components/schemas/UserProfile"
+        country:
+          $ref: "#/components/schemas/Country"
+        school:
+          $ref: "#/components/schemas/School"
+        program:
+          $ref: "#/components/schemas/Program"
+      required:
+        - student
+        - steps
+        - documents
+        - comments
+        - tasks
+        - appointments
+
+    CreateStudentBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        whatsapp:
+          type: string
+        gender:
+          type: string
+        dateOfBirth:
+          type: string
+        nationalityCode:
+          type: string
+        countryId:
+          type: integer
+        schoolId:
+          type: integer
+        programId:
+          type: integer
+        intakeDate:
+          type: string
+        passportNumber:
+          type: string
+        passportExpiry:
+          type: string
+        financingType:
+          type: string
+        hasVisaRefusalHistory:
+          type: boolean
+      required:
+        - firstName
+        - lastName
+        - email
+        - countryId
+
+    UpdateStudentBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        whatsapp:
+          type: string
+        gender:
+          type: string
+        dateOfBirth:
+          type: string
+        nationalityCode:
+          type: string
+        countryId:
+          type: integer
+        schoolId:
+          type: integer
+        programId:
+          type: integer
+        intakeDate:
+          type: string
+        passportNumber:
+          type: string
+        passportExpiry:
+          type: string
+        financingType:
+          type: string
+        hasVisaRefusalHistory:
+          type: boolean
+        status:
+          type: string
+
+    AssignStudentBody:
+      type: object
+      properties:
+        advisorId:
+          type: ["integer", "null"]
+        reviewerId:
+          type: ["integer", "null"]
+
+    # ── Workflow Steps ────────────────────────────────────────────────────────
+    StudentStep:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        workflowStepId:
+          type: integer
+        stepName:
+          type: string
+        stepOrder:
+          type: integer
+        status:
+          type: string
+          enum: [not_started, in_progress, submitted, under_review, blocked, validated, rejected]
+        isCampusFranceStep:
+          type: boolean
+        isRequired:
+          type: boolean
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        blockedReason:
+          type: ["string", "null"]
+        overrideJustification:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - workflowStepId
+        - stepName
+        - stepOrder
+        - status
+        - isCampusFranceStep
+        - isRequired
+        - updatedAt
+
+    UpdateStudentStepBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [not_started, in_progress, submitted, under_review, blocked, validated, rejected]
+        blockedReason:
+          type: string
+        overrideJustification:
+          type: string
+        notes:
+          type: string
+      required:
+        - status
+
+    # ── Checklist ─────────────────────────────────────────────────────────────
+    ChecklistItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        workflowStepId:
+          type: integer
+        studentId:
+          type: integer
+        label:
+          type: string
+        isRequired:
+          type: boolean
+        isChecked:
+          type: boolean
+        checkedAt:
+          type: ["string", "null"]
+          format: date-time
+        checkedBy:
+          type: ["integer", "null"]
+        order:
+          type: integer
+      required:
+        - id
+        - workflowStepId
+        - studentId
+        - label
+        - isRequired
+        - isChecked
+        - order
+
+    UpdateChecklistItemBody:
+      type: object
+      properties:
+        isChecked:
+          type: boolean
+      required:
+        - isChecked
+
+    # ── Document ──────────────────────────────────────────────────────────────
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        uploadedById:
+          type: ["integer", "null"]
+        category:
+          type: string
+        name:
+          type: string
+        fileName:
+          type: string
+        objectPath:
+          type: string
+        mimeType:
+          type: ["string", "null"]
+        sizeBytes:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [missing, received, under_review, validated, rejected]
+        version:
+          type: integer
+        rejectionReason:
+          type: ["string", "null"]
+        reviewedById:
+          type: ["integer", "null"]
+        reviewedAt:
+          type: ["string", "null"]
+          format: date-time
+        uploadedAt:
+          type: string
+          format: date-time
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentReview"
+      required:
+        - id
+        - studentId
+        - category
+        - name
+        - fileName
+        - objectPath
+        - status
+        - version
+        - uploadedAt
+
+    CreateDocumentBody:
+      type: object
+      properties:
+        category:
+          type: string
+        name:
+          type: string
+        fileName:
+          type: string
+        objectPath:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+      required:
+        - category
+        - name
+        - fileName
+        - objectPath
+
+    UpdateDocumentBody:
+      type: object
+      properties:
+        status:
+          type: string
+        rejectionReason:
+          type: string
+        name:
+          type: string
+
+    DocumentReview:
+      type: object
+      properties:
+        id:
+          type: integer
+        documentId:
+          type: integer
+        reviewerId:
+          type: integer
+        reviewerName:
+          type: string
+        decision:
+          type: string
+          enum: [validated, rejected]
+        comment:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - documentId
+        - reviewerId
+        - reviewerName
+        - decision
+        - createdAt
+
+    ReviewDocumentBody:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum: [validated, rejected]
+        comment:
+          type: string
+        rejectionReason:
+          type: string
+      required:
+        - decision
+
+    # ── Storage ───────────────────────────────────────────────────────────────
+    RequestUploadUrlBody:
+      type: object
+      properties:
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        studentId:
+          type: integer
+        category:
+          type: string
+      required:
+        - fileName
+        - mimeType
+        - studentId
+        - category
+
+    UploadUrlResponse:
+      type: object
+      properties:
+        uploadUrl:
+          type: string
+        objectPath:
+          type: string
+      required:
+        - uploadUrl
+        - objectPath
+
+    DownloadUrlResponse:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+      required:
+        - downloadUrl
+
+    # ── Comment ───────────────────────────────────────────────────────────────
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        authorRole:
+          type: string
+        content:
+          type: string
+        isInternal:
+          type: boolean
+        isCorrectionRequest:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - authorId
+        - authorName
+        - authorRole
+        - content
+        - isInternal
+        - isCorrectionRequest
+        - createdAt
+
+    CreateCommentBody:
+      type: object
+      properties:
+        content:
+          type: string
+        isInternal:
+          type: boolean
+        isCorrectionRequest:
+          type: boolean
+      required:
+        - content
+
+    # ── Task ──────────────────────────────────────────────────────────────────
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        studentName:
+          type: ["string", "null"]
+        assignedToId:
+          type: ["integer", "null"]
+        assignedToName:
+          type: ["string", "null"]
+        createdById:
+          type: ["integer", "null"]
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, in_progress, done, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        dueDate:
+          type: ["string", "null"]
+          format: date-time
+        isAutoCreated:
+          type: boolean
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - title
+        - status
+        - priority
+        - isAutoCreated
+        - createdAt
+
+    CreateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        assignedToId:
+          type: integer
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        dueDate:
+          type: string
+          format: date-time
+      required:
+        - title
+
+    UpdateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, done, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        assignedToId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+
+    # ── Appointment ───────────────────────────────────────────────────────────
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        type:
+          type: string
+          enum: [campus_france, tls_vfs, other]
+        title:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        location:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [upcoming, completed, cancelled, missed]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - type
+        - title
+        - scheduledAt
+        - status
+        - createdAt
+
+    CreateAppointmentBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [campus_france, tls_vfs, other]
+        title:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        location:
+          type: string
+        notes:
+          type: string
+      required:
+        - type
+        - title
+        - scheduledAt
+
+    UpdateAppointmentBody:
+      type: object
+      properties:
+        title:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        location:
+          type: string
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, completed, cancelled, missed]
+
+    # ── Notification ──────────────────────────────────────────────────────────
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        studentId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - message
+        - type
+        - isRead
+        - createdAt
+
+    # ── Audit Log ─────────────────────────────────────────────────────────────
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        userName:
+          type: ["string", "null"]
+        studentId:
+          type: ["integer", "null"]
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        details:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - action
+        - entityType
+        - createdAt
+
+    # ── Risk Score ────────────────────────────────────────────────────────────
+    RiskScore:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        score:
+          type: integer
+        level:
+          type: string
+          enum: [low, medium, high]
+        missingDocuments:
+          type: integer
+        overdueTasks:
+          type: integer
+        rejectedDocuments:
+          type: integer
+        missingCampusFrance:
+          type: boolean
+        missingAppointments:
+          type: boolean
+        hasVisaRefusal:
+          type: boolean
+        recommendations:
+          type: array
+          items:
+            type: string
+        calculatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - score
+        - level
+        - missingDocuments
+        - overdueTasks
+        - rejectedDocuments
+        - missingCampusFrance
+        - missingAppointments
+        - hasVisaRefusal
+        - recommendations
+        - calculatedAt
+
+    # ── Dashboard ─────────────────────────────────────────────────────────────
+    StudentDashboard:
+      type: object
+      properties:
+        studentId:
+          type: integer
+        completionScore:
+          type: integer
+        totalSteps:
+          type: integer
+        completedSteps:
+          type: integer
+        currentStep:
+          $ref: "#/components/schemas/StudentStep"
+        nextActions:
+          type: array
+          items:
+            type: string
+        missingDocumentCount:
+          type: integer
+        pendingTaskCount:
+          type: integer
+        upcomingAppointments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
+        recentComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        riskScore:
+          $ref: "#/components/schemas/RiskScore"
+        alerts:
+          type: array
+          items:
+            type: string
+      required:
+        - studentId
+        - completionScore
+        - totalSteps
+        - completedSteps
+        - missingDocumentCount
+        - pendingTaskCount
+        - upcomingAppointments
+        - recentComments
+        - alerts
+        - nextActions
+
+    AdvisorDashboard:
+      type: object
+      properties:
+        totalStudents:
+          type: integer
+        lateStudents:
+          type: integer
+        blockedStudents:
+          type: integer
+        documentsAwaitingReview:
+          type: integer
+        highRiskStudents:
+          type: integer
+        todayAppointments:
+          type: integer
+        unresponsiveStudents:
+          type: integer
+        urgentStudents:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentSummary"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+      required:
+        - totalStudents
+        - lateStudents
+        - blockedStudents
+        - documentsAwaitingReview
+        - highRiskStudents
+        - todayAppointments
+        - unresponsiveStudents
+        - urgentStudents
+        - recentActivity
+
+    AdminDashboard:
+      type: object
+      properties:
+        totalStudents:
+          type: integer
+        totalAdvisors:
+          type: integer
+        totalReviewers:
+          type: integer
+        studentsWithVisa:
+          type: integer
+        studentsInProgress:
+          type: integer
+        studentsBlocked:
+          type: integer
+        avgCompletionScore:
+          type: integer
+        highRiskCount:
+          type: integer
+        byCountry:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        bySchool:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        byStep:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        byAdvisor:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        recentAuditLogs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+      required:
+        - totalStudents
+        - totalAdvisors
+        - totalReviewers
+        - studentsWithVisa
+        - studentsInProgress
+        - studentsBlocked
+        - avgCompletionScore
+        - highRiskCount
+        - byCountry
+        - bySchool
+        - byStep
+        - byAdvisor
+        - recentAuditLogs
+
+    PortfolioStats:
+      type: object
+      properties:
+        byStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        byRiskLevel:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        byCountry:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        bySchool:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        byIntakeMonth:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+      required:
+        - byStatus
+        - byRiskLevel
+        - byCountry
+        - bySchool
+        - byIntakeMonth
+
+    CountStat:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+      required:
+        - label
+        - count
+        - percentage
+
+    # ── Workflow Template ─────────────────────────────────────────────────────
+    WorkflowTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        isDefault:
+          type: boolean
+        countryId:
+          type: ["integer", "null"]
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - isDefault
+        - version
+        - createdAt
+
+    CreateWorkflowTemplateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        countryId:
+          type: integer
+        isDefault:
+          type: boolean
+      required:
+        - name
+
+    WorkflowStep:
+      type: object
+      properties:
+        id:
+          type: integer
+        workflowTemplateId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        order:
+          type: integer
+        isCampusFranceStep:
+          type: boolean
+        isRequired:
+          type: boolean
+        isActive:
+          type: boolean
+        requiredDocumentCategories:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - workflowTemplateId
+        - name
+        - order
+        - isCampusFranceStep
+        - isRequired
+        - isActive
+
+    CreateWorkflowStepBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+        isCampusFranceStep:
+          type: boolean
+        isRequired:
+          type: boolean
+        requiredDocumentCategories:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - order
+
+    UpdateWorkflowStepBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+        isCampusFranceStep:
+          type: boolean
+        isRequired:
+          type: boolean
+        isActive:
+          type: boolean
+        requiredDocumentCategories:
+          type: array
+          items:
+            type: string

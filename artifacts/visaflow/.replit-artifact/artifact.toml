@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "VisaFlow France"
+version = "1.0.0"
+id = "artifacts/visaflow"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19611
+
+[services.development]
+run = "pnpm --filter @workspace/visaflow run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/visaflow", "run", "build" ]
+publicDir = "artifacts/visaflow/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19611"
+BASE_PATH = "/"
