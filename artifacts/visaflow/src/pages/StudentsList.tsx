@@ -9,8 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Search, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export function StudentsList() {
+  const { t: tr } = useTranslation();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const { data: students = [], isLoading } = useListStudents(
@@ -26,7 +28,7 @@ export function StudentsList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Étudiants</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{tr("students.title")}</h1>
         <Link href="/app/students/new">
           <Button data-testid="button-new-student">
             <Plus className="w-4 h-4 mr-2" /> Nouveau dossier

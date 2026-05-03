@@ -6,6 +6,7 @@ import type {
   StudentSummary,
 } from "@/types";
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 
 export function Dashboard() {
+  const { t: tr } = useTranslation();
   const { data: me } = useGetMe();
   const role = me?.role;
 
@@ -38,6 +40,7 @@ export function Dashboard() {
 }
 
 function StudentDashboard() {
+  const { t: tr } = useTranslation();
   const { data: raw, isLoading } = useGetStudentDashboard();
   const data = raw as unknown as StudentDashboardData | undefined;
   if (isLoading) return <div>Chargement…</div>;
@@ -47,7 +50,7 @@ function StudentDashboard() {
       <Card>
         <CardContent className="p-12 text-center">
           <GraduationCap className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Bienvenue sur VisaFlow !</h2>
+          <h2 className="text-xl font-semibold mb-2">{tr("dashboard.welcome")}</h2>
           <p className="text-slate-600 mb-6">
             Créons votre dossier visa étudiant pour démarrer votre parcours en France.
           </p>
@@ -64,7 +67,7 @@ function StudentDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mon parcours</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{tr("dashboard.myJourney")}</h1>
         <p className="text-slate-600 mt-1">
           {data.completedSteps} sur {data.totalSteps} étapes validées
         </p>
@@ -296,13 +299,14 @@ function AdvisorDashboard() {
 }
 
 function AdminDashboard() {
+  const { t: tr } = useTranslation();
   const { data, isLoading } = useGetAdminDashboard();
   if (isLoading) return <div>Chargement…</div>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Centre de pilotage</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{tr("dashboard.controlCenter")}</h1>
         <p className="text-slate-600 mt-1">Vue globale de la plateforme</p>
       </div>
 

@@ -54,7 +54,7 @@
     "pt": "Português"
   },
   "notifications": {
-    "title": "Preferências de notificação",
+    "title": "Notificações",
     "subtitle": "Escolha como receber alertas do dossier.",
     "email": "E-mail",
     "sms": "SMS",
@@ -110,5 +110,18 @@
     "subscribeGoogle": "Subscrever com Google",
     "subscribeOutlook": "Subscrever com Outlook",
     "tokenWarning": "Este link concede acesso só de leitura ao seu calendário. Não o partilhe."
+  },
+  "tasks": {
+    "title": "As minhas tarefas",
+    "empty": "Sem tarefas pendentes",
+    "done": "Concluídas"
+  },
+  "students": {
+    "title": "Estudantes"
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo ao VisaFlow!",
+    "myJourney": "O meu percurso",
+    "controlCenter": "Centro de controlo"
   }
 }

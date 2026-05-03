@@ -4,8 +4,10 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate } from "@/lib/utils";
 import type { Task } from "@/types";
 import type { UpdateTaskBody } from "@workspace/api-client-react";
+import { useTranslation } from "react-i18next";
 
 export function MyTasks() {
+  const { t: tr } = useTranslation();
   const { data: tasksRaw = [], refetch } = useListMyTasks({});
   const tasks = tasksRaw as unknown as Task[];
   const update = useUpdateTask();
@@ -20,7 +22,7 @@ export function MyTasks() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-slate-900">Mes tâches</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{tr("tasks.title")}</h1>
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
@@ -47,7 +49,7 @@ export function MyTasks() {
               </div>
             ))}
             {pending.length === 0 && (
-              <div className="p-8 text-center text-slate-500">Aucune tâche en cours</div>
+              <div className="p-8 text-center text-slate-500">{tr("tasks.empty")}</div>
             )}
           </div>
         </CardContent>
@@ -55,7 +57,7 @@ export function MyTasks() {
 
       {done.length > 0 && (
         <>
-          <h2 className="text-xl font-semibold mt-8">Terminées</h2>
+          <h2 className="text-xl font-semibold mt-8">{tr("tasks.done")}</h2>
           <Card>
             <CardContent className="p-0">
               <div className="divide-y">

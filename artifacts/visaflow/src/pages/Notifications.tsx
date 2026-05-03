@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Bell, CheckCheck } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import type { NotificationItem } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export function Notifications() {
+  const { t: tr } = useTranslation();
   const { data: notifsRaw = [], refetch } = useListNotifications({});
   const notifs = notifsRaw as unknown as NotificationItem[];
   const markRead = useMarkNotificationRead();
@@ -18,7 +20,7 @@ export function Notifications() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Notifications</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{tr("notifications.title")}</h1>
         <Button
           variant="outline"
           onClick={async () => {

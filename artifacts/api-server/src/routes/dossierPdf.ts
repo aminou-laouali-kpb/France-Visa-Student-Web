@@ -294,18 +294,48 @@ router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => 
   });
   for (const d of sortedDocs) {
     if (!d.objectPath) continue;
-    const isPdf =
-      (d.mimeType ?? "").toLowerCase() === "application/pdf" ||
-      (d.fileName ?? "").toLowerCase().endsWith(".pdf");
-    if (!isPdf) continue;
+    const mime = (d.mimeType ?? "").toLowerCase();
+    const name = (d.fileName ?? "").toLowerCase();
+    const isPdf = mime === "application/pdf" || name.endsWith(".pdf");
+    const isJpeg = mime.startsWith("image/jpeg") || name.endsWith(".jpg") || name.endsWith(".jpeg");
+    const isPng = mime.startsWith("image/png") || name.endsWith(".png");
     const buf = await fetchObjectBuffer(d.objectPath);
     if (!buf) continue;
     try {
-      const src = await PdfLibDocument.load(buf, { ignoreEncryption: true });
-      const pages = await merged.copyPages(src, src.getPageIndices());
-      for (const p of pages) merged.addPage(p);
+      if (isPdf) {
+        const src = await PdfLibDocument.load(buf, { ignoreEncryption: true });
+        const pages = await merged.copyPages(src, src.getPageIndices());
+        for (const p of pages) merged.addPage(p);
+      } else if (isJpeg || isPng) {
+        // Wrap raster attachments into A4 pages so the dossier truly bundles
+        // every required document, not just PDFs.
+        const img = isJpeg ? await merged.embedJpg(buf) : await merged.embedPng(buf);
+        const a4w = 595.28;
+        const a4h = 841.89;
+        const margin = 36;
+        const maxW = a4w - margin * 2;
+        const maxH = a4h - margin * 2 - 20;
+        const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const page = merged.addPage([a4w, a4h]);
+        page.drawText(`${d.category ?? ""} — ${d.fileName ?? ""}`, {
+          x: margin,
+          y: a4h - margin,
+          size: 9,
+        });
+        page.drawImage(img, {
+          x: (a4w - w) / 2,
+          y: (a4h - h) / 2 - 10,
+          width: w,
+          height: h,
+        });
+      }
+      // Other binary types (docx, xlsx, etc.) remain referenced by URL in the
+      // documents section above — embedding them losslessly would require
+      // server-side conversion which is out of scope.
     } catch (err) {
-      logger.warn({ err, documentId: d.id, studentId: id }, "dossier: failed to merge document PDF");
+      logger.warn({ err, documentId: d.id, studentId: id }, "dossier: failed to merge document");
     }
   }
 

@@ -54,7 +54,7 @@
     "pt": "البرتغالية"
   },
   "notifications": {
-    "title": "تفضيلات الإشعارات",
+    "title": "الإشعارات",
     "subtitle": "اختر طريقة استلام تنبيهات الملف.",
     "email": "البريد الإلكتروني",
     "sms": "رسالة قصيرة",
@@ -110,5 +110,18 @@
     "subscribeGoogle": "الاشتراك عبر Google",
     "subscribeOutlook": "الاشتراك عبر Outlook",
     "tokenWarning": "يمنح هذا الرابط حق الوصول للقراءة فقط لتقويمك. لا تشاركه."
+  },
+  "tasks": {
+    "title": "مهامي",
+    "empty": "لا توجد مهام قيد الإنجاز",
+    "done": "مكتملة"
+  },
+  "students": {
+    "title": "الطلاب"
+  },
+  "dashboard": {
+    "welcome": "مرحباً بك في VisaFlow!",
+    "myJourney": "مساري",
+    "controlCenter": "مركز التحكم"
   }
 }
