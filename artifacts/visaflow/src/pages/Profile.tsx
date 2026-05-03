@@ -28,6 +28,7 @@ import { ShieldCheck, ShieldOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function TwoFactorSection() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data: status, refetch } = useQuery({
     queryKey: ["me", "2fa"],
@@ -94,16 +95,14 @@ function TwoFactorSection() {
           ) : (
             <ShieldOff className="w-4 h-4 text-slate-400" />
           )}
-          Authentification à deux facteurs (2FA)
+          {t("twofa.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {status?.enabled ? (
           <>
-            <p className="text-emerald-700">
-              La 2FA TOTP est activée sur votre compte.
-            </p>
-            <Label>Saisissez un code pour la désactiver</Label>
+            <p className="text-emerald-700">{t("twofa.enabled")}</p>
+            <Label>{t("twofa.disableLabel")}</Label>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -113,15 +112,12 @@ function TwoFactorSection() {
               data-testid="input-2fa-disable-code"
             />
             <Button variant="outline" onClick={disable} disabled={busy || code.length !== 6}>
-              Désactiver la 2FA
+              {t("twofa.disableBtn")}
             </Button>
           </>
         ) : enrolling ? (
           <>
-            <p className="text-slate-700">
-              Scannez ce QR code avec Google Authenticator, 1Password ou Authy,
-              puis entrez le code à 6 chiffres ci-dessous.
-            </p>
+            <p className="text-slate-700">{t("twofa.scanHint")}</p>
             {enrolling.qrDataUrl ? (
               <img
                 src={enrolling.qrDataUrl}
@@ -131,13 +127,13 @@ function TwoFactorSection() {
             ) : null}
             <details>
               <summary className="text-xs text-slate-500 cursor-pointer">
-                Saisie manuelle du secret
+                {t("twofa.manualSecret")}
               </summary>
               <code className="text-xs block mt-1 p-2 bg-slate-100 rounded break-all">
                 {enrolling.secret}
               </code>
             </details>
-            <Label>Code à 6 chiffres</Label>
+            <Label>{t("twofa.codeLabel")}</Label>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -148,21 +144,18 @@ function TwoFactorSection() {
             />
             <div className="flex gap-2">
               <Button onClick={verifyEnroll} disabled={busy || code.length !== 6}>
-                Confirmer
+                {t("twofa.confirm")}
               </Button>
               <Button variant="outline" onClick={() => setEnrolling(null)}>
-                Annuler
+                {t("twofa.cancel")}
               </Button>
             </div>
           </>
         ) : (
           <>
-            <p className="text-slate-600">
-              Renforcez la sécurité de votre compte avec un code à 6 chiffres
-              généré par votre application d'authentification.
-            </p>
+            <p className="text-slate-600">{t("twofa.enrollHint")}</p>
             <Button onClick={startEnroll} disabled={busy} data-testid="btn-2fa-enroll">
-              Activer la 2FA
+              {t("twofa.enrollBtn")}
             </Button>
           </>
         )}
@@ -170,7 +163,7 @@ function TwoFactorSection() {
         <div className="pt-3 border-t mt-3">
           <Link href="/app/privacy">
             <a className="text-sm text-blue-600 hover:underline">
-              Confidentialité & RGPD →
+              {t("twofa.privacyLink")}
             </a>
           </Link>
         </div>
@@ -441,10 +434,7 @@ function NotificationPrefsSection() {
         <CardTitle className="text-base">{t("profile.notificationPrefs")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-slate-600">
-          Choisissez comment recevoir les alertes du dossier. Les notifications dans
-          l'application restent toujours actives.
-        </p>
+        <p className="text-sm text-slate-600">{t("notifyPrefs.hint")}</p>
         <label className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -452,7 +442,7 @@ function NotificationPrefsSection() {
             onChange={(e) => setForm({ ...form, notifyEmail: e.target.checked })}
             data-testid="checkbox-notify-email"
           />
-          <span>Courriel</span>
+          <span>{t("notifyPrefs.email")}</span>
         </label>
         <label className="flex items-center gap-3">
           <input
@@ -461,7 +451,7 @@ function NotificationPrefsSection() {
             onChange={(e) => setForm({ ...form, notifySms: e.target.checked })}
             data-testid="checkbox-notify-sms"
           />
-          <span>SMS</span>
+          <span>{t("notifyPrefs.sms")}</span>
         </label>
         <label className="flex items-center gap-3">
           <input
@@ -470,10 +460,10 @@ function NotificationPrefsSection() {
             onChange={(e) => setForm({ ...form, notifyWhatsapp: e.target.checked })}
             data-testid="checkbox-notify-whatsapp"
           />
-          <span>WhatsApp</span>
+          <span>{t("notifyPrefs.whatsapp")}</span>
         </label>
         <div>
-          <Label>Numéro de téléphone (SMS)</Label>
+          <Label>{t("notifyPrefs.phoneLabel")}</Label>
           <Input
             value={form.phone ?? ""}
             placeholder="+33612345678"
@@ -482,7 +472,7 @@ function NotificationPrefsSection() {
           />
         </div>
         <div>
-          <Label>Numéro WhatsApp (optionnel)</Label>
+          <Label>{t("notifyPrefs.whatsappLabel")}</Label>
           <Input
             value={form.whatsappNumber ?? ""}
             placeholder="+33612345678"
@@ -494,10 +484,10 @@ function NotificationPrefsSection() {
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={save} disabled={saving} data-testid="button-save-notify-prefs">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("notifyPrefs.saving") : t("notifyPrefs.save")}
           </Button>
           {savedAt && (
-            <span className="text-xs text-emerald-600">Enregistré ✓</span>
+            <span className="text-xs text-emerald-600">{t("notifyPrefs.saved")}</span>
           )}
         </div>
       </CardContent>

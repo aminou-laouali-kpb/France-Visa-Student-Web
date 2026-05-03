@@ -13,6 +13,7 @@ import { formatDateTime } from "@/lib/utils";
 import { MessageSquare, AlertCircle } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { CommentBody } from "@/components/CommentBubble";
+import { useTranslation } from "react-i18next";
 
 export function StudentMessages() {
   return (
@@ -23,6 +24,7 @@ export function StudentMessages() {
 }
 
 function Inner() {
+  const { t } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data: me } = useGetMe();
@@ -45,16 +47,16 @@ function Inner() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mes messages</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("messages.title")}</h1>
         <p className="text-slate-600 mt-1">
-          Échangez avec votre conseiller.
+          {t("messages.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardContent className="p-4 space-y-3">
           <Textarea
-            placeholder="Écrire un message…"
+            placeholder={t("messages.placeholder")}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
@@ -66,7 +68,7 @@ function Inner() {
               disabled={!content.trim()}
               data-testid="button-send-comment"
             >
-              Envoyer
+              {t("common.send")}
             </Button>
           </div>
         </CardContent>
@@ -94,7 +96,7 @@ function Inner() {
                   )}
                   <span>{formatDateTime(c.createdAt)}</span>
                   {mine && (
-                    <span className="font-medium text-slate-700">Moi</span>
+                    <span className="font-medium text-slate-700">{t("messages.me")}</span>
                   )}
                 </div>
                 <div
@@ -109,7 +111,7 @@ function Inner() {
                   {c.isCorrectionRequest && (
                     <div className="flex items-center gap-1 text-xs font-semibold mb-1 uppercase tracking-wide">
                       <AlertCircle className="w-3 h-3" />
-                      Correction demandée
+                      {t("messages.correctionRequested")}
                     </div>
                   )}
                   <CommentBody
@@ -125,7 +127,7 @@ function Inner() {
           <Card>
             <CardContent className="p-8 text-center text-slate-500">
               <MessageSquare className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              Aucun message pour l'instant
+              {t("messages.noMessages")}
             </CardContent>
           </Card>
         )}

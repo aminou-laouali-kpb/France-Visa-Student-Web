@@ -23,8 +23,10 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export function AdvisorPortfolio() {
+  const { t } = useTranslation();
   const { data: dash } = useGetAdvisorDashboard();
 
   const [q, setQ] = useState("");
@@ -65,38 +67,38 @@ export function AdvisorPortfolio() {
   return (
     <div className="space-y-6" data-testid="advisor-portfolio">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mon portefeuille</h1>
-        <p className="text-slate-600 mt-1">Vue d'ensemble de vos étudiants</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("portfolio.title")}</h1>
+        <p className="text-slate-600 mt-1">{t("portfolio.subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-5 gap-4">
         <KpiCard
           icon={Users}
-          label="Étudiants"
+          label={t("portfolio.students") ?? "Étudiants"}
           value={dash?.totalStudents ?? 0}
           tone="blue"
         />
         <KpiCard
           icon={Clock}
-          label="En retard"
+          label={t("portfolio.late") ?? "En retard"}
           value={dash?.lateStudents ?? 0}
           tone="amber"
         />
         <KpiCard
           icon={ShieldAlert}
-          label="Risque élevé"
+          label={t("portfolio.highRisk") ?? "Risque élevé"}
           value={dash?.highRiskStudents ?? 0}
           tone="red"
         />
         <KpiCard
           icon={FileText}
-          label="Docs à valider"
+          label={t("portfolio.docsToValidate") ?? "Docs à valider"}
           value={dash?.documentsAwaitingReview ?? 0}
           tone="indigo"
         />
         <KpiCard
           icon={Calendar}
-          label="RDV aujourd'hui"
+          label={t("portfolio.todayAppts") ?? "RDV aujourd'hui"}
           value={dash?.todayAppointments ?? 0}
           tone="green"
         />
@@ -107,7 +109,7 @@ export function AdvisorPortfolio() {
           <div className="relative md:col-span-2">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              placeholder="Rechercher…"
+              placeholder={t("common.search") ?? "Rechercher…"}
               className="pl-9"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -115,16 +117,16 @@ export function AdvisorPortfolio() {
             />
           </div>
           <Select value={status} onChange={setStatus} testid="select-status">
-            <option value="">Tous statuts</option>
-            <option value="prospect">Prospect</option>
-            <option value="active">Actif</option>
-            <option value="blocked">Bloqué</option>
-            <option value="submitted">Déposé</option>
-            <option value="visa_obtained">Visa obtenu</option>
-            <option value="visa_refused">Visa refusé</option>
+            <option value="">{t("filter.allStatuses")}</option>
+            <option value="prospect">{t("status.prospect")}</option>
+            <option value="active">{t("status.active")}</option>
+            <option value="blocked">{t("status.blocked")}</option>
+            <option value="submitted">{t("status.submitted")}</option>
+            <option value="visa_obtained">{t("status.visa_obtained")}</option>
+            <option value="visa_refused">{t("status.visa_refused")}</option>
           </Select>
           <Select value={countryId} onChange={setCountryId} testid="select-country">
-            <option value="">Tous pays</option>
+            <option value="">{t("filter.allCountries")}</option>
             {countries.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -132,7 +134,7 @@ export function AdvisorPortfolio() {
             ))}
           </Select>
           <Select value={schoolId} onChange={setSchoolId} testid="select-school">
-            <option value="">Toutes écoles</option>
+            <option value="">{t("filter.allSchools")}</option>
             {schools.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -140,10 +142,10 @@ export function AdvisorPortfolio() {
             ))}
           </Select>
           <Select value={risk} onChange={setRisk} testid="select-risk">
-            <option value="">Tous risques</option>
-            <option value="low">Risque faible</option>
-            <option value="medium">Risque moyen</option>
-            <option value="high">Risque élevé</option>
+            <option value="">{t("filter.allRisks")}</option>
+            <option value="low">{t("filter.riskLow")}</option>
+            <option value="medium">{t("filter.riskMedium")}</option>
+            <option value="high">{t("filter.riskHigh")}</option>
           </Select>
         </CardContent>
       </Card>
@@ -151,28 +153,30 @@ export function AdvisorPortfolio() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {students.length} étudiant{students.length > 1 ? "s" : ""}
+            {students.length > 1
+              ? t("dash.nStudentsPlural", { n: students.length })
+              : t("dash.nStudents", { n: students.length })}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500">Chargement…</div>
+            <div className="p-8 text-center text-slate-500">{t("dash.loading")}</div>
           ) : students.length === 0 ? (
             <div className="p-12 text-center text-slate-500">
-              Aucun étudiant ne correspond à ces filtres.
+              {t("portfolio.noMatch")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
                   <tr>
-                    <Th onClick={() => toggleSort("lastName")}>Étudiant</Th>
-                    <Th>Pays</Th>
-                    <Th>École</Th>
-                    <Th>Étape</Th>
-                    <Th onClick={() => toggleSort("completionScore")}>Progression</Th>
-                    <Th>Risque</Th>
-                    <Th onClick={() => toggleSort("lastActivityAt")}>Activité</Th>
+                    <Th onClick={() => toggleSort("lastName")}>{t("table.student")}</Th>
+                    <Th>{t("table.country")}</Th>
+                    <Th>{t("table.school")}</Th>
+                    <Th>{t("table.step")}</Th>
+                    <Th onClick={() => toggleSort("completionScore")}>{t("table.progress")}</Th>
+                    <Th>{t("table.risk")}</Th>
+                    <Th onClick={() => toggleSort("lastActivityAt")}>{t("table.activity")}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,6 +225,7 @@ export function AdvisorPortfolio() {
                         <RiskBadge
                           level={s.riskLevel ?? null}
                           narrative={(s as { riskNarrative?: string | null }).riskNarrative ?? null}
+                          t={t}
                         />
                       </td>
                       <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
@@ -314,9 +319,11 @@ function Th({
 function RiskBadge({
   level,
   narrative,
+  t,
 }: {
   level: string | null;
   narrative?: string | null;
+  t: (key: string) => string;
 }) {
   if (!level) return <span className="text-slate-400 text-xs">—</span>;
   const styles: Record<string, string> = {
@@ -325,16 +332,11 @@ function RiskBadge({
     high: "bg-rose-100 text-rose-700 border-rose-200",
   };
   const labels: Record<string, string> = {
-    low: "Faible",
-    medium: "Moyen",
-    high: "Élevé",
+    low: t("risk.low"),
+    medium: t("risk.medium"),
+    high: t("risk.high"),
   };
-  // Show the AI explanation as a native title tooltip when available so the
-  // advisor can scan the portfolio and understand why a row is risky without
-  // navigating into the dossier.
-  const tooltip = narrative
-    ? narrative
-    : "Aucune explication générée — ouvrir le dossier puis « Risque ».";
+  const tooltip = narrative ? narrative : t("risk.noExplanation");
   return (
     <span title={tooltip} data-testid={narrative ? "risk-narrative-tooltip" : undefined}>
       <Badge variant="outline" className={`${styles[level] ?? ""}`}>

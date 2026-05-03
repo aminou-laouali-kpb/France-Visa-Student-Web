@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { billingApi, tenantApi, type Plan } from "@/lib/billing";
 import { Check, ExternalLink, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function AdminBilling() {
+  const { t } = useTranslation();
   const { data: plansResp, isLoading: loadingPlans } = useQuery({
     queryKey: ["billing", "plans"],
     queryFn: () => billingApi.plans(),
@@ -23,7 +25,7 @@ export function AdminBilling() {
       const { url } = await billingApi.checkout(priceId);
       if (url) window.location.href = url;
     } catch (err) {
-      alert(`Erreur de paiement: ${(err as Error).message}`);
+      alert(t("billing.paymentError", { msg: (err as Error).message }));
     }
   };
 
@@ -32,17 +34,16 @@ export function AdminBilling() {
       const { url } = await billingApi.portal();
       if (url) window.location.href = url;
     } catch (err) {
-      alert(`Erreur portail: ${(err as Error).message}`);
+      alert(t("billing.portalError", { msg: (err as Error).message }));
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Facturation</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("billing.title")}</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Gérez votre abonnement, vos plafonds de places et de dossiers, et
-          votre crédit IA mensuel.
+          {t("billing.subtitle")}
         </p>
       </div>
 
@@ -51,14 +52,13 @@ export function AdminBilling() {
           <CardContent className="pt-6 flex gap-3 items-start">
             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-sm text-amber-900">
-              Stripe n'est pas encore configuré pour cet espace. Définissez
+              {t("billing.stripeNotConfigured")} {" "}
               <code className="px-1 bg-white rounded mx-1">STRIPE_SECRET_KEY</code>
-              et
+              {" "}&{" "}
               <code className="px-1 bg-white rounded mx-1">STRIPE_WEBHOOK_SECRET</code>
-              dans les variables d'environnement, puis renseignez les
-              identifiants de prix
+              {", "}
               <code className="px-1 bg-white rounded mx-1">STRIPE_PRICE_PRO</code>
-              et
+              {" "}&{" "}
               <code className="px-1 bg-white rounded mx-1">STRIPE_PRICE_AGENCY</code>.
             </div>
           </CardContent>
@@ -66,37 +66,37 @@ export function AdminBilling() {
       ) : null}
 
       {loadingSettings ? (
-        <div className="text-sm text-slate-500">Chargement…</div>
+        <div className="text-sm text-slate-500">{t("billing.loading")}</div>
       ) : settings ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Abonnement actuel</CardTitle>
+            <CardTitle className="text-base">{t("billing.currentPlan")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Formule</span>
+              <span className="text-slate-600">{t("billing.formula")}</span>
               <Badge variant="outline" className="uppercase">
                 {settings.planTier}
               </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Statut</span>
+              <span className="text-slate-600">{t("billing.status")}</span>
               <span>{settings.subscriptionStatus ?? "—"}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Renouvellement</span>
+              <span className="text-slate-600">{t("billing.periodEnd")}</span>
               <span>
                 {settings.currentPeriodEnd
-                  ? new Date(settings.currentPeriodEnd).toLocaleDateString("fr-FR")
+                  ? new Date(settings.currentPeriodEnd).toLocaleDateString()
                   : "—"}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Places conseillers</span>
+              <span className="text-slate-600">{t("billing.seats")}</span>
               <span>{settings.seatLimit ?? "—"}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Dossiers étudiants max</span>
+              <span className="text-slate-600">{t("billing.studentLimit")}</span>
               <span>{settings.studentLimit ?? "—"}</span>
             </div>
             <div className="flex items-center justify-between">
@@ -111,7 +111,7 @@ export function AdminBilling() {
                 onClick={onPortal}
                 data-testid="btn-portal"
               >
-                Gérer dans le portail Stripe
+                {t("billing.manageSubscription")}
                 <ExternalLink className="w-3 h-3 ml-2" />
               </Button>
             ) : null}
@@ -135,13 +135,13 @@ export function AdminBilling() {
                     <CardTitle className="flex items-center justify-between">
                       <span>{plan.name}</span>
                       {isCurrent ? (
-                        <Badge className="bg-blue-600">Actif</Badge>
+                        <Badge className="bg-blue-600">{t("billing.currentPlanBadge")}</Badge>
                       ) : null}
                     </CardTitle>
                     <div className="text-3xl font-bold text-slate-900">
                       {plan.priceEur}€
                       <span className="text-sm font-normal text-slate-500">
-                        /mois
+                        {t("billing.perMonth")}
                       </span>
                     </div>
                   </CardHeader>
@@ -161,7 +161,7 @@ export function AdminBilling() {
                         onClick={() => onSubscribe(plan.priceId)}
                         data-testid={`btn-subscribe-${plan.tier}`}
                       >
-                        {plan.priceId ? "Choisir cette formule" : "Prix non configuré"}
+                        {plan.priceId ? t("billing.subscribe") : "Prix non configuré"}
                       </Button>
                     ) : null}
                   </CardContent>

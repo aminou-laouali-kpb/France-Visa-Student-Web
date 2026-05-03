@@ -24,6 +24,9 @@ import type {
   Appointment,
   AssignStudentBody,
   AuditLog,
+  BillingPlansResponse,
+  Challenge2FA200,
+  Challenge2FABody,
   ChecklistItem,
   Comment,
   CopilotFeedbackBody,
@@ -31,6 +34,9 @@ import type {
   Country,
   CreateAccommodationRecordBody,
   CreateAppointmentBody,
+  CreateBillingPortalSession200,
+  CreateCheckoutSession200,
+  CreateCheckoutSessionBody,
   CreateCommentBody,
   CreateCountryBody,
   CreateDiplomaEquivalenceBody,
@@ -48,12 +54,16 @@ import type {
   CritiqueResult,
   CvecPayment,
   DiplomaEquivalence,
+  Disable2FA200,
+  Disable2FABody,
   Document,
   DocumentMatrixEntry,
   DocumentMatrixReference,
   DocumentReview,
   DownloadUrlResponse,
   EefWish,
+  EraseMyAccount200,
+  EraseUserAccount200,
   FinanceReference,
   FinancialProof,
   FinancialReadiness,
@@ -109,7 +119,11 @@ import type {
   SubmitInterviewTurnBody,
   SuccessResponse,
   Task,
+  TenantBranding,
+  TenantSettings,
   TranscribeInterviewTurnBody,
+  TwoFAEnrollResponse,
+  TwoFAStatus,
   UnauthorizedResponse,
   UpdateAccommodationRecordBody,
   UpdateAppointmentBody,
@@ -124,6 +138,7 @@ import type {
   UpdateStudentBody,
   UpdateStudentStepBody,
   UpdateTaskBody,
+  UpdateTenantSettingsBody,
   UpdateUserBody,
   UpdateWorkflowStepBody,
   UploadUrlResponse,
@@ -134,6 +149,8 @@ import type {
   UpsertProjetEtudesBody,
   UpsertStudentCivilStatusBody,
   UserProfile,
+  Verify2FA200,
+  Verify2FABody,
   WorkflowStep,
   WorkflowTemplate,
 } from "./api.schemas";
@@ -11712,3 +11729,1144 @@ export function useGetUpcomingIntakeDeadlines<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List available subscription plans
+ */
+export const getGetBillingPlansUrl = () => {
+  return `/api/billing/plans`;
+};
+
+export const getBillingPlans = async (
+  options?: RequestInit,
+): Promise<BillingPlansResponse> => {
+  return customFetch<BillingPlansResponse>(getGetBillingPlansUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBillingPlansQueryKey = () => {
+  return [`/api/billing/plans`] as const;
+};
+
+export const getGetBillingPlansQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBillingPlans>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBillingPlans>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBillingPlansQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBillingPlans>>> = ({
+    signal,
+  }) => getBillingPlans({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBillingPlans>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBillingPlansQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBillingPlans>>
+>;
+export type GetBillingPlansQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List available subscription plans
+ */
+
+export function useGetBillingPlans<
+  TData = Awaited<ReturnType<typeof getBillingPlans>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBillingPlans>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBillingPlansQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a Stripe Checkout session for a subscription
+ */
+export const getCreateCheckoutSessionUrl = () => {
+  return `/api/billing/checkout`;
+};
+
+export const createCheckoutSession = async (
+  createCheckoutSessionBody: CreateCheckoutSessionBody,
+  options?: RequestInit,
+): Promise<CreateCheckoutSession200> => {
+  return customFetch<CreateCheckoutSession200>(getCreateCheckoutSessionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCheckoutSessionBody),
+  });
+};
+
+export const getCreateCheckoutSessionMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckoutSession>>,
+    TError,
+    { data: BodyType<CreateCheckoutSessionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCheckoutSession>>,
+  TError,
+  { data: BodyType<CreateCheckoutSessionBody> },
+  TContext
+> => {
+  const mutationKey = ["createCheckoutSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCheckoutSession>>,
+    { data: BodyType<CreateCheckoutSessionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCheckoutSession(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCheckoutSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCheckoutSession>>
+>;
+export type CreateCheckoutSessionMutationBody =
+  BodyType<CreateCheckoutSessionBody>;
+export type CreateCheckoutSessionMutationError = ErrorType<void>;
+
+/**
+ * @summary Create a Stripe Checkout session for a subscription
+ */
+export const useCreateCheckoutSession = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckoutSession>>,
+    TError,
+    { data: BodyType<CreateCheckoutSessionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCheckoutSession>>,
+  TError,
+  { data: BodyType<CreateCheckoutSessionBody> },
+  TContext
+> => {
+  return useMutation(getCreateCheckoutSessionMutationOptions(options));
+};
+
+/**
+ * @summary Open the Stripe customer billing portal
+ */
+export const getCreateBillingPortalSessionUrl = () => {
+  return `/api/billing/portal`;
+};
+
+export const createBillingPortalSession = async (
+  options?: RequestInit,
+): Promise<CreateBillingPortalSession200> => {
+  return customFetch<CreateBillingPortalSession200>(
+    getCreateBillingPortalSessionUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getCreateBillingPortalSessionMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBillingPortalSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBillingPortalSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["createBillingPortalSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBillingPortalSession>>,
+    void
+  > = () => {
+    return createBillingPortalSession(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBillingPortalSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBillingPortalSession>>
+>;
+
+export type CreateBillingPortalSessionMutationError = ErrorType<void>;
+
+/**
+ * @summary Open the Stripe customer billing portal
+ */
+export const useCreateBillingPortalSession = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBillingPortalSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBillingPortalSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCreateBillingPortalSessionMutationOptions(options));
+};
+
+/**
+ * @summary Public branding for the caller's tenant
+ */
+export const getGetTenantBrandingUrl = () => {
+  return `/api/tenant/branding`;
+};
+
+export const getTenantBranding = async (
+  options?: RequestInit,
+): Promise<TenantBranding | null> => {
+  return customFetch<TenantBranding | null>(getGetTenantBrandingUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTenantBrandingQueryKey = () => {
+  return [`/api/tenant/branding`] as const;
+};
+
+export const getGetTenantBrandingQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTenantBranding>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantBranding>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTenantBrandingQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTenantBranding>>
+  > = ({ signal }) => getTenantBranding({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantBranding>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTenantBrandingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTenantBranding>>
+>;
+export type GetTenantBrandingQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Public branding for the caller's tenant
+ */
+
+export function useGetTenantBranding<
+  TData = Awaited<ReturnType<typeof getTenantBranding>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantBranding>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTenantBrandingQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Full tenant settings (admin only)
+ */
+export const getGetTenantSettingsUrl = () => {
+  return `/api/tenant/settings`;
+};
+
+export const getTenantSettings = async (
+  options?: RequestInit,
+): Promise<TenantSettings> => {
+  return customFetch<TenantSettings>(getGetTenantSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTenantSettingsQueryKey = () => {
+  return [`/api/tenant/settings`] as const;
+};
+
+export const getGetTenantSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTenantSettings>>,
+  TError = ErrorType<ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTenantSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTenantSettings>>
+  > = ({ signal }) => getTenantSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTenantSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTenantSettings>>
+>;
+export type GetTenantSettingsQueryError = ErrorType<ForbiddenResponse>;
+
+/**
+ * @summary Full tenant settings (admin only)
+ */
+
+export function useGetTenantSettings<
+  TData = Awaited<ReturnType<typeof getTenantSettings>>,
+  TError = ErrorType<ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTenantSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update branding, IP allowlist and security settings (admin only)
+ */
+export const getUpdateTenantSettingsUrl = () => {
+  return `/api/tenant/settings`;
+};
+
+export const updateTenantSettings = async (
+  updateTenantSettingsBody: UpdateTenantSettingsBody,
+  options?: RequestInit,
+): Promise<TenantBranding> => {
+  return customFetch<TenantBranding>(getUpdateTenantSettingsUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTenantSettingsBody),
+  });
+};
+
+export const getUpdateTenantSettingsMutationOptions = <
+  TError = ErrorType<ForbiddenResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTenantSettings>>,
+    TError,
+    { data: BodyType<UpdateTenantSettingsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTenantSettings>>,
+  TError,
+  { data: BodyType<UpdateTenantSettingsBody> },
+  TContext
+> => {
+  const mutationKey = ["updateTenantSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTenantSettings>>,
+    { data: BodyType<UpdateTenantSettingsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateTenantSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTenantSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTenantSettings>>
+>;
+export type UpdateTenantSettingsMutationBody =
+  BodyType<UpdateTenantSettingsBody>;
+export type UpdateTenantSettingsMutationError = ErrorType<ForbiddenResponse>;
+
+/**
+ * @summary Update branding, IP allowlist and security settings (admin only)
+ */
+export const useUpdateTenantSettings = <
+  TError = ErrorType<ForbiddenResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTenantSettings>>,
+    TError,
+    { data: BodyType<UpdateTenantSettingsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateTenantSettings>>,
+  TError,
+  { data: BodyType<UpdateTenantSettingsBody> },
+  TContext
+> => {
+  return useMutation(getUpdateTenantSettingsMutationOptions(options));
+};
+
+/**
+ * @summary Get current user's 2FA status
+ */
+export const getGet2FAStatusUrl = () => {
+  return `/api/me/2fa`;
+};
+
+export const get2FAStatus = async (
+  options?: RequestInit,
+): Promise<TwoFAStatus> => {
+  return customFetch<TwoFAStatus>(getGet2FAStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGet2FAStatusQueryKey = () => {
+  return [`/api/me/2fa`] as const;
+};
+
+export const getGet2FAStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof get2FAStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof get2FAStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGet2FAStatusQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof get2FAStatus>>> = ({
+    signal,
+  }) => get2FAStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof get2FAStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type Get2FAStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof get2FAStatus>>
+>;
+export type Get2FAStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current user's 2FA status
+ */
+
+export function useGet2FAStatus<
+  TData = Awaited<ReturnType<typeof get2FAStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof get2FAStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGet2FAStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Disable TOTP for current user
+ */
+export const getDisable2FAUrl = () => {
+  return `/api/me/2fa`;
+};
+
+export const disable2FA = async (
+  disable2FABody: Disable2FABody,
+  options?: RequestInit,
+): Promise<Disable2FA200> => {
+  return customFetch<Disable2FA200>(getDisable2FAUrl(), {
+    ...options,
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(disable2FABody),
+  });
+};
+
+export const getDisable2FAMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disable2FA>>,
+    TError,
+    { data: BodyType<Disable2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disable2FA>>,
+  TError,
+  { data: BodyType<Disable2FABody> },
+  TContext
+> => {
+  const mutationKey = ["disable2FA"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disable2FA>>,
+    { data: BodyType<Disable2FABody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return disable2FA(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type Disable2FAMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disable2FA>>
+>;
+export type Disable2FAMutationBody = BodyType<Disable2FABody>;
+export type Disable2FAMutationError = ErrorType<void>;
+
+/**
+ * @summary Disable TOTP for current user
+ */
+export const useDisable2FA = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disable2FA>>,
+    TError,
+    { data: BodyType<Disable2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof disable2FA>>,
+  TError,
+  { data: BodyType<Disable2FABody> },
+  TContext
+> => {
+  return useMutation(getDisable2FAMutationOptions(options));
+};
+
+/**
+ * @summary Start TOTP enrollment — returns QR + secret
+ */
+export const getEnroll2FAUrl = () => {
+  return `/api/me/2fa/enroll`;
+};
+
+export const enroll2FA = async (
+  options?: RequestInit,
+): Promise<TwoFAEnrollResponse> => {
+  return customFetch<TwoFAEnrollResponse>(getEnroll2FAUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getEnroll2FAMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof enroll2FA>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof enroll2FA>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["enroll2FA"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof enroll2FA>>,
+    void
+  > = () => {
+    return enroll2FA(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type Enroll2FAMutationResult = NonNullable<
+  Awaited<ReturnType<typeof enroll2FA>>
+>;
+
+export type Enroll2FAMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Start TOTP enrollment — returns QR + secret
+ */
+export const useEnroll2FA = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof enroll2FA>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof enroll2FA>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getEnroll2FAMutationOptions(options));
+};
+
+/**
+ * @summary Verify TOTP code and enable 2FA
+ */
+export const getVerify2FAUrl = () => {
+  return `/api/me/2fa/verify`;
+};
+
+export const verify2FA = async (
+  verify2FABody: Verify2FABody,
+  options?: RequestInit,
+): Promise<Verify2FA200> => {
+  return customFetch<Verify2FA200>(getVerify2FAUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(verify2FABody),
+  });
+};
+
+export const getVerify2FAMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verify2FA>>,
+    TError,
+    { data: BodyType<Verify2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verify2FA>>,
+  TError,
+  { data: BodyType<Verify2FABody> },
+  TContext
+> => {
+  const mutationKey = ["verify2FA"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verify2FA>>,
+    { data: BodyType<Verify2FABody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return verify2FA(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type Verify2FAMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verify2FA>>
+>;
+export type Verify2FAMutationBody = BodyType<Verify2FABody>;
+export type Verify2FAMutationError = ErrorType<void>;
+
+/**
+ * @summary Verify TOTP code and enable 2FA
+ */
+export const useVerify2FA = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verify2FA>>,
+    TError,
+    { data: BodyType<Verify2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof verify2FA>>,
+  TError,
+  { data: BodyType<Verify2FABody> },
+  TContext
+> => {
+  return useMutation(getVerify2FAMutationOptions(options));
+};
+
+/**
+ * @summary Validate a TOTP code and stamp totpVerifiedAt
+ */
+export const getChallenge2FAUrl = () => {
+  return `/api/me/2fa/challenge`;
+};
+
+export const challenge2FA = async (
+  challenge2FABody: Challenge2FABody,
+  options?: RequestInit,
+): Promise<Challenge2FA200> => {
+  return customFetch<Challenge2FA200>(getChallenge2FAUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(challenge2FABody),
+  });
+};
+
+export const getChallenge2FAMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof challenge2FA>>,
+    TError,
+    { data: BodyType<Challenge2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof challenge2FA>>,
+  TError,
+  { data: BodyType<Challenge2FABody> },
+  TContext
+> => {
+  const mutationKey = ["challenge2FA"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof challenge2FA>>,
+    { data: BodyType<Challenge2FABody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return challenge2FA(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type Challenge2FAMutationResult = NonNullable<
+  Awaited<ReturnType<typeof challenge2FA>>
+>;
+export type Challenge2FAMutationBody = BodyType<Challenge2FABody>;
+export type Challenge2FAMutationError = ErrorType<void>;
+
+/**
+ * @summary Validate a TOTP code and stamp totpVerifiedAt
+ */
+export const useChallenge2FA = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof challenge2FA>>,
+    TError,
+    { data: BodyType<Challenge2FABody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof challenge2FA>>,
+  TError,
+  { data: BodyType<Challenge2FABody> },
+  TContext
+> => {
+  return useMutation(getChallenge2FAMutationOptions(options));
+};
+
+/**
+ * @summary Export all personal data as a ZIP archive
+ */
+export const getExportMyDataUrl = () => {
+  return `/api/me/gdpr/export`;
+};
+
+export const exportMyData = async (options?: RequestInit): Promise<Blob> => {
+  return customFetch<Blob>(getExportMyDataUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getExportMyDataMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof exportMyData>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof exportMyData>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["exportMyData"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof exportMyData>>,
+    void
+  > = () => {
+    return exportMyData(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ExportMyDataMutationResult = NonNullable<
+  Awaited<ReturnType<typeof exportMyData>>
+>;
+
+export type ExportMyDataMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Export all personal data as a ZIP archive
+ */
+export const useExportMyData = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof exportMyData>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof exportMyData>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getExportMyDataMutationOptions(options));
+};
+
+/**
+ * @summary Anonymize the current user's account (GDPR right to erasure)
+ */
+export const getEraseMyAccountUrl = () => {
+  return `/api/me/gdpr/erase`;
+};
+
+export const eraseMyAccount = async (
+  options?: RequestInit,
+): Promise<EraseMyAccount200> => {
+  return customFetch<EraseMyAccount200>(getEraseMyAccountUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getEraseMyAccountMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof eraseMyAccount>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof eraseMyAccount>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["eraseMyAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof eraseMyAccount>>,
+    void
+  > = () => {
+    return eraseMyAccount(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type EraseMyAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof eraseMyAccount>>
+>;
+
+export type EraseMyAccountMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Anonymize the current user's account (GDPR right to erasure)
+ */
+export const useEraseMyAccount = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof eraseMyAccount>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof eraseMyAccount>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getEraseMyAccountMutationOptions(options));
+};
+
+/**
+ * @summary Admin — anonymize a user's account
+ */
+export const getEraseUserAccountUrl = (userId: number) => {
+  return `/api/admin/users/${userId}/erase`;
+};
+
+export const eraseUserAccount = async (
+  userId: number,
+  options?: RequestInit,
+): Promise<EraseUserAccount200> => {
+  return customFetch<EraseUserAccount200>(getEraseUserAccountUrl(userId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getEraseUserAccountMutationOptions = <
+  TError = ErrorType<ForbiddenResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof eraseUserAccount>>,
+    TError,
+    { userId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof eraseUserAccount>>,
+  TError,
+  { userId: number },
+  TContext
+> => {
+  const mutationKey = ["eraseUserAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof eraseUserAccount>>,
+    { userId: number }
+  > = (props) => {
+    const { userId } = props ?? {};
+
+    return eraseUserAccount(userId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type EraseUserAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof eraseUserAccount>>
+>;
+
+export type EraseUserAccountMutationError = ErrorType<ForbiddenResponse | void>;
+
+/**
+ * @summary Admin — anonymize a user's account
+ */
+export const useEraseUserAccount = <
+  TError = ErrorType<ForbiddenResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof eraseUserAccount>>,
+    TError,
+    { userId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof eraseUserAccount>>,
+  TError,
+  { userId: number },
+  TContext
+> => {
+  return useMutation(getEraseUserAccountMutationOptions(options));
+};

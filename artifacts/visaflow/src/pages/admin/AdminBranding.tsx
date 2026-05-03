@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { tenantApi, type TenantSettings } from "@/lib/billing";
+import { useTranslation } from "react-i18next";
 
 export function AdminBranding() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["tenant", "settings"],
@@ -49,7 +51,7 @@ export function AdminBranding() {
     }
   };
 
-  if (isLoading) return <div className="text-sm text-slate-500">Chargement…</div>;
+  if (isLoading) return <div className="text-sm text-slate-500">{t("branding.loading")}</div>;
 
   const set = <K extends keyof TenantSettings>(key: K, value: TenantSettings[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -58,20 +60,20 @@ export function AdminBranding() {
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">
-          Personnalisation & sécurité
+          {t("branding.title")}
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          White-label, expéditeur email, restriction IP et 2FA obligatoire.
+          {t("branding.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Identité de l'agence</CardTitle>
+          <CardTitle className="text-base">{t("branding.agencyId")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>Nom commercial</Label>
+            <Label>{t("branding.tradeName")}</Label>
             <Input
               value={(form.name as string) ?? ""}
               onChange={(e) => set("name", e.target.value)}
@@ -79,7 +81,7 @@ export function AdminBranding() {
             />
           </div>
           <div>
-            <Label>Sous-domaine</Label>
+            <Label>{t("branding.subdomain")}</Label>
             <Input
               value={(form.subdomain as string) ?? ""}
               placeholder="agency-a"
@@ -87,7 +89,7 @@ export function AdminBranding() {
             />
           </div>
           <div>
-            <Label>URL du logo</Label>
+            <Label>{t("branding.logoUrl")}</Label>
             <Input
               value={(form.logoUrl as string) ?? ""}
               placeholder="https://…/logo.png"
@@ -95,7 +97,7 @@ export function AdminBranding() {
             />
           </div>
           <div>
-            <Label>Couleur primaire (hex)</Label>
+            <Label>{t("branding.primaryColor")}</Label>
             <div className="flex gap-2 items-center">
               <Input
                 value={(form.primaryColor as string) ?? ""}
@@ -114,19 +116,19 @@ export function AdminBranding() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Expéditeur email</CardTitle>
+          <CardTitle className="text-base">{t("branding.emailSection")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid md:grid-cols-2 gap-3">
             <div>
-              <Label>Nom expéditeur</Label>
+              <Label>{t("branding.emailFromName")}</Label>
               <Input
                 value={(form.emailFromName as string) ?? ""}
                 onChange={(e) => set("emailFromName", e.target.value)}
               />
             </div>
             <div>
-              <Label>Adresse expéditeur</Label>
+              <Label>{t("branding.emailFromAddress")}</Label>
               <Input
                 value={(form.emailFromAddress as string) ?? ""}
                 placeholder="contact@agence.fr"
@@ -139,13 +141,11 @@ export function AdminBranding() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Sécurité d'accès</CardTitle>
+          <CardTitle className="text-base">{t("branding.securitySection")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>
-              Restriction IP (CIDR séparés par des virgules; vide = désactivé)
-            </Label>
+            <Label>{t("branding.ipAllowlist")}</Label>
             <Textarea
               value={(form.ipAllowlist as string) ?? ""}
               placeholder="203.0.113.0/24, 198.51.100.42/32"
@@ -153,9 +153,6 @@ export function AdminBranding() {
               onChange={(e) => set("ipAllowlist", e.target.value)}
               data-testid="input-ip-allowlist"
             />
-            <p className="text-xs text-slate-500 mt-1">
-              N'affecte que les comptes admin/super-admin de votre agence.
-            </p>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -164,17 +161,17 @@ export function AdminBranding() {
               onChange={(e) => set("twoFactorRequired", e.target.checked)}
               data-testid="toggle-2fa-required"
             />
-            <span>2FA TOTP obligatoire pour tout le personnel</span>
+            <span>{t("branding.require2fa")}</span>
           </label>
         </CardContent>
       </Card>
 
       <div className="flex items-center gap-3">
         <Button onClick={onSave} disabled={saving} data-testid="btn-save-branding">
-          {saving ? "Enregistrement…" : "Enregistrer"}
+          {saving ? t("branding.saving") : t("branding.save")}
         </Button>
         {success ? (
-          <span className="text-sm text-emerald-600">Enregistré ✓</span>
+          <span className="text-sm text-emerald-600">{t("branding.saveSuccess")} ✓</span>
         ) : null}
         {error ? <span className="text-sm text-rose-600">{error}</span> : null}
       </div>

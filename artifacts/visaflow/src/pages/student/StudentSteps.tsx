@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CheckCircle2, Circle, AlertCircle, FileText } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { formatDate } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export function StudentSteps() {
   return (
@@ -22,6 +23,7 @@ export function StudentSteps() {
 }
 
 function Inner() {
+  const { t } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data: steps = [] } = useListStudentSteps(studentId);
@@ -35,9 +37,9 @@ function Inner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mon parcours</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("dashboard.myJourney")}</h1>
         <p className="text-slate-600 mt-1">
-          Les 21 étapes de votre dossier visa étudiant France.
+          {t("steps.subtitle")}
         </p>
       </div>
 
@@ -92,7 +94,7 @@ function Inner() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-slate-500">
-                            Étape {step.stepOrder}
+                            {t("stepDetail.stepN", { n: step.stepOrder })}
                           </span>
                           {step.isCampusFranceStep && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
@@ -127,7 +129,7 @@ function Inner() {
                       />
                       {step.notes && (
                         <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded">
-                          <strong>Note du conseiller :</strong> {step.notes}
+                          <strong>{t("stepDetail.advisorNote")}</strong> {step.notes}
                         </div>
                       )}
                     </div>
@@ -137,7 +139,7 @@ function Inner() {
             })}
             {list.length === 0 && (
               <div className="p-8 text-center text-slate-500">
-                Aucune étape configurée
+                {t("stepDetail.noSteps")}
               </div>
             )}
           </ol>
@@ -154,6 +156,7 @@ function StepChecklist({
   studentId: number;
   stepId: number;
 }) {
+  const { t } = useTranslation();
   const { data: items = [], refetch } = useGetStepChecklist(studentId, stepId);
   const update = useUpdateChecklistItem();
   const list = items as unknown as ChecklistItem[];
@@ -168,7 +171,7 @@ function StepChecklist({
   return (
     <div className="space-y-2">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        À faire
+        {t("stepDetail.toDo")}
       </div>
       {list.map((it) => (
         <label
@@ -208,6 +211,7 @@ function StepDocuments({
   documents: Document[];
   stepName: string;
 }) {
+  const { t } = useTranslation();
   const lower = stepName.toLowerCase();
   const matched = documents.filter((d) => {
     const cat = d.category.toLowerCase();
@@ -218,7 +222,7 @@ function StepDocuments({
   return (
     <div className="space-y-2">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        Documents liés
+        {t("stepDetail.relatedDocs")}
       </div>
       {matched.map((d) => (
         <div

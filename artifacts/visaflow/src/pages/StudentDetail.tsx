@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useAuth } from "@clerk/react";
+import { useTranslation } from "react-i18next";
 import type {
   Student,
   Step,
@@ -101,13 +102,14 @@ export function StudentDetail() {
   const isStaff = me && ["advisor", "reviewer", "admin", "superadmin"].includes(me.role);
   const refreshChecklist = useRefreshStudentChecklist();
 
-  if (!student) return <div className="p-8">Chargement…</div>;
+  const { t } = useTranslation();
+  if (!student) return <div className="p-8">{t("common.loading")}</div>;
 
   return (
     <div className="space-y-6">
       <Link href="/advisor">
         <a className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900">
-          <ArrowLeft className="w-4 h-4 mr-1" /> Retour à la liste
+          <ArrowLeft className="w-4 h-4 mr-1" /> {t("detail.back")}
         </a>
       </Link>
 
@@ -124,7 +126,7 @@ export function StudentDetail() {
         </div>
         <div className="text-right space-y-2">
           <div>
-            <div className="text-sm text-slate-500">Progression</div>
+            <div className="text-sm text-slate-500">{t("detail.progress")}</div>
             <div className="text-3xl font-bold text-blue-700">{student.completionScore}%</div>
             <Progress value={student.completionScore} className="w-32 h-2 mt-1" />
           </div>
@@ -154,7 +156,7 @@ export function StudentDetail() {
               }}
             >
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-              Rafraîchir selon la matrice
+              {t("detail.refreshMatrix")}
             </Button>
           )}
         </div>
@@ -162,20 +164,20 @@ export function StudentDetail() {
 
       <Tabs defaultValue="steps">
         <TabsList>
-          <TabsTrigger value="steps" data-testid="tab-steps">Parcours</TabsTrigger>
-          <TabsTrigger value="documents" data-testid="tab-documents">Documents</TabsTrigger>
-          <TabsTrigger value="comments" data-testid="tab-comments">Messages</TabsTrigger>
+          <TabsTrigger value="steps" data-testid="tab-steps">{t("detail.tabs.steps")}</TabsTrigger>
+          <TabsTrigger value="documents" data-testid="tab-documents">{t("detail.tabs.documents")}</TabsTrigger>
+          <TabsTrigger value="comments" data-testid="tab-comments">{t("detail.tabs.messages")}</TabsTrigger>
           {isStaff && (
-            <TabsTrigger value="tasks" data-testid="tab-tasks">Tâches</TabsTrigger>
+            <TabsTrigger value="tasks" data-testid="tab-tasks">{t("detail.tabs.tasks")}</TabsTrigger>
           )}
-          <TabsTrigger value="appointments" data-testid="tab-appointments">Rendez-vous</TabsTrigger>
+          <TabsTrigger value="appointments" data-testid="tab-appointments">{t("detail.tabs.appointments")}</TabsTrigger>
           {isStaff && (
-            <TabsTrigger value="risk" data-testid="tab-risk">Risque</TabsTrigger>
+            <TabsTrigger value="risk" data-testid="tab-risk">{t("detail.tabs.risk")}</TabsTrigger>
           )}
-          <TabsTrigger value="profile" data-testid="tab-profile">Profil</TabsTrigger>
-          <TabsTrigger value="profile-depth" data-testid="tab-profile-depth">Profil approfondi</TabsTrigger>
-          <TabsTrigger value="finance" data-testid="tab-finance">Garanties &amp; logement</TabsTrigger>
-          <TabsTrigger value="projet" data-testid="tab-projet">Projet & lettres</TabsTrigger>
+          <TabsTrigger value="profile" data-testid="tab-profile">{t("detail.tabs.profile")}</TabsTrigger>
+          <TabsTrigger value="profile-depth" data-testid="tab-profile-depth">{t("detail.tabs.profileDepth")}</TabsTrigger>
+          <TabsTrigger value="finance" data-testid="tab-finance">{t("detail.tabs.finance")}</TabsTrigger>
+          <TabsTrigger value="projet" data-testid="tab-projet">{t("detail.tabs.projet")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="steps" className="mt-4">
@@ -224,6 +226,7 @@ export function StudentDetail() {
 }
 
 function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean }) {
+  const { t } = useTranslation();
   const { data: steps = [], refetch } = useListStudentSteps(studentId);
   const update = useUpdateStudentStep();
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -294,7 +297,7 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-500">Étape {step.stepOrder}</span>
+                      <span className="text-sm text-slate-500">{t("stepDetail.stepN", { n: step.stepOrder })}</span>
                       {step.isCampusFranceStep && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
                           Campus France
@@ -316,13 +319,13 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
                         onChange={(e) => handleStatus(step.id, e.target.value)}
                         data-testid={`select-step-status-${step.id}`}
                       >
-                        <option value="not_started">À faire</option>
-                        <option value="in_progress">En cours</option>
-                        <option value="submitted">Soumis</option>
-                        <option value="under_review">En revue</option>
-                        <option value="blocked">Bloqué</option>
-                        <option value="validated">Validé</option>
-                        <option value="rejected">Rejeté</option>
+                        <option value="not_started">{t("status.not_started")}</option>
+                        <option value="in_progress">{t("status.in_progress")}</option>
+                        <option value="submitted">{t("status.submitted")}</option>
+                        <option value="under_review">{t("status.under_review")}</option>
+                        <option value="blocked">{t("status.blocked")}</option>
+                        <option value="validated">{t("status.validated")}</option>
+                        <option value="rejected">{t("status.rejected")}</option>
                       </select>
                     )}
                   </div>
@@ -340,7 +343,7 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
             );
           })}
           {steps.length === 0 && (
-            <div className="p-8 text-center text-slate-500">Aucune étape configurée</div>
+            <div className="p-8 text-center text-slate-500">{t("detail.noSteps")}</div>
           )}
         </div>
       </CardContent>
@@ -355,15 +358,15 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bloquer cette étape</DialogTitle>
+            <DialogTitle>{t("detail.blockStep")}</DialogTitle>
             <DialogDescription>
-              Indiquez la raison du blocage. L'étudiant en sera informé.
+              {t("detail.blockReason")}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={blockReason}
             onChange={(e) => setBlockReason(e.target.value)}
-            placeholder="Ex. Document manquant ou non lisible…"
+            placeholder={t("detail.blockPh")}
             rows={4}
             data-testid="textarea-block-reason"
           />
@@ -376,14 +379,14 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
               }}
               data-testid="button-cancel-block"
             >
-              Annuler
+              {t("common.cancel")}
             </Button>
             <Button
               disabled={!blockReason.trim() || update.isPending}
               onClick={confirmBlock}
               data-testid="button-confirm-block"
             >
-              Bloquer
+              {t("common.block")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -401,6 +404,7 @@ function StepChecklist({
   stepId: number;
   canEdit: boolean;
 }) {
+  const { t } = useTranslation();
   const { data: items = [], refetch } = useGetStepChecklist(studentId, stepId);
   const update = useUpdateChecklistItem();
   const list = items as unknown as ChecklistItem[];
@@ -413,7 +417,7 @@ function StepChecklist({
   if (list.length === 0) {
     return (
       <div className="px-14 pb-4 text-sm text-slate-500">
-        Aucune sous-tâche pour cette étape.
+        {t("detail.noSubtasks")}
       </div>
     );
   }
@@ -468,6 +472,7 @@ const DOCUMENT_CATEGORIES = [
 ];
 
 function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
+  const { t } = useTranslation();
   const { data: docs = [], refetch } = useListDocuments(studentId);
   const review = useReviewDocument();
   const { getToken } = useAuth();
@@ -578,12 +583,12 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Téléverser un document</CardTitle>
+          <CardTitle className="text-base">{t("detail.uploadDoc")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid md:grid-cols-2 gap-3">
             <div>
-              <Label>Catégorie</Label>
+              <Label>{t("documents.category")}</Label>
               <select
                 className="w-full mt-1 border rounded-lg px-3 py-2 bg-white"
                 value={category}
@@ -598,17 +603,17 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
               </select>
             </div>
             <div>
-              <Label>Nom du document</Label>
+              <Label>{t("documents.docName")}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Passeport scan recto-verso"
+                placeholder={t("documents.namePh")}
                 data-testid="input-doc-name"
               />
             </div>
           </div>
           <div>
-            <Label>Fichier</Label>
+            <Label>{t("table.file")}</Label>
             <Input
               type="file"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
@@ -616,7 +621,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
             />
           </div>
           <Button onClick={handleUpload} disabled={!file || !name || uploading} data-testid="button-upload">
-            {uploading ? "Téléversement…" : "Téléverser"}
+            {uploading ? t("documents.uploading") : t("documents.upload")}
           </Button>
         </CardContent>
       </Card>
@@ -660,7 +665,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                         onClick={() => handleValidate(d.id)}
                         data-testid={`button-validate-${d.id}`}
                       >
-                        Valider
+                        {t("common.validate")}
                       </Button>
                       <Button
                         size="sm"
@@ -671,7 +676,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                         }}
                         data-testid={`button-reject-${d.id}`}
                       >
-                        Rejeter
+                        {t("common.reject")}
                       </Button>
                     </div>
                   )}
@@ -679,7 +684,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
               );
             })}
             {docs.length === 0 && (
-              <div className="p-8 text-center text-slate-500">Aucun document</div>
+              <div className="p-8 text-center text-slate-500">{t("common.noDocuments")}</div>
             )}
           </div>
         </CardContent>
@@ -696,19 +701,19 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeter le document</DialogTitle>
+            <DialogTitle>{t("detail.rejectDoc")}</DialogTitle>
             <DialogDescription>
-              Indiquez le motif du rejet. L'étudiant sera notifié.
+              {t("detail.rejectReason")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="reject-reason">Motif du rejet</Label>
+            <Label htmlFor="reject-reason">{t("detail.rejectReasonLabel")}</Label>
             <Textarea
               id="reject-reason"
               rows={4}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Ex. Document illisible, page manquante…"
+              placeholder={t("detail.rejectPh")}
               data-testid="textarea-reject-reason"
             />
           </div>
@@ -720,7 +725,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                 setRejectReason("");
               }}
             >
-              Annuler
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -728,7 +733,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
               onClick={submitRejection}
               data-testid="button-confirm-reject"
             >
-              Confirmer le rejet
+              {t("detail.confirmReject")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -919,6 +924,7 @@ function CommentsTab({
   isStaff: boolean;
   currentUserId: number;
 }) {
+  const { t } = useTranslation();
   const { data: me } = useGetMe();
   const viewerLang = (me as { preferredLanguage?: string } | undefined)?.preferredLanguage ?? "fr";
   const { data: comments = [], refetch } = useListComments(studentId);
@@ -952,7 +958,7 @@ function CommentsTab({
       <Card>
         <CardContent className="p-4 space-y-3">
           <Textarea
-            placeholder="Écrire un message…"
+            placeholder={t("messages.placeholder")}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
@@ -969,7 +975,7 @@ function CommentsTab({
                       onChange={(e) => setIsInternal(e.target.checked)}
                       data-testid="checkbox-internal"
                     />
-                    Note interne
+                    {t("detail.internalNote")}
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -978,13 +984,13 @@ function CommentsTab({
                       onChange={(e) => setIsCorrection(e.target.checked)}
                       data-testid="checkbox-correction"
                     />
-                    Demande de correction
+                    {t("detail.correctionReq")}
                   </label>
                 </>
               )}
             </div>
             <Button onClick={handleSubmit} disabled={!content.trim()} data-testid="button-send-comment">
-              Envoyer
+              {t("common.send")}
             </Button>
           </div>
         </CardContent>
@@ -1010,7 +1016,7 @@ function CommentsTab({
                   )}
                   <span>{formatDateTime(c.createdAt)}</span>
                   {mine && (
-                    <span className="font-medium text-slate-700">Moi</span>
+                    <span className="font-medium text-slate-700">{t("messages.me")}</span>
                   )}
                 </div>
                 <div
@@ -1030,11 +1036,11 @@ function CommentsTab({
                       {c.isCorrectionRequest && (
                         <>
                           <AlertCircle className="w-3 h-3" />
-                          Correction demandée
+                          {t("detail.correctionBubble")}
                         </>
                       )}
                       {c.isInternal && !c.isCorrectionRequest && (
-                        <span>Note interne</span>
+                        <span>{t("detail.internalBubble")}</span>
                       )}
                     </div>
                   )}
@@ -1051,7 +1057,7 @@ function CommentsTab({
           <Card>
             <CardContent className="p-8 text-center text-slate-500">
               <MessageSquare className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              Aucun message pour l'instant
+              {t("detail.noMessages")}
             </CardContent>
           </Card>
         )}
@@ -1061,6 +1067,7 @@ function CommentsTab({
 }
 
 function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
+  const { t } = useTranslation();
   const { data: tasks = [], refetch } = useListStudentTasks(studentId);
   const { data: users = [] } = useListUsers({});
   const create = useCreateTask();
@@ -1104,17 +1111,17 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
       {isStaff && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nouvelle tâche</CardTitle>
+            <CardTitle className="text-base">{t("detail.newTask")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input
-              placeholder="Titre"
+              placeholder={t("tasks.title")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               data-testid="input-task-title"
             />
             <Textarea
-              placeholder="Description"
+              placeholder={t("tasks.description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -1126,10 +1133,10 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
                 onChange={(e) => setPriority(e.target.value)}
                 data-testid="select-priority"
               >
-                <option value="low">Priorité basse</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Haute</option>
-                <option value="critical">Critique</option>
+                <option value="low">{t("detail.priorityLow")}</option>
+                <option value="medium">{t("detail.priorityMed")}</option>
+                <option value="high">{t("detail.priorityHigh")}</option>
+                <option value="critical">{t("detail.priorityCritical")}</option>
               </select>
               <Input
                 type="datetime-local"
@@ -1143,7 +1150,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
                 onChange={(e) => setAssignedToId(e.target.value)}
                 data-testid="select-assignee"
               >
-                <option value="">Non assignée</option>
+                <option value="">{t("detail.unassigned")}</option>
                 {staff.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.firstName} {u.lastName} — {ROLE_LABELS[u.role]}
@@ -1152,7 +1159,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
               </select>
             </div>
             <Button onClick={handleCreate} disabled={!title.trim()} data-testid="button-create-task">
-              Créer la tâche
+              {t("tasks.createTask")}
             </Button>
           </CardContent>
         </Card>
@@ -1161,32 +1168,32 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {(tasks as unknown as Task[]).map((t) => (
-              <div key={t.id} className="flex items-start gap-3 p-4">
+            {(tasks as unknown as Task[]).map((task) => (
+              <div key={task.id} className="flex items-start gap-3 p-4">
                 <input
                   type="checkbox"
-                  checked={t.status === "done"}
-                  onChange={(e) => toggleStatus(t.id, e.target.checked ? "done" : "pending")}
+                  checked={task.status === "done"}
+                  onChange={(e) => toggleStatus(task.id, e.target.checked ? "done" : "pending")}
                   className="mt-1.5"
-                  data-testid={`checkbox-task-${t.id}`}
+                  data-testid={`checkbox-task-${task.id}`}
                 />
                 <div className="flex-1">
-                  <div className={`font-medium ${t.status === "done" ? "line-through text-slate-400" : ""}`}>
-                    {t.title}
+                  <div className={`font-medium ${task.status === "done" ? "line-through text-slate-400" : ""}`}>
+                    {task.title}
                   </div>
-                  {t.description && (
-                    <div className="text-sm text-slate-600 mt-0.5">{t.description}</div>
+                  {task.description && (
+                    <div className="text-sm text-slate-600 mt-0.5">{task.description}</div>
                   )}
                   <div className="text-xs text-slate-500 mt-1 flex gap-3">
-                    {t.dueDate && <span>📅 {formatDate(t.dueDate)}</span>}
-                    <span>Priorité: {t.priority}</span>
+                    {task.dueDate && <span>📅 {formatDate(task.dueDate)}</span>}
+                    <span>{t("tasks.priority")}: {task.priority}</span>
                   </div>
                 </div>
-                <StatusBadge status={t.status} />
+                <StatusBadge status={task.status} />
               </div>
             ))}
             {tasks.length === 0 && (
-              <div className="p-8 text-center text-slate-500">Aucune tâche</div>
+              <div className="p-8 text-center text-slate-500">{t("common.noTasks")}</div>
             )}
           </div>
         </CardContent>
@@ -1196,6 +1203,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
 }
 
 function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
+  const { t } = useTranslation();
   const { data: apts = [], refetch } = useListAppointments(studentId);
   const create = useCreateAppointment();
   const [type, setType] = useState("campus_france");
@@ -1220,7 +1228,7 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
       {isStaff && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Programmer un rendez-vous</CardTitle>
+            <CardTitle className="text-base">{t("detail.scheduleApt")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid md:grid-cols-2 gap-3">
@@ -1232,10 +1240,10 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
               >
                 <option value="campus_france">Campus France</option>
                 <option value="tls_vfs">TLS / VFS</option>
-                <option value="other">Autre</option>
+                <option value="other">{t("status.other")}</option>
               </select>
               <Input
-                placeholder="Titre"
+                placeholder={t("tasks.title")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 data-testid="input-apt-title"
@@ -1247,13 +1255,13 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
                 data-testid="input-apt-date"
               />
               <Input
-                placeholder="Lieu"
+                placeholder={t("profile.city")}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
             </div>
             <Button onClick={handleCreate} disabled={!title || !scheduledAt} data-testid="button-create-apt">
-              Créer
+              {t("detail.create")}
             </Button>
           </CardContent>
         </Card>
@@ -1276,7 +1284,7 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
               </div>
             ))}
             {apts.length === 0 && (
-              <div className="p-8 text-center text-slate-500">Aucun rendez-vous</div>
+              <div className="p-8 text-center text-slate-500">{t("common.noAppointments")}</div>
             )}
           </div>
         </CardContent>
@@ -1296,6 +1304,7 @@ function RiskTab({ studentId }: { studentId: number }) {
 }
 
 function RiskScoreSection({ studentId }: { studentId: number }) {
+  const { t } = useTranslation();
   const { data: score, refetch } = useGetStudentRiskScore(studentId);
   const recalc = useRecalculateRiskScore();
 
@@ -1304,7 +1313,7 @@ function RiskScoreSection({ studentId }: { studentId: number }) {
     refetch();
   };
 
-  if (!score) return <div>Chargement…</div>;
+  if (!score) return <div>{t("common.loading")}</div>;
 
   return (
     <>
@@ -1314,20 +1323,20 @@ function RiskScoreSection({ studentId }: { studentId: number }) {
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-8 h-8 text-amber-500" />
               <div>
-                <div className="text-sm text-slate-600">Niveau de risque</div>
+                <div className="text-sm text-slate-600">{t("detail.riskLevel")}</div>
                 <div className="text-2xl font-bold">
                   <StatusBadge status={score.level} />
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-slate-600">Score</div>
+              <div className="text-sm text-slate-600">{t("detail.riskScore")}</div>
               <div className="text-3xl font-bold">{score.score}/100</div>
             </div>
           </div>
           <Progress value={score.score} className="h-2" />
           <Button variant="outline" size="sm" className="mt-4" onClick={handleRecalc} data-testid="button-recalc-risk">
-            <Sparkles className="w-4 h-4 mr-1" /> Recalculer
+            <Sparkles className="w-4 h-4 mr-1" /> {t("detail.recalculate")}
           </Button>
         </CardContent>
       </Card>
@@ -1335,30 +1344,30 @@ function RiskScoreSection({ studentId }: { studentId: number }) {
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Facteurs de risque</CardTitle>
+            <CardTitle className="text-base">{t("detail.riskFactors")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <RiskRow label="Documents manquants" value={score.missingDocuments ?? 0} />
-            <RiskRow label="Documents rejetés" value={score.rejectedDocuments} />
-            <RiskRow label="Tâches en retard" value={score.overdueTasks} />
+            <RiskRow label={t("detail.missingDocs")} value={score.missingDocuments ?? 0} />
+            <RiskRow label={t("detail.rejectedDocs")} value={score.rejectedDocuments} />
+            <RiskRow label={t("detail.overdueTasks")} value={score.overdueTasks} />
             <RiskRow
-              label="Étapes Campus France manquantes"
-              value={score.missingCampusFrance ? "Oui" : "Non"}
+              label={t("detail.missingCF")}
+              value={score.missingCampusFrance ? t("detail.yes") : t("detail.no")}
             />
             <RiskRow
-              label="Aucun rendez-vous à venir"
-              value={score.missingAppointments ? "Oui" : "Non"}
+              label={t("detail.missingAppts")}
+              value={score.missingAppointments ? t("detail.yes") : t("detail.no")}
             />
             <RiskRow
-              label="Antécédent de refus de visa"
-              value={score.hasVisaRefusal ? "Oui" : "Non"}
+              label={t("detail.visaRefusal")}
+              value={score.hasVisaRefusal ? t("detail.yes") : t("detail.no")}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Recommandations</CardTitle>
+            <CardTitle className="text-base">{t("detail.recommendations")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {(score.recommendations ?? []).map((rec: string, i: number) => (
@@ -1394,6 +1403,7 @@ function ProfileTab({
   isStaff: boolean;
   onUpdate: () => void;
 }) {
+  const { t } = useTranslation();
   const update = useUpdateStudent();
   const assign = useAssignStudent();
   const { data: countries = [] } = useListCountries();
@@ -1451,24 +1461,24 @@ function ProfileTab({
     <div className="grid md:grid-cols-2 gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Informations personnelles</CardTitle>
+          <CardTitle className="text-base">{t("profile.personalInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Prénom">
+            <Field label={t("profile.firstName")}>
               <Input
                 value={form.firstName ?? ""}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
               />
             </Field>
-            <Field label="Nom">
+            <Field label={t("profile.lastName")}>
               <Input
                 value={form.lastName ?? ""}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
               />
             </Field>
           </div>
-          <Field label="Téléphone">
+          <Field label={t("profile.phone")}>
             <Input
               value={form.phone ?? ""}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -1480,20 +1490,20 @@ function ProfileTab({
               onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
             />
           </Field>
-          <Field label="Date de naissance">
+          <Field label={t("profile.dob")}>
             <Input
               type="date"
               value={form.dateOfBirth ?? ""}
               onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
             />
           </Field>
-          <Field label="Numéro de passeport">
+          <Field label={t("profile.passportNumber")}>
             <Input
               value={form.passportNumber ?? ""}
               onChange={(e) => setForm({ ...form, passportNumber: e.target.value })}
             />
           </Field>
-          <Field label="Date d'expiration passeport">
+          <Field label={t("profile.passportExpiry")}>
             <Input
               type="date"
               value={form.passportExpiry ?? ""}
@@ -1501,17 +1511,17 @@ function ProfileTab({
             />
           </Field>
           <Button onClick={handleSave} data-testid="button-save-profile">
-            Enregistrer
+            {t("common.save")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Dossier</CardTitle>
+          <CardTitle className="text-base">{t("profile.dossier")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Field label="Pays d'origine">
+          <Field label={t("profile.originCountry")}>
             <select
               className="w-full border rounded-lg px-3 py-2 bg-white"
               value={form.countryId ?? ""}
@@ -1527,7 +1537,7 @@ function ProfileTab({
               ))}
             </select>
           </Field>
-          <Field label="École cible">
+          <Field label={t("profile.targetSchool")}>
             <select
               className="w-full border rounded-lg px-3 py-2 bg-white"
               value={form.schoolId ?? ""}
@@ -1543,20 +1553,20 @@ function ProfileTab({
               ))}
             </select>
           </Field>
-          <Field label="Type de financement">
+          <Field label={t("profile.financingType")}>
             <select
               className="w-full border rounded-lg px-3 py-2 bg-white"
               value={form.financingType ?? ""}
               onChange={(e) => setForm({ ...form, financingType: e.target.value })}
             >
               <option value="">—</option>
-              <option value="self">Auto-financé</option>
-              <option value="bourse">Boursier</option>
-              <option value="parents">Parents</option>
-              <option value="autre">Autre</option>
+              <option value="self">{t("profile.financingSelf")}</option>
+              <option value="bourse">{t("profile.financingScholarship")}</option>
+              <option value="parents">{t("profile.financingParents")}</option>
+              <option value="autre">{t("status.other")}</option>
             </select>
           </Field>
-          <Field label="Date de rentrée prévue">
+          <Field label={t("profile.intakeDate")}>
             <Input
               type="date"
               value={form.intakeDate ?? ""}
@@ -1571,12 +1581,12 @@ function ProfileTab({
                 setForm({ ...form, hasVisaRefusalHistory: e.target.checked })
               }
             />
-            Antécédent de refus de visa
+            {t("detail.visaRefusal")}
           </label>
 
           {isStaff && (
             <div className="border-t pt-3 mt-3">
-              <Field label="Conseiller assigné">
+              <Field label={t("profile.assignedAdvisor")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.advisorId ?? ""}
@@ -1596,7 +1606,7 @@ function ProfileTab({
                   ))}
                 </select>
               </Field>
-              <Field label="Examinateur assigné">
+              <Field label={t("profile.assignedReviewer")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.reviewerId ?? ""}
@@ -1616,20 +1626,20 @@ function ProfileTab({
                   ))}
                 </select>
               </Field>
-              <Field label="Statut du dossier">
+              <Field label={t("profile.dossierStatus")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                   data-testid="select-status"
                 >
-                  <option value="prospect">Prospect</option>
-                  <option value="active">Actif</option>
-                  <option value="blocked">Bloqué</option>
-                  <option value="submitted">Déposé</option>
-                  <option value="visa_obtained">Visa obtenu</option>
-                  <option value="visa_refused">Visa refusé</option>
-                  <option value="withdrawn">Abandonné</option>
+                  <option value="prospect">{t("status.prospect")}</option>
+                  <option value="active">{t("status.active")}</option>
+                  <option value="blocked">{t("status.blocked")}</option>
+                  <option value="submitted">{t("status.submitted")}</option>
+                  <option value="visa_obtained">{t("status.visa_obtained")}</option>
+                  <option value="visa_refused">{t("status.visa_refused")}</option>
+                  <option value="withdrawn">{t("status.withdrawn")}</option>
                 </select>
               </Field>
             </div>

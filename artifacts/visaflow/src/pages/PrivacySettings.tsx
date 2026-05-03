@@ -3,11 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { gdprApi } from "@/lib/billing";
 import { Download, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function PrivacySettings() {
+  const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
   const [erasing, setErasing] = useState(false);
   const [eraseConfirm, setEraseConfirm] = useState("");
+
+  const ERASE_KEYWORD = "SUPPRIMER";
 
   const onExport = async () => {
     setExporting(true);
@@ -29,8 +33,8 @@ export function PrivacySettings() {
   };
 
   const onErase = async () => {
-    if (eraseConfirm.trim().toUpperCase() !== "SUPPRIMER") return;
-    if (!confirm("Confirmez-vous la suppression définitive de votre compte ?")) return;
+    if (eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD) return;
+    if (!confirm(t("privacy.confirmDeletion"))) return;
     setErasing(true);
     try {
       await gdprApi.erase();
@@ -45,10 +49,10 @@ export function PrivacySettings() {
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">
-          Confidentialité & RGPD
+          {t("privacy.title")}
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Exportez vos données ou demandez leur effacement.
+          {t("privacy.subtitle")}
         </p>
       </div>
 
@@ -56,17 +60,15 @@ export function PrivacySettings() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Download className="w-4 h-4" />
-            Exporter mes données
+            {t("privacy.exportTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-slate-600">
           <p>
-            Téléchargez une archive ZIP contenant l'ensemble des données
-            personnelles que VisaFlow détient à votre sujet (profil, dossiers
-            associés, documents, notifications, journaux d'audit).
+            {t("privacy.exportDesc")}
           </p>
           <Button onClick={onExport} disabled={exporting} data-testid="btn-export">
-            {exporting ? "Préparation…" : "Télécharger l'archive"}
+            {exporting ? t("privacy.exporting") : t("privacy.exportBtn")}
           </Button>
         </CardContent>
       </Card>
@@ -75,19 +77,16 @@ export function PrivacySettings() {
         <CardHeader>
           <CardTitle className="text-base text-rose-700 flex items-center gap-2">
             <Trash2 className="w-4 h-4" />
-            Supprimer mon compte
+            {t("privacy.deleteTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-slate-600">
-            Votre compte sera anonymisé immédiatement: nom, email et téléphone
-            seront effacés, votre accès sera révoqué. Les journaux d'audit
-            (réglementation française) sont conservés sans vos données
-            personnelles. Cette action est irréversible.
+            {t("privacy.deleteDesc")}
           </p>
           <div>
             <label className="block text-xs text-slate-500 mb-1">
-              Tapez <strong>SUPPRIMER</strong> pour confirmer
+              {t("privacy.deleteConfirmLabel")} — <strong>{ERASE_KEYWORD}</strong>
             </label>
             <input
               type="text"
@@ -99,11 +98,11 @@ export function PrivacySettings() {
           </div>
           <Button
             variant="destructive"
-            disabled={erasing || eraseConfirm.trim().toUpperCase() !== "SUPPRIMER"}
+            disabled={erasing || eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD}
             onClick={onErase}
             data-testid="btn-erase"
           >
-            {erasing ? "Suppression…" : "Supprimer définitivement mon compte"}
+            {erasing ? t("privacy.deleting") : t("privacy.deleteBtn")}
           </Button>
         </CardContent>
       </Card>

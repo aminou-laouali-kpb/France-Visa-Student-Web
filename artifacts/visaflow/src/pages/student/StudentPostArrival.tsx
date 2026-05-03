@@ -22,6 +22,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
+import { useTranslation } from "react-i18next";
 
 const ICONS: Record<string, typeof Plane> = {
   anef_validation: ShieldCheck,
@@ -41,6 +42,7 @@ export function StudentPostArrival() {
 }
 
 function Inner() {
+  const { t } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data, isLoading } = useListPostArrivalSteps(studentId);
@@ -48,7 +50,7 @@ function Inner() {
     (a, b) => a.order - b.order,
   );
 
-  if (isLoading) return <div className="p-8">Chargement…</div>;
+  if (isLoading) return <div className="p-8">{t("dash.loading")}</div>;
 
   const arrival = student?.arrivalDate;
   const expiry = student?.titreExpiryDate;
@@ -57,11 +59,10 @@ function Inner() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <Plane className="w-7 h-7 text-blue-600" /> Après l'arrivée
+          <Plane className="w-7 h-7 text-blue-600" /> {t("postArrival.title")}
         </h1>
         <p className="text-slate-600 mt-1">
-          Toutes les démarches à effectuer une fois en France pour valider votre
-          séjour et démarrer votre vie étudiante.
+          {t("postArrival.subtitle")}
         </p>
       </div>
 
@@ -70,25 +71,25 @@ function Inner() {
           <CardContent className="p-4 flex flex-wrap gap-6 text-sm">
             {arrival && (
               <div>
-                <div className="text-xs text-slate-500">Date d'arrivée prévue</div>
+                <div className="text-xs text-slate-500">{t("postArrival.arrivalDate")}</div>
                 <div className="font-medium text-slate-900">
-                  {new Date(arrival).toLocaleDateString("fr-FR")}
+                  {new Date(arrival).toLocaleDateString()}
                 </div>
               </div>
             )}
             {expiry && (
               <div>
                 <div className="text-xs text-slate-500">
-                  Expiration du titre de séjour
+                  {t("postArrival.titreExpiry")}
                 </div>
                 <div className="font-medium text-slate-900">
-                  {new Date(expiry).toLocaleDateString("fr-FR")}
+                  {new Date(expiry).toLocaleDateString()}
                 </div>
               </div>
             )}
             {student?.visaType && (
               <div>
-                <div className="text-xs text-slate-500">Type de visa</div>
+                <div className="text-xs text-slate-500">{t("postArrival.visaType")}</div>
                 <div className="font-medium text-slate-900 uppercase">
                   {student.visaType.replace("_", "-")}
                 </div>
@@ -102,8 +103,7 @@ function Inner() {
         <Card>
           <CardContent className="p-12 text-center text-slate-500">
             <Plane className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-            Les démarches post-arrivée seront générées dès l'obtention de votre
-            visa.
+            {t("postArrival.noSteps")}
           </CardContent>
         </Card>
       ) : (
@@ -124,6 +124,7 @@ function PostArrivalCard({
   step: PostArrivalStep;
   studentId: number;
 }) {
+  const { t } = useTranslation();
   const Icon = ICONS[step.code] ?? Circle;
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -133,7 +134,7 @@ function PostArrivalCard({
     mutation: {
       onSuccess: () => {
         qc.invalidateQueries();
-        toast({ title: "Mis à jour" });
+        toast({ title: t("postArrival.updated") });
       },
     },
   });
@@ -168,15 +169,15 @@ function PostArrivalCard({
             className={`text-xs flex items-center gap-1 ${overdue ? "text-rose-600 font-medium" : "text-slate-500"}`}
           >
             <Clock className="w-3.5 h-3.5" />
-            À faire avant le {due.toLocaleDateString("fr-FR")}
-            {overdue && " (en retard)"}
+            {t("postArrival.dueBy", { date: due.toLocaleDateString() })}
+            {overdue && " " + t("postArrival.overdue")}
           </div>
         )}
         {editing ? (
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes personnelles…"
+            placeholder={t("postArrival.notesPh")}
             rows={3}
             data-testid={`post-arrival-notes-${step.code}`}
           />
@@ -200,7 +201,7 @@ function PostArrivalCard({
                 })
               }
             >
-              <CheckCircle2 className="w-4 h-4 mr-1" /> Marquer terminé
+              <CheckCircle2 className="w-4 h-4 mr-1" /> {t("postArrival.markDone")}
             </Button>
           )}
           {!isDone && step.status === "not_started" && (
@@ -216,7 +217,7 @@ function PostArrivalCard({
                 })
               }
             >
-              Commencer
+              {t("postArrival.start")}
             </Button>
           )}
           {editing ? (
@@ -233,7 +234,7 @@ function PostArrivalCard({
                   setEditing(false);
                 }}
               >
-                Enregistrer notes
+                {t("postArrival.saveNotes")}
               </Button>
               <Button
                 size="sm"
@@ -243,7 +244,7 @@ function PostArrivalCard({
                   setEditing(false);
                 }}
               >
-                Annuler
+                {t("postArrival.cancel")}
               </Button>
             </>
           ) : (
@@ -253,7 +254,7 @@ function PostArrivalCard({
               onClick={() => setEditing(true)}
               data-testid={`post-arrival-edit-${step.code}`}
             >
-              {step.notes ? "Modifier les notes" : "Ajouter une note"}
+              {step.notes ? t("postArrival.editNote") : t("postArrival.addNote")}
             </Button>
           )}
         </div>

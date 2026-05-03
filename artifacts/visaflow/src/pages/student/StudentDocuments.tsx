@@ -18,21 +18,22 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
+import { useTranslation } from "react-i18next";
 
-const DOCUMENT_CATEGORIES: { value: string; label: string }[] = [
-  { value: "passeport", label: "Passeport" },
-  { value: "piece_identite", label: "Pièce d'identité" },
-  { value: "diplome", label: "Diplôme" },
-  { value: "releve_notes", label: "Relevé de notes" },
-  { value: "test_langue", label: "Test de langue" },
-  { value: "lettre_admission", label: "Lettre d'admission" },
-  { value: "attestation_campus_france", label: "Attestation Campus France" },
-  { value: "justificatif_financier", label: "Justificatif financier" },
-  { value: "justificatif_hebergement", label: "Justificatif d'hébergement" },
-  { value: "assurance", label: "Assurance santé" },
-  { value: "billet_avion", label: "Billet d'avion" },
-  { value: "autre", label: "Autre" },
-];
+const DOCUMENT_CATEGORY_VALUES = [
+  "passeport",
+  "piece_identite",
+  "diplome",
+  "releve_notes",
+  "test_langue",
+  "lettre_admission",
+  "attestation_campus_france",
+  "justificatif_financier",
+  "justificatif_hebergement",
+  "assurance",
+  "billet_avion",
+  "autre",
+] as const;
 
 export function StudentDocuments() {
   return (
@@ -43,10 +44,16 @@ export function StudentDocuments() {
 }
 
 function Inner() {
+  const { t } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data: docs = [], refetch } = useListDocuments(studentId);
   const list = docs as unknown as Document[];
+
+  const DOCUMENT_CATEGORIES = DOCUMENT_CATEGORY_VALUES.map((v) => ({
+    value: v,
+    label: t(`docCategory.${v}`),
+  }));
 
   const grouped = DOCUMENT_CATEGORIES.map((c) => ({
     ...c,
@@ -60,10 +67,8 @@ function Inner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mes documents</h1>
-        <p className="text-slate-600 mt-1">
-          Téléversez et suivez vos pièces justificatives.
-        </p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("documents.title")}</h1>
+        <p className="text-slate-600 mt-1">{t("documents.subtitle")}</p>
       </div>
 
       {rejected.length > 0 && (
@@ -71,7 +76,7 @@ function Inner() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2 text-rose-900">
               <AlertCircle className="w-5 h-5" />
-              Documents à corriger ({rejected.length})
+              {t("documents.toCorrect", { n: rejected.length })}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -86,7 +91,7 @@ function Inner() {
                   <div className="font-medium truncate">{d.name}</div>
                   {d.rejectionReason && (
                     <div className="text-sm text-rose-700 mt-0.5">
-                      Motif : {d.rejectionReason}
+                      {t("documents.motif")} {d.rejectionReason}
                     </div>
                   )}
                 </div>
@@ -96,7 +101,7 @@ function Inner() {
                   onClick={() => setPrefillCategory(d.category)}
                   data-testid={`button-reupload-${d.id}`}
                 >
-                  <RefreshCw className="w-4 h-4 mr-1" /> Re-téléverser
+                  <RefreshCw className="w-4 h-4 mr-1" /> {t("documents.reUpload")}
                 </Button>
               </div>
             ))}
@@ -108,6 +113,7 @@ function Inner() {
         studentId={studentId}
         onUploaded={refetch}
         prefillCategory={prefillCategory}
+        categories={DOCUMENT_CATEGORIES}
       />
 
       <div className="space-y-4">
@@ -117,7 +123,8 @@ function Inner() {
               <CardTitle className="text-base flex items-center justify-between">
                 <span>{g.label}</span>
                 <span className="text-xs font-normal text-slate-500">
-                  {g.docs.length} document{g.docs.length > 1 ? "s" : ""}
+                  {g.docs.length}{" "}
+                  {g.docs.length > 1 ? t("documents.nDocsPlural") : t("documents.nDocs")}
                 </span>
               </CardTitle>
             </CardHeader>
@@ -125,7 +132,7 @@ function Inner() {
               <div className="divide-y">
                 {g.docs.length === 0 ? (
                   <div className="p-4 text-sm text-slate-400 italic">
-                    Aucun document téléversé
+                    {t("documents.noUploaded")}
                   </div>
                 ) : (
                   g.docs.map((d) => (
@@ -169,6 +176,7 @@ function StudentDocExtraction({
   studentId: number;
   onRefetch: () => void;
 }) {
+  const { t } = useTranslation();
   const reExtract = useReExtractDocument();
   const status = doc.extractionStatus ?? "pending";
   const today = new Date();
@@ -185,11 +193,11 @@ function StudentDocExtraction({
 
   const banners: { tone: "red" | "amber"; text: string }[] = [];
   if (expired)
-    banners.push({ tone: "red", text: `Expiré le ${doc.expiryDate}.` });
+    banners.push({ tone: "red", text: t("documents.expired", { date: doc.expiryDate }) });
   else if (expiringSoon)
     banners.push({
       tone: "amber",
-      text: `Expire dans ${expDays} j (${doc.expiryDate}).`,
+      text: t("documents.expiringSoon", { n: expDays, date: doc.expiryDate }),
     });
 
   if (status === "pending" || status === "processing") {
@@ -198,7 +206,7 @@ function StudentDocExtraction({
         className="text-xs text-blue-600 mt-1"
         data-testid={`extraction-status-${doc.id}`}
       >
-        Analyse IA en cours…
+        {t("documents.aiProcessing")}
       </div>
     );
   }
@@ -221,7 +229,7 @@ function StudentDocExtraction({
       ))}
       {status === "failed" && (
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-rose-600">Analyse IA en échec.</span>
+          <span className="text-rose-600">{t("documents.aiFailed")}</span>
           <Button
             size="sm"
             variant="ghost"
@@ -233,7 +241,7 @@ function StudentDocExtraction({
             disabled={reExtract.isPending}
             data-testid={`button-reextract-${doc.id}`}
           >
-            Relancer
+            {t("documents.rerun")}
           </Button>
         </div>
       )}
@@ -245,11 +253,14 @@ function UploadDropzone({
   studentId,
   onUploaded,
   prefillCategory,
+  categories,
 }: {
   studentId: number;
   onUploaded: () => void;
   prefillCategory: string | null;
+  categories: { value: string; label: string }[];
 }) {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const [category, setCategory] = useState("passeport");
   const [name, setName] = useState("");
@@ -297,7 +308,7 @@ function UploadDropzone({
         headers: { "content-type": file.type },
         body: file,
       });
-      if (!putRes.ok) throw new Error("Échec du téléversement");
+      if (!putRes.ok) throw new Error(t("documents.uploadFailed"));
 
       const docRes = await fetch(`${apiBase}/students/${studentId}/documents`, {
         method: "POST",
@@ -313,13 +324,13 @@ function UploadDropzone({
           sizeBytes: file.size,
         }),
       });
-      if (!docRes.ok) throw new Error("Échec de l'enregistrement");
+      if (!docRes.ok) throw new Error(t("documents.saveFailed"));
 
       setFile(null);
       setName("");
       onUploaded();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur inconnue");
+      setError(e instanceof Error ? e.message : t("documents.unknownError"));
     } finally {
       setUploading(false);
     }
@@ -328,7 +339,7 @@ function UploadDropzone({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Téléverser un document</CardTitle>
+        <CardTitle className="text-base">{t("documents.uploadCard")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div
@@ -351,7 +362,7 @@ function UploadDropzone({
           data-testid="dropzone"
           role="button"
           tabIndex={0}
-          aria-label="Glissez-déposez un fichier ici ou cliquez pour parcourir"
+          aria-label={t("documents.dropzoneAria")}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -370,10 +381,10 @@ function UploadDropzone({
           ) : (
             <>
               <div className="text-slate-700 font-medium">
-                Glissez-déposez un fichier ici
+                {t("documents.dropzone")}
               </div>
               <div className="text-sm text-slate-500 mt-1">
-                ou cliquez pour parcourir (PDF, JPG, PNG)
+                {t("documents.dropzoneOr")}
               </div>
             </>
           )}
@@ -388,14 +399,14 @@ function UploadDropzone({
 
         <div className="grid md:grid-cols-2 gap-3">
           <div>
-            <Label>Catégorie</Label>
+            <Label>{t("documents.category")}</Label>
             <select
               className="w-full mt-1 border rounded-lg px-3 py-2 bg-white"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               data-testid="select-doc-category"
             >
-              {DOCUMENT_CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
@@ -403,11 +414,11 @@ function UploadDropzone({
             </select>
           </div>
           <div>
-            <Label>Nom du document</Label>
+            <Label>{t("documents.docName")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Passeport scan recto-verso"
+              placeholder={t("documents.namePh")}
               data-testid="input-doc-name"
             />
           </div>
@@ -420,7 +431,7 @@ function UploadDropzone({
           disabled={!file || !name || uploading}
           data-testid="button-upload"
         >
-          {uploading ? "Téléversement…" : "Téléverser"}
+          {uploading ? t("documents.uploading") : t("documents.upload")}
         </Button>
       </CardContent>
     </Card>

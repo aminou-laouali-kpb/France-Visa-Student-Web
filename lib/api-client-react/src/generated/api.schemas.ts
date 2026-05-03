@@ -2229,6 +2229,95 @@ export interface TranscribeInterviewTurnBody {
   mimeType?: string | null;
 }
 
+export type BillingPlanTier =
+  (typeof BillingPlanTier)[keyof typeof BillingPlanTier];
+
+export const BillingPlanTier = {
+  free: "free",
+  pro: "pro",
+  agency: "agency",
+} as const;
+
+export interface BillingPlan {
+  tier: BillingPlanTier;
+  name: string;
+  priceEur: number;
+  /** @nullable */
+  priceId: string | null;
+  seatLimit: number;
+  studentLimit: number;
+  aiBudgetUsd: string;
+  features: string[];
+}
+
+export interface BillingPlansResponse {
+  plans: BillingPlan[];
+  stripeConfigured: boolean;
+}
+
+export interface TenantBranding {
+  tenantId: number;
+  name: string;
+  /** @nullable */
+  subdomain?: string | null;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  primaryColor?: string | null;
+  /** @nullable */
+  emailFromName?: string | null;
+  /** @nullable */
+  emailFromAddress?: string | null;
+}
+
+export type TenantSettings = TenantBranding & {
+  planTier: string;
+  /** @nullable */
+  seatLimit?: number | null;
+  /** @nullable */
+  studentLimit?: number | null;
+  /** @nullable */
+  aiMonthlyBudgetUsd?: string | null;
+  /** @nullable */
+  ipAllowlist?: string | null;
+  twoFactorRequired: boolean;
+  /** @nullable */
+  subscriptionStatus?: string | null;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
+  /** @nullable */
+  stripeCustomerId?: string | null;
+};
+
+export interface UpdateTenantSettingsBody {
+  name?: string;
+  /** @nullable */
+  subdomain?: string | null;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  primaryColor?: string | null;
+  /** @nullable */
+  emailFromName?: string | null;
+  /** @nullable */
+  emailFromAddress?: string | null;
+  /** @nullable */
+  ipAllowlist?: string | null;
+  twoFactorRequired?: boolean;
+}
+
+export interface TwoFAStatus {
+  enabled: boolean;
+  /** @nullable */
+  verifiedAt?: string | null;
+}
+
+export interface TwoFAEnrollResponse {
+  secret: string;
+  otpauthUrl: string;
+  qrDataUrl: string;
+}
+
 /**
  * Unauthorized
  */
@@ -2332,4 +2421,48 @@ export type ListIntakeCalendarEntriesParams = {
 export type GetUpcomingIntakeDeadlinesParams = {
   nationalityCode?: string;
   limit?: number;
+};
+
+export type CreateCheckoutSessionBody = {
+  priceId: string;
+};
+
+export type CreateCheckoutSession200 = {
+  url: string;
+};
+
+export type CreateBillingPortalSession200 = {
+  url: string;
+};
+
+export type Disable2FABody = {
+  code: string;
+};
+
+export type Disable2FA200 = {
+  enabled: boolean;
+};
+
+export type Verify2FABody = {
+  code: string;
+};
+
+export type Verify2FA200 = {
+  enabled: boolean;
+};
+
+export type Challenge2FABody = {
+  code: string;
+};
+
+export type Challenge2FA200 = {
+  verified: boolean;
+};
+
+export type EraseMyAccount200 = {
+  erased: boolean;
+};
+
+export type EraseUserAccount200 = {
+  erased: boolean;
 };

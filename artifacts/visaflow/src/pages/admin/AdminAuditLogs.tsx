@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 25;
 
 export function AdminAuditLogs() {
+  const { t } = useTranslation();
   const [userId, setUserId] = useState<string>("");
   const [action, setAction] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
@@ -52,27 +54,27 @@ export function AdminAuditLogs() {
   return (
     <div className="space-y-6" data-testid="admin-audit-logs">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Journal d'audit</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("audit.title")}</h1>
         <p className="text-slate-600 mt-1">
-          Toutes les actions effectuées sur la plateforme
+          {t("audit.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader className="flex-row items-center gap-2">
           <Filter className="w-4 h-4 text-slate-500" />
-          <CardTitle className="text-sm font-medium">Filtres</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("audit.filters")}</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-4 gap-3">
           <div>
-            <label className="text-xs text-slate-500">Utilisateur</label>
+            <label className="text-xs text-slate-500">{t("audit.userLabel")}</label>
             <select
               className="w-full mt-1 border rounded-lg px-3 py-2 bg-white text-sm"
               value={userId}
               onChange={(e) => onFilterChange(setUserId)(e.target.value)}
               data-testid="filter-user"
             >
-              <option value="">Tous</option>
+              <option value="">{t("filter.allUsers")}</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.firstName} {u.lastName} ({u.email})
@@ -81,7 +83,7 @@ export function AdminAuditLogs() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-slate-500">Action</label>
+            <label className="text-xs text-slate-500">{t("audit.actionLabel")}</label>
             <Input
               placeholder="ex. student.update"
               value={action}
@@ -90,7 +92,7 @@ export function AdminAuditLogs() {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-500">ID étudiant</label>
+            <label className="text-xs text-slate-500">{t("audit.studentIdLabel")}</label>
             <Input
               type="number"
               placeholder="ex. 42"
@@ -101,7 +103,7 @@ export function AdminAuditLogs() {
           </div>
           <div className="flex items-end">
             <Button variant="outline" onClick={reset} data-testid="button-reset-filters">
-              Réinitialiser
+              {t("filter.reset")}
             </Button>
           </div>
         </CardContent>
@@ -113,11 +115,11 @@ export function AdminAuditLogs() {
             <table className="w-full text-sm">
               <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Utilisateur</th>
-                  <th className="text-left px-4 py-3 font-medium">Action</th>
-                  <th className="text-left px-4 py-3 font-medium">Entité</th>
-                  <th className="text-left px-4 py-3 font-medium">Détails</th>
+                  <th className="text-left px-4 py-3 font-medium">{t("table.date")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{t("table.user")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{t("table.action")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{t("table.entity")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{t("table.details")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,7 +145,7 @@ export function AdminAuditLogs() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-slate-400">Système</span>
+                          <span className="text-slate-400">{t("audit.system")}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -161,7 +163,7 @@ export function AdminAuditLogs() {
                 {!isLoading && visible.length === 0 && (
                   <tr>
                     <td colSpan={5} className="p-12 text-center text-slate-500">
-                      Aucune entrée pour ces filtres.
+                      {t("audit.noEntries")}
                     </td>
                   </tr>
                 )}
@@ -169,7 +171,7 @@ export function AdminAuditLogs() {
             </table>
           </div>
           <div className="flex items-center justify-between p-3 border-t bg-slate-50">
-            <div className="text-xs text-slate-500">Page {page + 1}</div>
+            <div className="text-xs text-slate-500">{t("common.page")} {page + 1}</div>
             <div className="flex gap-2">
               <Button
                 size="sm"

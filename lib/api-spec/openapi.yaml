@@ -54,6 +54,14 @@ tags:
     description: Advisor AI copilot, risk narrative explainer and chat translation
   - name: interviews
     description: Campus France interview simulator
+  - name: billing
+    description: Subscription plans and Stripe billing
+  - name: branding
+    description: Tenant white-label branding and settings
+  - name: twofa
+    description: TOTP two-factor authentication
+  - name: gdpr
+    description: GDPR data export and erasure
 
 paths:
   /healthz:
@@ -2540,6 +2548,279 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/IntakeCalendarEntry" }
+
+  # ─── Billing ───────────────────────────────────────────────────────────────
+  /billing/plans:
+    get:
+      operationId: getBillingPlans
+      tags: [billing]
+      summary: List available subscription plans
+      responses:
+        "200":
+          description: Plans and Stripe configuration status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPlansResponse"
+
+  /billing/checkout:
+    post:
+      operationId: createCheckoutSession
+      tags: [billing]
+      summary: Create a Stripe Checkout session for a subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priceId: { type: string }
+              required: [priceId]
+      responses:
+        "200":
+          description: Checkout URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+                required: [url]
+        "400":
+          description: Invalid price ID or missing tenant
+        "503":
+          description: Stripe not configured
+
+  /billing/portal:
+    post:
+      operationId: createBillingPortalSession
+      tags: [billing]
+      summary: Open the Stripe customer billing portal
+      responses:
+        "200":
+          description: Portal URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+                required: [url]
+        "400":
+          description: No Stripe customer yet
+
+  # ─── Tenant branding & settings ─────────────────────────────────────────────
+  /tenant/branding:
+    get:
+      operationId: getTenantBranding
+      tags: [branding]
+      summary: Public branding for the caller's tenant
+      responses:
+        "200":
+          description: Branding data (or null)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/TenantBranding"
+                  - type: "null"
+
+  /tenant/settings:
+    get:
+      operationId: getTenantSettings
+      tags: [branding]
+      summary: Full tenant settings (admin only)
+      responses:
+        "200":
+          description: Tenant settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantSettings"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      operationId: updateTenantSettings
+      tags: [branding]
+      summary: Update branding, IP allowlist and security settings (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenantSettingsBody"
+      responses:
+        "200":
+          description: Updated branding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantBranding"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ─── 2FA ─────────────────────────────────────────────────────────────────────
+  /me/2fa:
+    get:
+      operationId: get2FAStatus
+      tags: [twofa]
+      summary: Get current user's 2FA status
+      responses:
+        "200":
+          description: 2FA status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwoFAStatus"
+    delete:
+      operationId: disable2FA
+      tags: [twofa]
+      summary: Disable TOTP for current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string }
+              required: [code]
+      responses:
+        "200":
+          description: Disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: { type: boolean }
+                required: [enabled]
+        "400":
+          description: Invalid code
+
+  /me/2fa/enroll:
+    post:
+      operationId: enroll2FA
+      tags: [twofa]
+      summary: Start TOTP enrollment — returns QR + secret
+      responses:
+        "200":
+          description: Enrollment data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwoFAEnrollResponse"
+
+  /me/2fa/verify:
+    post:
+      operationId: verify2FA
+      tags: [twofa]
+      summary: Verify TOTP code and enable 2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string }
+              required: [code]
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: { type: boolean }
+                required: [enabled]
+        "400":
+          description: Invalid code or no pending enrollment
+
+  /me/2fa/challenge:
+    post:
+      operationId: challenge2FA
+      tags: [twofa]
+      summary: Validate a TOTP code and stamp totpVerifiedAt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string }
+              required: [code]
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified: { type: boolean }
+                required: [verified]
+        "400":
+          description: Invalid code
+
+  # ─── GDPR ─────────────────────────────────────────────────────────────────────
+  /me/gdpr/export:
+    post:
+      operationId: exportMyData
+      tags: [gdpr]
+      summary: Export all personal data as a ZIP archive
+      responses:
+        "200":
+          description: ZIP archive
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /me/gdpr/erase:
+    post:
+      operationId: eraseMyAccount
+      tags: [gdpr]
+      summary: Anonymize the current user's account (GDPR right to erasure)
+      responses:
+        "200":
+          description: Erased
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erased: { type: boolean }
+                required: [erased]
+
+  /admin/users/{userId}/erase:
+    post:
+      operationId: eraseUserAccount
+      tags: [gdpr]
+      summary: Admin — anonymize a user's account
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Erased
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erased: { type: boolean }
+                required: [erased]
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: User not found
 
 components:
   responses:
@@ -5228,3 +5509,87 @@ components:
         audioBase64: { type: string }
         mimeType: { type: ["string", "null"] }
       required: [audioBase64]
+
+    # ─── Billing schemas ──────────────────────────────────────────────────────
+    BillingPlan:
+      type: object
+      properties:
+        tier:
+          type: string
+          enum: [free, pro, agency]
+        name: { type: string }
+        priceEur: { type: number }
+        priceId: { type: ["string", "null"] }
+        seatLimit: { type: number }
+        studentLimit: { type: number }
+        aiBudgetUsd: { type: string }
+        features:
+          type: array
+          items: { type: string }
+      required: [tier, name, priceEur, priceId, seatLimit, studentLimit, aiBudgetUsd, features]
+
+    BillingPlansResponse:
+      type: object
+      properties:
+        plans:
+          type: array
+          items: { $ref: "#/components/schemas/BillingPlan" }
+        stripeConfigured: { type: boolean }
+      required: [plans, stripeConfigured]
+
+    # ─── Tenant / branding schemas ────────────────────────────────────────────
+    TenantBranding:
+      type: object
+      properties:
+        tenantId: { type: integer }
+        name: { type: string }
+        subdomain: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        primaryColor: { type: ["string", "null"] }
+        emailFromName: { type: ["string", "null"] }
+        emailFromAddress: { type: ["string", "null"] }
+      required: [tenantId, name]
+
+    TenantSettings:
+      allOf:
+        - $ref: "#/components/schemas/TenantBranding"
+        - type: object
+          properties:
+            planTier: { type: string }
+            seatLimit: { type: ["integer", "null"] }
+            studentLimit: { type: ["integer", "null"] }
+            aiMonthlyBudgetUsd: { type: ["string", "null"] }
+            ipAllowlist: { type: ["string", "null"] }
+            twoFactorRequired: { type: boolean }
+            subscriptionStatus: { type: ["string", "null"] }
+            currentPeriodEnd: { type: ["string", "null"], format: date-time }
+            stripeCustomerId: { type: ["string", "null"] }
+          required: [planTier, twoFactorRequired]
+
+    UpdateTenantSettingsBody:
+      type: object
+      properties:
+        name: { type: string }
+        subdomain: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        primaryColor: { type: ["string", "null"] }
+        emailFromName: { type: ["string", "null"] }
+        emailFromAddress: { type: ["string", "null"] }
+        ipAllowlist: { type: ["string", "null"] }
+        twoFactorRequired: { type: boolean }
+
+    # ─── 2FA schemas ──────────────────────────────────────────────────────────
+    TwoFAStatus:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        verifiedAt: { type: ["string", "null"], format: date-time }
+      required: [enabled]
+
+    TwoFAEnrollResponse:
+      type: object
+      properties:
+        secret: { type: string }
+        otpauthUrl: { type: string }
+        qrDataUrl: { type: string }
+      required: [secret, otpauthUrl, qrDataUrl]

@@ -3998,3 +3998,175 @@ export const GetUpcomingIntakeDeadlinesResponseItem = zod.object({
 export const GetUpcomingIntakeDeadlinesResponse = zod.array(
   GetUpcomingIntakeDeadlinesResponseItem,
 );
+
+/**
+ * @summary List available subscription plans
+ */
+export const GetBillingPlansResponse = zod.object({
+  plans: zod.array(
+    zod.object({
+      tier: zod.enum(["free", "pro", "agency"]),
+      name: zod.string(),
+      priceEur: zod.number(),
+      priceId: zod.string().nullable(),
+      seatLimit: zod.number(),
+      studentLimit: zod.number(),
+      aiBudgetUsd: zod.string(),
+      features: zod.array(zod.string()),
+    }),
+  ),
+  stripeConfigured: zod.boolean(),
+});
+
+/**
+ * @summary Create a Stripe Checkout session for a subscription
+ */
+export const CreateCheckoutSessionBody = zod.object({
+  priceId: zod.string(),
+});
+
+export const CreateCheckoutSessionResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Open the Stripe customer billing portal
+ */
+export const CreateBillingPortalSessionResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Public branding for the caller's tenant
+ */
+export const GetTenantBrandingResponse = zod.union([
+  zod.object({
+    tenantId: zod.number(),
+    name: zod.string(),
+    subdomain: zod.string().nullish(),
+    logoUrl: zod.string().nullish(),
+    primaryColor: zod.string().nullish(),
+    emailFromName: zod.string().nullish(),
+    emailFromAddress: zod.string().nullish(),
+  }),
+  zod.null(),
+]);
+
+/**
+ * @summary Full tenant settings (admin only)
+ */
+export const GetTenantSettingsResponse = zod
+  .object({
+    tenantId: zod.number(),
+    name: zod.string(),
+    subdomain: zod.string().nullish(),
+    logoUrl: zod.string().nullish(),
+    primaryColor: zod.string().nullish(),
+    emailFromName: zod.string().nullish(),
+    emailFromAddress: zod.string().nullish(),
+  })
+  .and(
+    zod.object({
+      planTier: zod.string(),
+      seatLimit: zod.number().nullish(),
+      studentLimit: zod.number().nullish(),
+      aiMonthlyBudgetUsd: zod.string().nullish(),
+      ipAllowlist: zod.string().nullish(),
+      twoFactorRequired: zod.boolean(),
+      subscriptionStatus: zod.string().nullish(),
+      currentPeriodEnd: zod.coerce.date().nullish(),
+      stripeCustomerId: zod.string().nullish(),
+    }),
+  );
+
+/**
+ * @summary Update branding, IP allowlist and security settings (admin only)
+ */
+export const UpdateTenantSettingsBody = zod.object({
+  name: zod.string().optional(),
+  subdomain: zod.string().nullish(),
+  logoUrl: zod.string().nullish(),
+  primaryColor: zod.string().nullish(),
+  emailFromName: zod.string().nullish(),
+  emailFromAddress: zod.string().nullish(),
+  ipAllowlist: zod.string().nullish(),
+  twoFactorRequired: zod.boolean().optional(),
+});
+
+export const UpdateTenantSettingsResponse = zod.object({
+  tenantId: zod.number(),
+  name: zod.string(),
+  subdomain: zod.string().nullish(),
+  logoUrl: zod.string().nullish(),
+  primaryColor: zod.string().nullish(),
+  emailFromName: zod.string().nullish(),
+  emailFromAddress: zod.string().nullish(),
+});
+
+/**
+ * @summary Get current user's 2FA status
+ */
+export const Get2FAStatusResponse = zod.object({
+  enabled: zod.boolean(),
+  verifiedAt: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary Disable TOTP for current user
+ */
+export const Disable2FABody = zod.object({
+  code: zod.string(),
+});
+
+export const Disable2FAResponse = zod.object({
+  enabled: zod.boolean(),
+});
+
+/**
+ * @summary Start TOTP enrollment — returns QR + secret
+ */
+export const Enroll2FAResponse = zod.object({
+  secret: zod.string(),
+  otpauthUrl: zod.string(),
+  qrDataUrl: zod.string(),
+});
+
+/**
+ * @summary Verify TOTP code and enable 2FA
+ */
+export const Verify2FABody = zod.object({
+  code: zod.string(),
+});
+
+export const Verify2FAResponse = zod.object({
+  enabled: zod.boolean(),
+});
+
+/**
+ * @summary Validate a TOTP code and stamp totpVerifiedAt
+ */
+export const Challenge2FABody = zod.object({
+  code: zod.string(),
+});
+
+export const Challenge2FAResponse = zod.object({
+  verified: zod.boolean(),
+});
+
+/**
+ * @summary Anonymize the current user's account (GDPR right to erasure)
+ */
+export const EraseMyAccountResponse = zod.object({
+  erased: zod.boolean(),
+});
+
+/**
+ * @summary Admin — anonymize a user's account
+ */
+export const EraseUserAccountParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const EraseUserAccountResponse = zod.object({
+  erased: zod.boolean(),
+});

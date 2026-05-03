@@ -17,8 +17,10 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CountryFlag } from "@/components/CountryFlag";
 import { formatDate } from "@/lib/utils";
 import { Search, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function AdminStudents() {
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [countryId, setCountryId] = useState("");
@@ -77,9 +79,9 @@ export function AdminStudents() {
   return (
     <div className="space-y-6" data-testid="admin-students">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Tous les étudiants</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("adminStudents.title")}</h1>
         <p className="text-slate-600 mt-1">
-          Vue transverse sur tous les conseillers, avec affectation
+          {t("adminStudents.subtitle")}
         </p>
       </div>
 
@@ -88,7 +90,7 @@ export function AdminStudents() {
           <div className="relative md:col-span-2">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              placeholder="Rechercher…"
+              placeholder={t("common.search") ?? "Rechercher…"}
               className="pl-9"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -96,20 +98,20 @@ export function AdminStudents() {
             />
           </div>
           <Select value={status} onChange={setStatus} testid="select-status">
-            <option value="">Tous statuts</option>
-            <option value="prospect">Prospect</option>
-            <option value="active">Actif</option>
-            <option value="blocked">Bloqué</option>
-            <option value="submitted">Déposé</option>
-            <option value="visa_obtained">Visa obtenu</option>
-            <option value="visa_refused">Visa refusé</option>
+            <option value="">{t("filter.allStatuses")}</option>
+            <option value="prospect">{t("status.prospect")}</option>
+            <option value="active">{t("status.active")}</option>
+            <option value="blocked">{t("status.blocked")}</option>
+            <option value="submitted">{t("status.submitted")}</option>
+            <option value="visa_obtained">{t("status.visa_obtained")}</option>
+            <option value="visa_refused">{t("status.visa_refused")}</option>
           </Select>
           <Select
             value={countryId}
             onChange={setCountryId}
             testid="select-country"
           >
-            <option value="">Tous pays</option>
+            <option value="">{t("filter.allCountries")}</option>
             {countries.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -117,7 +119,7 @@ export function AdminStudents() {
             ))}
           </Select>
           <Select value={schoolId} onChange={setSchoolId} testid="select-school">
-            <option value="">Toutes écoles</option>
+            <option value="">{t("filter.allSchools")}</option>
             {schools.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -125,18 +127,18 @@ export function AdminStudents() {
             ))}
           </Select>
           <Select value={risk} onChange={setRisk} testid="select-risk">
-            <option value="">Tous risques</option>
-            <option value="low">Risque faible</option>
-            <option value="medium">Risque moyen</option>
-            <option value="high">Risque élevé</option>
+            <option value="">{t("filter.allRisks")}</option>
+            <option value="low">{t("filter.riskLow")}</option>
+            <option value="medium">{t("filter.riskMedium")}</option>
+            <option value="high">{t("filter.riskHigh")}</option>
           </Select>
           <Select
             value={advisorFilter}
             onChange={setAdvisorFilter}
             testid="select-advisor-filter"
           >
-            <option value="">Tous conseillers</option>
-            <option value="unassigned">Non affectés</option>
+            <option value="">{t("filter.allAdvisors")}</option>
+            <option value="unassigned">{t("filter.unassigned")}</option>
             {advisors.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.firstName} {a.lastName}
@@ -149,34 +151,36 @@ export function AdminStudents() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {students.length} étudiant{students.length > 1 ? "s" : ""}
+            {students.length > 1
+              ? t("dash.nStudentsPlural", { n: students.length })
+              : t("dash.nStudents", { n: students.length })}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500">Chargement…</div>
+            <div className="p-8 text-center text-slate-500">{t("dash.loading")}</div>
           ) : students.length === 0 ? (
             <div className="p-12 text-center text-slate-500">
-              Aucun étudiant ne correspond à ces filtres.
+              {t("dash.noMatch")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
                   <tr>
-                    <Th onClick={() => toggleSort("lastName")}>Étudiant</Th>
-                    <Th>Pays</Th>
-                    <Th>École</Th>
-                    <Th>Étape</Th>
+                    <Th onClick={() => toggleSort("lastName")}>{t("table.student")}</Th>
+                    <Th>{t("table.country")}</Th>
+                    <Th>{t("table.school")}</Th>
+                    <Th>{t("table.step")}</Th>
                     <Th onClick={() => toggleSort("completionScore")}>
-                      Progression
+                      {t("table.progress")}
                     </Th>
-                    <Th>Risque</Th>
+                    <Th>{t("table.risk")}</Th>
                     <Th onClick={() => toggleSort("lastActivityAt")}>
-                      Activité
+                      {t("table.activity")}
                     </Th>
-                    <Th>Conseiller</Th>
-                    <Th>Relecteur</Th>
+                    <Th>{t("table.advisor")}</Th>
+                    <Th>{t("table.reviewer")}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,7 +236,7 @@ export function AdminStudents() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <RiskBadge level={s.riskLevel ?? null} />
+                        <RiskBadge level={s.riskLevel ?? null} t={t} />
                       </td>
                       <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
                         {formatDate(s.lastActivityAt)}
@@ -249,7 +253,7 @@ export function AdminStudents() {
                           }
                           data-testid={`select-advisor-${s.id}`}
                         >
-                          <option value="">Non affecté</option>
+                          <option value="">{t("dash.notAssigned")}</option>
                           {advisors.map((a) => (
                             <option key={a.id} value={a.id}>
                               {a.firstName} {a.lastName}
@@ -269,7 +273,7 @@ export function AdminStudents() {
                           }
                           data-testid={`select-reviewer-${s.id}`}
                         >
-                          <option value="">Non affecté</option>
+                          <option value="">{t("dash.notAssigned")}</option>
                           {reviewers.map((r) => (
                             <option key={r.id} value={r.id}>
                               {r.firstName} {r.lastName}
@@ -331,7 +335,7 @@ function Th({
   );
 }
 
-function RiskBadge({ level }: { level: string | null }) {
+function RiskBadge({ level, t }: { level: string | null; t: (k: string) => string }) {
   if (!level) return <span className="text-slate-400 text-xs">—</span>;
   const styles: Record<string, string> = {
     low: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -339,9 +343,9 @@ function RiskBadge({ level }: { level: string | null }) {
     high: "bg-rose-100 text-rose-700 border-rose-200",
   };
   const labels: Record<string, string> = {
-    low: "Faible",
-    medium: "Moyen",
-    high: "Élevé",
+    low: t("risk.low"),
+    medium: t("risk.medium"),
+    high: t("risk.high"),
   };
   return (
     <Badge variant="outline" className={`${styles[level] ?? ""}`}>

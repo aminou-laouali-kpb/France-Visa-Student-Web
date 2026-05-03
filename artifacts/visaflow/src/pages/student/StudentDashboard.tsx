@@ -28,8 +28,10 @@ import {
   Stamp,
 } from "lucide-react";
 import type { Appointment, PostArrivalStep } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export function StudentDashboard() {
+  const { t } = useTranslation();
   const { data: me } = useGetMe();
   const { data: raw, isLoading } = useGetStudentDashboard();
   const data = raw as unknown as StudentDashboardData | undefined;
@@ -45,20 +47,20 @@ export function StudentDashboard() {
   });
 
   if (me && me.role !== "student") return <Redirect to="/app" />;
-  if (isLoading) return <div className="p-8">Chargement…</div>;
+  if (isLoading) return <div className="p-8">{t("dash.loading")}</div>;
 
   if (!data?.student) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
           <GraduationCap className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Bienvenue sur VisaFlow !</h2>
+          <h2 className="text-xl font-semibold mb-2">{t("dashboard.welcome")}</h2>
           <p className="text-slate-600 mb-6">
-            Créons votre dossier visa étudiant pour démarrer votre parcours en France.
+            {t("dash.studentWelcome")}
           </p>
           <Link href="/app/onboarding">
             <Button size="lg" data-testid="button-create-dossier">
-              Créer mon dossier
+              {t("dash.createDossier")}
             </Button>
           </Link>
         </CardContent>
@@ -79,7 +81,7 @@ export function StudentDashboard() {
   const derivedActions: { label: string; href: string; icon: typeof FileText }[] = [];
   if (rejectedDocs.length > 0) {
     derivedActions.push({
-      label: `Corriger ${rejectedDocs.length} document(s) rejeté(s)`,
+      label: t("dash.docsToCorrect", { n: rejectedDocs.length }),
       href: "/student/documents",
       icon: AlertTriangle,
     });
@@ -113,9 +115,9 @@ export function StudentDashboard() {
   return (
     <div className="space-y-6" data-testid="student-dashboard">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mon parcours</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("dashboard.myJourney")}</h1>
         <p className="text-slate-600 mt-1">
-          {data.completedSteps} sur {data.totalSteps} étapes validées
+          {t("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
         </p>
       </div>
 
@@ -125,17 +127,17 @@ export function StudentDashboard() {
             <ProgressRing value={data.completionScore} label="complété" />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm text-slate-600">Statut du dossier</div>
+                <div className="text-sm text-slate-600">{t("dash.dossierStatus")}</div>
                 <StatusBadge status={data.student.status} />
               </div>
               <div className="text-lg font-semibold text-slate-900">
-                {data.completedSteps} / {data.totalSteps} étapes validées
+                {data.completedSteps} / {data.totalSteps} {t("dash.stepsCompleted")}
               </div>
               <Progress value={data.completionScore} className="h-2 mt-2" />
               {data.pendingDocuments > 0 && (
                 <div className="text-sm text-amber-700 mt-3 flex items-center gap-1">
                   <AlertTriangle className="w-4 h-4" />
-                  {data.pendingDocuments} document(s) à corriger
+                  {t("dash.docsToCorrect", { n: data.pendingDocuments })}
                 </div>
               )}
             </div>
@@ -148,14 +150,14 @@ export function StudentDashboard() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ListChecks className="w-4 h-4 text-blue-600" />
-              Prochaines actions
+              {t("dash.nextActions")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {apiActions.length === 0 && derivedActions.length === 0 ? (
               <div className="text-sm text-slate-500 flex items-center gap-2 py-4">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Tout est à jour. Bravo !
+                {t("dash.allUpToDate")}
               </div>
             ) : (
               <>
@@ -190,13 +192,13 @@ export function StudentDashboard() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-blue-600" />
-              Commentaires de votre conseiller
+              {t("dash.advisorComments")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {advisorComments.length === 0 ? (
               <div className="text-sm text-slate-500 py-4">
-                Aucun commentaire pour le moment.
+                {t("dash.noComments")}
               </div>
             ) : (
               advisorComments.slice(0, 4).map((c) => (
@@ -227,7 +229,7 @@ export function StudentDashboard() {
                 className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
                 data-testid="link-all-messages"
               >
-                Voir tous les messages
+                {t("dash.seeAllMessages")}
                 <ArrowRight className="w-3 h-3" />
               </a>
             </Link>
@@ -240,7 +242,7 @@ export function StudentDashboard() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ListChecks className="w-4 h-4 text-blue-600" />
-              Étape en cours
+              {t("dash.currentStep")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -267,7 +269,7 @@ export function StudentDashboard() {
               </div>
               <Link href="/student/steps">
                 <Button variant="outline" size="sm" data-testid="button-view-step">
-                  Voir l'étape
+                  {t("dash.seeStep")}
                 </Button>
               </Link>
             </div>
@@ -281,13 +283,13 @@ export function StudentDashboard() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Calendar className="w-4 h-4 text-blue-600" />
-            Rendez-vous à venir
+            {t("dash.upcomingAppts")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {(data.upcomingAppointments ?? []).length === 0 ? (
             <div className="text-sm text-slate-500 py-4">
-              Aucun rendez-vous planifié.
+              {t("dash.noAppts")}
             </div>
           ) : (
             (data.upcomingAppointments as Appointment[]).map((apt) => {
@@ -326,7 +328,7 @@ export function StudentDashboard() {
               className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
               data-testid="link-all-appointments"
             >
-              Voir tous les rendez-vous
+              {t("dash.seeAllAppts")}
               <ArrowRight className="w-3 h-3" />
             </a>
           </Link>
@@ -338,7 +340,7 @@ export function StudentDashboard() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Plane className="w-4 h-4 text-blue-600" />
-              Après l'arrivée en France
+              {t("dash.postArrival")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -361,8 +363,7 @@ export function StudentDashboard() {
                     <div className="font-medium text-slate-900">{s.label}</div>
                     {s.dueDate && (
                       <div className="text-xs text-slate-600 mt-0.5">
-                        À faire avant le{" "}
-                        {new Date(s.dueDate).toLocaleDateString("fr-FR")}
+                        {t("postArrival.dueBy", { date: new Date(s.dueDate).toLocaleDateString() })}
                       </div>
                     )}
                   </div>
@@ -374,7 +375,7 @@ export function StudentDashboard() {
                 className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
                 data-testid="link-all-post-arrival"
               >
-                Voir toutes les démarches
+                {t("dash.seeAllSteps")}
                 <ArrowRight className="w-3 h-3" />
               </a>
             </Link>
@@ -387,7 +388,7 @@ export function StudentDashboard() {
           <CardContent className="p-5">
             <FileText className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.documentsCount}</div>
-            <div className="text-sm text-slate-600">Documents téléversés</div>
+            <div className="text-sm text-slate-600">{t("dash.uploadsCount")}</div>
           </CardContent>
         </Card>
         <Card>
@@ -396,14 +397,14 @@ export function StudentDashboard() {
             <div className="text-2xl font-bold">
               {data.upcomingAppointments?.length ?? 0}
             </div>
-            <div className="text-sm text-slate-600">Rendez-vous à venir</div>
+            <div className="text-sm text-slate-600">{t("dash.upcomingAppts")}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
             <ListChecks className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.completedSteps}</div>
-            <div className="text-sm text-slate-600">Étapes validées</div>
+            <div className="text-sm text-slate-600">{t("dash.stepsCompleted")}</div>
           </CardContent>
         </Card>
       </div>

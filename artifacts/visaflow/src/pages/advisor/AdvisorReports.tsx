@@ -17,6 +17,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
 
@@ -29,10 +30,11 @@ const HISTOGRAM_BUCKETS: { label: string; min: number; max: number }[] = [
 ];
 
 export function AdvisorReports() {
+  const { t } = useTranslation();
   const { data: stats, isLoading } = useGetPortfolioStats();
   const { data: students = [] } = useListStudents({});
 
-  if (isLoading) return <div className="p-8">Chargement…</div>;
+  if (isLoading) return <div className="p-8">{t("dash.loading")}</div>;
 
   const byStatus = stats?.byStatus ?? [];
   const byCountry = stats?.byCountry ?? [];
@@ -54,14 +56,14 @@ export function AdvisorReports() {
   return (
     <div className="space-y-6" data-testid="advisor-reports">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Statistiques du portefeuille</h1>
-        <p className="text-slate-600 mt-1">Indicateurs clés de votre activité</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("reports.title")}</h1>
+        <p className="text-slate-600 mt-1">{t("reports.subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <ChartCard title="Étudiants par statut">
+        <ChartCard title={t("reports.byStatus")}>
           {byStatus.length === 0 ? (
-            <Empty />
+            <Empty t={t} />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -84,9 +86,9 @@ export function AdvisorReports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Étudiants par pays">
+        <ChartCard title={t("reports.byCountry")}>
           {byCountry.length === 0 ? (
-            <Empty />
+            <Empty t={t} />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={byCountry}>
@@ -100,9 +102,9 @@ export function AdvisorReports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Niveau de risque">
+        <ChartCard title={t("reports.byRisk")}>
           {byRisk.length === 0 ? (
-            <Empty />
+            <Empty t={t} />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={byRisk}>
@@ -129,9 +131,9 @@ export function AdvisorReports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Distribution des taux de complétion">
+        <ChartCard title={t("reports.byCompletion")}>
           {students.length === 0 ? (
-            <Empty />
+            <Empty t={t} />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={byCompletion}>
@@ -142,7 +144,7 @@ export function AdvisorReports() {
                 <Legend />
                 <Bar
                   dataKey="count"
-                  name="Étudiants"
+                  name={t("table.student")}
                   fill="#10b981"
                   radius={[4, 4, 0, 0]}
                 />
@@ -166,10 +168,10 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function Empty() {
+function Empty({ t }: { t: (k: string) => string }) {
   return (
     <div className="h-[280px] flex items-center justify-center text-sm text-slate-500">
-      Pas encore de données.
+      {t("reports.noData")}
     </div>
   );
 }
