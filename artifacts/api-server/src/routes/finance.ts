@@ -251,6 +251,15 @@ router.post(
     const student = await loadStudentOr403(req, res);
     if (!student) return;
     const body = req.body ?? {};
+    // Bank attestations expire 3 months after the issue date; refuse to
+    // create one without an issueDate so we can always derive a valid
+    // expiry and never end up with an effectively-eternal attestation.
+    if (body.proofType === "bank_attestation" && !body.issueDate) {
+      res.status(400).json({
+        error: "issueDate is required for bank_attestation proofs",
+      });
+      return;
+    }
     const expiryDate = computeProofExpiry(
       body.proofType,
       body.issueDate,
@@ -301,12 +310,27 @@ router.patch(
     const body = req.body ?? {};
     const proofType = body.proofType ?? existing.proofType;
     const issueDate = body.issueDate ?? existing.issueDate;
+    // Same invariant as create: a bank attestation must always have an
+    // issueDate so its 3-month expiry is computable.
+    if (proofType === "bank_attestation" && !issueDate) {
+      res.status(400).json({
+        error: "issueDate is required for bank_attestation proofs",
+      });
+      return;
+    }
+    // For bank attestations, ALWAYS recompute expiry from issueDate so
+    // the client cannot extend validity past 3 months by sending a
+    // custom expiryDate via PATCH. Other proof types preserve the
+    // previous behaviour (explicit expiryDate honoured; recomputed only
+    // when issueDate or proofType changes).
     const expiryDate =
-      body.expiryDate !== undefined
-        ? body.expiryDate
-        : body.issueDate !== undefined || body.proofType !== undefined
-          ? computeProofExpiry(proofType, issueDate, null)
-          : existing.expiryDate;
+      proofType === "bank_attestation"
+        ? computeProofExpiry(proofType, issueDate, null)
+        : body.expiryDate !== undefined
+          ? body.expiryDate
+          : body.issueDate !== undefined || body.proofType !== undefined
+            ? computeProofExpiry(proofType, issueDate, null)
+            : existing.expiryDate;
     const safeBody = sanitizeProofStatus(body, req, existing.status);
     const [updated] = await db
       .update(financialProofsTable)
