@@ -287,6 +287,7 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     delete body.status;
     delete body.monthlyMinimumEur;
     delete body.programEndDate;
+    delete body.intakeDate;
     delete body.riskLevel;
     delete body.riskScore;
     delete body.submissionGateOverride;
