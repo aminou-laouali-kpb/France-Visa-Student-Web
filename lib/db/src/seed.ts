@@ -5,115 +5,162 @@ import {
   programsTable,
   workflowTemplatesTable,
   workflowStepsTable,
+  usersTable,
 } from "./schema";
 import { eq } from "drizzle-orm";
 
 const COUNTRIES = [
-  { name: "Sénégal", code: "SN", requiresCampusFrance: true, visaCenter: "TLScontact Dakar" },
-  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: true, visaCenter: "VFS Global Abidjan" },
-  { name: "Cameroun", code: "CM", requiresCampusFrance: true, visaCenter: "TLScontact Yaoundé" },
-  { name: "Mali", code: "ML", requiresCampusFrance: true, visaCenter: "VFS Global Bamako" },
-  { name: "Guinée", code: "GN", requiresCampusFrance: false, visaCenter: "VFS Global Conakry" },
-  { name: "Togo", code: "TG", requiresCampusFrance: true, visaCenter: "VFS Global Lomé" },
-  { name: "Bénin", code: "BJ", requiresCampusFrance: true, visaCenter: "VFS Global Cotonou" },
-  { name: "Burkina Faso", code: "BF", requiresCampusFrance: true, visaCenter: "VFS Global Ouagadougou" },
-  { name: "Madagascar", code: "MG", requiresCampusFrance: true, visaCenter: "VFS Global Antananarivo" },
-  { name: "République Démocratique du Congo", code: "CD", requiresCampusFrance: false, visaCenter: "VFS Global Kinshasa" },
+  { name: "Sénégal", code: "SN", requiresCampusFrance: true, visaCenter: "VFS Dakar" },
+  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: true, visaCenter: "VFS Abidjan" },
+  { name: "Cameroun", code: "CM", requiresCampusFrance: false, visaCenter: "TLS Yaoundé" },
+  { name: "Bénin", code: "BJ", requiresCampusFrance: false, visaCenter: "TLS Cotonou" },
+  { name: "Burkina Faso", code: "BF", requiresCampusFrance: false, visaCenter: "TLS Ouagadougou" },
+  { name: "Mali", code: "ML", requiresCampusFrance: false, visaCenter: "TLS Bamako" },
+  { name: "Togo", code: "TG", requiresCampusFrance: false, visaCenter: "TLS Lomé" },
+  { name: "Guinée", code: "GN", requiresCampusFrance: false, visaCenter: "TLS Conakry" },
+  { name: "Niger", code: "NE", requiresCampusFrance: false, visaCenter: "TLS Niamey" },
+  { name: "Madagascar", code: "MG", requiresCampusFrance: false, visaCenter: "TLS Antananarivo" },
+  { name: "Maroc", code: "MA", requiresCampusFrance: true, visaCenter: "TLS Casablanca" },
 ];
 
-const SCHOOLS = [
-  { name: "Université Paris-Saclay", city: "Paris", website: "https://www.universite-paris-saclay.fr" },
-  { name: "Sorbonne Université", city: "Paris", website: "https://www.sorbonne-universite.fr" },
-  { name: "Sciences Po", city: "Paris", website: "https://www.sciencespo.fr" },
-  { name: "INSA Lyon", city: "Lyon", website: "https://www.insa-lyon.fr" },
-  { name: "Université de Bordeaux", city: "Bordeaux", website: "https://www.u-bordeaux.fr" },
-  { name: "Université Grenoble Alpes", city: "Grenoble", website: "https://www.univ-grenoble-alpes.fr" },
-  { name: "École Polytechnique", city: "Palaiseau", website: "https://www.polytechnique.edu" },
-  { name: "HEC Paris", city: "Jouy-en-Josas", website: "https://www.hec.edu" },
+const SCHOOLS: { name: string; city: string; website?: string; programs: { name: string; level: string; duration?: string }[] }[] = [
+  {
+    name: "INSEEC Grande École",
+    city: "Paris",
+    website: "https://www.inseec.com",
+    programs: [
+      { name: "Bachelor in Business", level: "bachelor", duration: "3 ans" },
+      { name: "MSc International Business", level: "master", duration: "2 ans" },
+      { name: "MBA Finance", level: "mba", duration: "1 an" },
+    ],
+  },
+  {
+    name: "ECE — École Centrale d'Électronique",
+    city: "Paris",
+    website: "https://www.ece.fr",
+    programs: [
+      { name: "Cycle Ingénieur Informatique", level: "ingenieur", duration: "5 ans" },
+      { name: "Bachelor Cybersécurité", level: "bachelor", duration: "3 ans" },
+      { name: "MSc Data & AI", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Sorbonne Université",
+    city: "Paris",
+    website: "https://www.sorbonne-universite.fr",
+    programs: [
+      { name: "Licence Économie-Gestion", level: "licence", duration: "3 ans" },
+      { name: "Master Droit International", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Université Paris-Saclay",
+    city: "Saclay",
+    website: "https://www.universite-paris-saclay.fr",
+    programs: [
+      { name: "Licence Informatique", level: "licence", duration: "3 ans" },
+      { name: "Master Mathématiques Appliquées", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Université de Lyon",
+    city: "Lyon",
+    website: "https://www.universite-lyon.fr",
+    programs: [
+      { name: "Licence Sciences de la Vie", level: "licence", duration: "3 ans" },
+      { name: "Master Santé Publique", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "EM Lyon Business School",
+    city: "Lyon",
+    website: "https://em-lyon.com",
+    programs: [
+      { name: "Programme Grande École", level: "master", duration: "3 ans" },
+      { name: "Global BBA", level: "bachelor", duration: "4 ans" },
+    ],
+  },
 ];
 
-const PROGRAMS_PER_SCHOOL = [
-  { name: "Licence Informatique", level: "Licence", duration: "3 ans" },
-  { name: "Master Intelligence Artificielle", level: "Master", duration: "2 ans" },
-  { name: "Master Management International", level: "Master", duration: "2 ans" },
-  { name: "Doctorat Sciences", level: "Doctorat", duration: "3 ans" },
-];
-
-const WORKFLOW_STEPS = [
-  { name: "Création du compte étudiant", description: "Inscription sur la plateforme et configuration du profil", isCampusFranceStep: false },
-  { name: "Vérification de l'identité", description: "Soumission de la pièce d'identité et passeport", isCampusFranceStep: false, requiredDocumentCategories: ["passeport", "piece_identite"] },
-  { name: "Choix du programme et de l'école", description: "Sélection définitive du programme d'études en France", isCampusFranceStep: false },
-  { name: "Préparation des documents académiques", description: "Diplômes, relevés de notes, attestations", isCampusFranceStep: false, requiredDocumentCategories: ["diplome", "releve_notes"] },
-  { name: "Test de langue française", description: "TCF, DELF ou DALF selon le programme", isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"] },
-  { name: "Création du dossier Études en France", description: "Inscription sur la plateforme Campus France", isCampusFranceStep: true },
-  { name: "Saisie des vœux Campus France", description: "Choix des formations sur la plateforme", isCampusFranceStep: true },
-  { name: "Entretien Campus France", description: "Entretien obligatoire avec un conseiller", isCampusFranceStep: true },
-  { name: "Validation du dossier Campus France", description: "Confirmation par Campus France", isCampusFranceStep: true },
-  { name: "Réception de l'attestation pré-consulaire", description: "Document essentiel pour la demande de visa", isCampusFranceStep: true, requiredDocumentCategories: ["attestation_campus_france"] },
-  { name: "Acceptation par l'établissement", description: "Lettre d'admission de l'école", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
-  { name: "Justificatifs financiers", description: "Preuve de ressources (7380€/an minimum)", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"] },
-  { name: "Justificatif d'hébergement", description: "Attestation de logement en France", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"] },
-  { name: "Assurance santé", description: "Attestation d'assurance maladie internationale", isCampusFranceStep: false, requiredDocumentCategories: ["assurance"] },
-  { name: "Prise de rendez-vous TLS/VFS", description: "Rendez-vous au centre de demande de visa", isCampusFranceStep: false },
-  { name: "Constitution du dossier visa", description: "Compilation finale de tous les documents", isCampusFranceStep: false },
-  { name: "Dépôt du dossier au consulat", description: "Présence physique au centre TLS/VFS", isCampusFranceStep: false },
-  { name: "Suivi de la demande France-Visas", description: "Vérification du statut sur france-visas.gouv.fr", isCampusFranceStep: false },
-  { name: "Récupération du passeport", description: "Retour au centre TLS/VFS pour récupérer le visa", isCampusFranceStep: false },
-  { name: "Préparation au départ", description: "Billets, OFII, premiers contacts en France", isCampusFranceStep: false, requiredDocumentCategories: ["billet_avion"] },
-  { name: "Validation du visa à l'arrivée (OFII)", description: "Démarche obligatoire dans les 3 mois après arrivée", isCampusFranceStep: false },
+// Canonical 21-step parcours (must stay aligned with the api-server runtime
+// seed in artifacts/api-server/src/lib/seed.ts so that the two seeds do not
+// duplicate workflow_steps rows when both run).
+const STEPS = [
+  { name: "Création du compte VisaFlow", isCampusFranceStep: false, requiredDocumentCategories: [] as string[] },
+  { name: "Renseignement du profil étudiant", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Téléversement du passeport", isCampusFranceStep: false, requiredDocumentCategories: ["passeport"] },
+  { name: "Téléversement des diplômes et relevés", isCampusFranceStep: false, requiredDocumentCategories: ["diplome", "releve_notes"] },
+  { name: "Test de langue (DELF/TCF/IELTS)", isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"] },
+  { name: "Choix de la formation et de l'école", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Création du dossier Études en France", isCampusFranceStep: true, requiredDocumentCategories: [] },
+  { name: "Préparation des pièces Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
+  { name: "Soumission du dossier Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
+  { name: "Entretien Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
+  { name: "Avis Campus France obtenu", isCampusFranceStep: true, requiredDocumentCategories: ["attestation_campus_france"] },
+  { name: "Acceptation par l'établissement", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
+  { name: "Justificatif financier (compte bloqué/garant)", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"] },
+  { name: "Justificatif d'hébergement", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"] },
+  { name: "Souscription assurance santé", isCampusFranceStep: false, requiredDocumentCategories: ["assurance"] },
+  { name: "Prise de rendez-vous TLS/VFS", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Constitution du dossier consulaire", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Dépôt du dossier visa", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Décision visa", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Réservation billet d'avion", isCampusFranceStep: false, requiredDocumentCategories: ["billet_avion"] },
+  { name: "Validation OFII et installation", isCampusFranceStep: false, requiredDocumentCategories: [] },
 ];
 
 async function seed() {
-  console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding reference data…");
 
-  // Idempotent: skip if already seeded
-  const existing = await db.select().from(countriesTable).limit(1);
-  if (existing.length > 0) {
-    console.log("⚠️  Database already seeded — clearing reference data and re-seeding workflow + countries + schools");
+  // Countries — insert by missing code.
+  const existingCountries = await db.select().from(countriesTable);
+  const existingCodes = new Set(existingCountries.map((c) => c.code));
+  const newCountries = COUNTRIES.filter((c) => !existingCodes.has(c.code));
+  if (newCountries.length > 0) {
+    await db.insert(countriesTable).values(newCountries);
+    console.log(`  ✓ ${newCountries.length} country/ies added`);
   }
 
-  // Countries
-  for (const c of COUNTRIES) {
-    const [existing] = await db.select().from(countriesTable).where(eq(countriesTable.code, c.code));
-    if (!existing) {
-      await db.insert(countriesTable).values(c);
-      console.log(`  ✓ Country: ${c.name}`);
-    }
-  }
-
-  // Schools + programs
+  // Schools — insert by missing name; backfill missing programs by name.
+  const existingSchools = await db.select().from(schoolsTable);
+  const schoolByName = new Map(existingSchools.map((s) => [s.name, s]));
   for (const s of SCHOOLS) {
-    const [existing] = await db.select().from(schoolsTable).where(eq(schoolsTable.name, s.name));
     let schoolId: number;
+    const existing = schoolByName.get(s.name);
     if (!existing) {
-      const [inserted] = await db.insert(schoolsTable).values(s).returning();
+      const [inserted] = await db
+        .insert(schoolsTable)
+        .values({ name: s.name, city: s.city, website: s.website })
+        .returning();
       schoolId = inserted.id;
       console.log(`  ✓ School: ${s.name}`);
     } else {
       schoolId = existing.id;
     }
-    for (const p of PROGRAMS_PER_SCHOOL) {
-      const [existingP] = await db
-        .select()
-        .from(programsTable)
-        .where(eq(programsTable.name, p.name));
-      if (!existingP || existingP.schoolId !== schoolId) {
-        await db.insert(programsTable).values({ ...p, schoolId });
-      }
+    const existingPrograms = await db
+      .select()
+      .from(programsTable)
+      .where(eq(programsTable.schoolId, schoolId));
+    const existingProgNames = new Set(existingPrograms.map((p) => p.name));
+    const newPrograms = s.programs
+      .filter((p) => !existingProgNames.has(p.name))
+      .map((p) => ({ ...p, schoolId }));
+    if (newPrograms.length > 0) {
+      await db.insert(programsTable).values(newPrograms);
     }
   }
 
-  // Default workflow template
+  // Default workflow template — find or create.
   let [tpl] = await db
     .select()
     .from(workflowTemplatesTable)
-    .where(eq(workflowTemplatesTable.name, "Visa Étudiant France — Standard"));
+    .where(eq(workflowTemplatesTable.isDefault, true));
   if (!tpl) {
     [tpl] = await db
       .insert(workflowTemplatesTable)
       .values({
-        name: "Visa Étudiant France — Standard",
-        description: "Parcours standard 21 étapes pour visa étudiant France (incluant Campus France si requis)",
+        name: "Procédure visa étudiant France — Standard",
+        description: "Parcours en 21 étapes pour étudiants africains francophones",
         isDefault: true,
         version: 1,
       })
@@ -121,32 +168,63 @@ async function seed() {
     console.log(`  ✓ Workflow template: ${tpl.name}`);
   }
 
-  // Workflow steps
-  for (let i = 0; i < WORKFLOW_STEPS.length; i++) {
-    const step = WORKFLOW_STEPS[i];
+  // Workflow steps — insert by missing name within the default template
+  // (preserves any existing student_steps FK references).
+  const existingSteps = await db
+    .select()
+    .from(workflowStepsTable)
+    .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
+  const existingStepNames = new Set(existingSteps.map((s) => s.name));
+  const newSteps = STEPS
+    .map((s, i) => ({
+      workflowTemplateId: tpl.id,
+      name: s.name,
+      order: i + 1,
+      isCampusFranceStep: s.isCampusFranceStep,
+      isRequired: true,
+      isActive: true,
+      requiredDocumentCategories: s.requiredDocumentCategories,
+    }))
+    .filter((s) => !existingStepNames.has(s.name));
+  if (newSteps.length > 0) {
+    await db.insert(workflowStepsTable).values(newSteps);
+    console.log(`  ✓ ${newSteps.length} workflow step(s) added`);
+  }
+
+  // Bootstrap superadmin user from environment if requested. Required env:
+  //   SUPERADMIN_CLERK_ID    — Clerk user id (e.g. user_xxx)
+  //   SUPERADMIN_EMAIL       — email address
+  //   SUPERADMIN_FIRST_NAME  — optional, defaults to "Super"
+  //   SUPERADMIN_LAST_NAME   — optional, defaults to "Admin"
+  // Skips silently if SUPERADMIN_CLERK_ID is not set so the seed remains
+  // safe to run in environments without a designated bootstrap admin.
+  const clerkId = process.env.SUPERADMIN_CLERK_ID;
+  const email = process.env.SUPERADMIN_EMAIL;
+  if (clerkId && email) {
     const [existing] = await db
       .select()
-      .from(workflowStepsTable)
-      .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
-    // Only insert if step at this order doesn't exist
-    const existsAtOrder = await db
-      .select()
-      .from(workflowStepsTable)
-      .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
-    if (!existsAtOrder.find((s) => s.order === i + 1)) {
-      await db.insert(workflowStepsTable).values({
-        workflowTemplateId: tpl.id,
-        name: step.name,
-        description: step.description,
-        order: i + 1,
-        isCampusFranceStep: step.isCampusFranceStep,
-        isRequired: true,
+      .from(usersTable)
+      .where(eq(usersTable.clerkId, clerkId));
+    if (!existing) {
+      await db.insert(usersTable).values({
+        clerkId,
+        email,
+        firstName: process.env.SUPERADMIN_FIRST_NAME ?? "Super",
+        lastName: process.env.SUPERADMIN_LAST_NAME ?? "Admin",
+        role: "superadmin",
         isActive: true,
-        requiredDocumentCategories: step.requiredDocumentCategories ?? [],
       });
+      console.log(`  ✓ Superadmin user bootstrapped (${email})`);
+    } else if (existing.role !== "superadmin") {
+      await db
+        .update(usersTable)
+        .set({ role: "superadmin", isActive: true })
+        .where(eq(usersTable.clerkId, clerkId));
+      console.log(`  ✓ Superadmin role granted to existing user (${email})`);
     }
+  } else {
+    console.log("  – Superadmin bootstrap skipped (SUPERADMIN_CLERK_ID/SUPERADMIN_EMAIL not set)");
   }
-  console.log(`  ✓ Workflow steps: ${WORKFLOW_STEPS.length} steps`);
 
   console.log("✅ Seed complete");
   await pool.end();
