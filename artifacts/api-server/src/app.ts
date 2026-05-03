@@ -9,6 +9,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import { stripeWebhookHandler } from "./routes/billing";
 import { logger } from "./lib/logger";
 import { registerTenantBudgetResolver } from "./lib/aiBootstrap";
 
@@ -64,6 +65,10 @@ app.use(
     },
   }),
 );
+// Stripe webhook MUST receive the raw body for signature verification, so it
+// is mounted BEFORE express.json. The handler itself uses express.raw().
+app.post("/api/billing/webhook", ...stripeWebhookHandler);
+
 app.use(express.json({ limit: "35mb" }));
 app.use(express.urlencoded({ extended: true }));
 

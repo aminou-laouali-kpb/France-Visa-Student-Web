@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetMe, useUpdateMe } from "@workspace/api-client-react";
+import { twofaApi } from "@/lib/billing";
 
 type UpdateMeBody = {
   firstName: string;
@@ -21,6 +24,159 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { ShieldCheck, ShieldOff } from "lucide-react";
+
+function TwoFactorSection() {
+  const qc = useQueryClient();
+  const { data: status, refetch } = useQuery({
+    queryKey: ["me", "2fa"],
+    queryFn: () => twofaApi.status(),
+  });
+  const [enrolling, setEnrolling] = useState<{
+    qrDataUrl: string;
+    otpauthUrl: string;
+    secret: string;
+  } | null>(null);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const startEnroll = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await twofaApi.enroll();
+      setEnrolling(res);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verifyEnroll = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      await twofaApi.verify(code.trim());
+      setEnrolling(null);
+      setCode("");
+      await refetch();
+      qc.invalidateQueries({ queryKey: ["me"] });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const disable = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      await twofaApi.disable(code.trim());
+      setCode("");
+      await refetch();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          {status?.enabled ? (
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          ) : (
+            <ShieldOff className="w-4 h-4 text-slate-400" />
+          )}
+          Authentification à deux facteurs (2FA)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {status?.enabled ? (
+          <>
+            <p className="text-emerald-700">
+              La 2FA TOTP est activée sur votre compte.
+            </p>
+            <Label>Saisissez un code pour la désactiver</Label>
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="123456"
+              maxLength={6}
+              inputMode="numeric"
+              data-testid="input-2fa-disable-code"
+            />
+            <Button variant="outline" onClick={disable} disabled={busy || code.length !== 6}>
+              Désactiver la 2FA
+            </Button>
+          </>
+        ) : enrolling ? (
+          <>
+            <p className="text-slate-700">
+              Scannez ce QR code avec Google Authenticator, 1Password ou Authy,
+              puis entrez le code à 6 chiffres ci-dessous.
+            </p>
+            {enrolling.qrDataUrl ? (
+              <img
+                src={enrolling.qrDataUrl}
+                alt="QR code TOTP"
+                className="w-48 h-48 border border-slate-200 rounded"
+              />
+            ) : null}
+            <details>
+              <summary className="text-xs text-slate-500 cursor-pointer">
+                Saisie manuelle du secret
+              </summary>
+              <code className="text-xs block mt-1 p-2 bg-slate-100 rounded break-all">
+                {enrolling.secret}
+              </code>
+            </details>
+            <Label>Code à 6 chiffres</Label>
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="123456"
+              maxLength={6}
+              inputMode="numeric"
+              data-testid="input-2fa-verify-code"
+            />
+            <div className="flex gap-2">
+              <Button onClick={verifyEnroll} disabled={busy || code.length !== 6}>
+                Confirmer
+              </Button>
+              <Button variant="outline" onClick={() => setEnrolling(null)}>
+                Annuler
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-slate-600">
+              Renforcez la sécurité de votre compte avec un code à 6 chiffres
+              généré par votre application d'authentification.
+            </p>
+            <Button onClick={startEnroll} disabled={busy} data-testid="btn-2fa-enroll">
+              Activer la 2FA
+            </Button>
+          </>
+        )}
+        {error ? <p className="text-rose-600 text-xs">{error}</p> : null}
+        <div className="pt-3 border-t mt-3">
+          <Link href="/app/privacy">
+            <a className="text-sm text-blue-600 hover:underline">
+              Confidentialité & RGPD →
+            </a>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function Profile() {
   const { data: me, refetch } = useGetMe();
@@ -118,6 +274,8 @@ export function Profile() {
           </Button>
         </CardContent>
       </Card>
+
+      <TwoFactorSection />
     </div>
   );
 }

@@ -22,6 +22,9 @@ import {
   BarChart3,
   Workflow,
   Sparkles,
+  CreditCard,
+  Palette,
+  Lock,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -93,9 +96,12 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/admin/matrix", icon: Workflow, label: "Matrice nationalité" },
           { href: "/admin/intake-calendar", icon: Workflow, label: "Calendrier admissions" },
           { href: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
+          { href: "/admin/billing", icon: CreditCard, label: "Facturation" },
+          { href: "/admin/branding", icon: Palette, label: "Personnalisation" },
         ]
       : []),
     { href: "/app/profile", icon: Settings, label: "Profil" },
+    { href: "/app/privacy", icon: Lock, label: "Confidentialité" },
   ];
 
   return (

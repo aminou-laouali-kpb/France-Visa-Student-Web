@@ -36,6 +36,10 @@ import { AdminAuditLogs } from "@/pages/admin/AdminAuditLogs";
 import { AdminSchoolsManager } from "@/pages/admin/AdminSchoolsManager";
 import { AdminMatrix } from "@/pages/admin/AdminMatrix";
 import { AdminIntakeCalendar } from "@/pages/admin/AdminIntakeCalendar";
+import { AdminBilling } from "@/pages/admin/AdminBilling";
+import { AdminBranding } from "@/pages/admin/AdminBranding";
+import { PrivacySettings } from "@/pages/PrivacySettings";
+import { BrandingTheme } from "@/lib/branding";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -273,6 +277,21 @@ function AppRouter() {
           <AdminAuditLogs />
         </AdminOnly>
       </Route>
+      <Route path="/admin/billing">
+        <AdminOnly>
+          <AdminBilling />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/branding">
+        <AdminOnly>
+          <AdminBranding />
+        </AdminOnly>
+      </Route>
+      <Route path="/app/privacy">
+        <Protected>
+          <PrivacySettings />
+        </Protected>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
@@ -284,7 +303,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={basePath}>
-          <AppRouter />
+          <BrandingTheme>
+            <AppRouter />
+          </BrandingTheme>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

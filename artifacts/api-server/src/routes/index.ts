@@ -14,8 +14,21 @@ import projetRouter from "./projet";
 import postArrivalRouter from "./postArrival";
 import copilotRouter from "./copilot";
 import interviewRouter from "./interview";
+import twofaRouter from "./twofa";
+import brandingRouter from "./branding";
+import billingRouter from "./billing";
+import gdprRouter from "./gdpr";
+import { requireAuth } from "../middlewares/auth";
+import { requireAdminIp } from "../middlewares/ipAllowlist";
+import { enforce2FA } from "../middlewares/twoFactor";
 
 const router: IRouter = Router();
+
+// Enforce per-tenant admin IP allowlist + 2FA policy on every admin-prefixed
+// route (audit logs, user management, branding, billing). Mounted before the
+// individual routers so they inherit the guards without re-declaring them.
+router.use("/admin", requireAuth, requireAdminIp, enforce2FA);
+router.use("/tenant/settings", requireAuth, requireAdminIp, enforce2FA);
 
 router.use(healthRouter);
 router.use(usersRouter);
@@ -32,5 +45,9 @@ router.use(projetRouter);
 router.use(postArrivalRouter);
 router.use(copilotRouter);
 router.use(interviewRouter);
+router.use(twofaRouter);
+router.use(brandingRouter);
+router.use(billingRouter);
+router.use(gdprRouter);
 
 export default router;

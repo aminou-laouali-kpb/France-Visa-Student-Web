@@ -2,6 +2,7 @@ import { pgTable, serial, text, integer, boolean, timestamp, pgEnum, uniqueIndex
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { tenantsTable } from "./tenants";
 import { countriesTable } from "./countries";
 import { schoolsTable, programsTable } from "./schools";
 import { workflowStepsTable } from "./workflow";
@@ -23,6 +24,9 @@ export const visaTypeEnum = pgEnum("visa_type", ["vls_ts", "vls_t"]);
 
 export const studentsTable = pgTable("students", {
   id: serial("id").primaryKey(),
+  // Tenant scope. Nullable during backfill — every new student must be
+  // tied to a tenant.
+  tenantId: integer("tenant_id").references(() => tenantsTable.id),
   userId: integer("user_id").references(() => usersTable.id),
   advisorId: integer("advisor_id").references(() => usersTable.id),
   reviewerId: integer("reviewer_id").references(() => usersTable.id),
