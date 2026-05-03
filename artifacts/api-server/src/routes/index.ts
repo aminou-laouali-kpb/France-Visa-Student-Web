@@ -8,6 +8,7 @@ import collabRouter from "./collab";
 import adminRouter from "./admin";
 import aiRouter from "./ai";
 import profileRouter from "./profile";
+import financeRouter from "./finance";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(collabRouter);
 router.use(adminRouter);
 router.use(aiRouter);
 router.use(profileRouter);
+router.use(financeRouter);
 
 export default router;

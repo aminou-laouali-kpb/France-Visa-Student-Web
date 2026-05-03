@@ -530,6 +530,8 @@ export const UpdateStudentBody = zod.object({
   schoolId: zod.number().optional(),
   programId: zod.number().optional(),
   intakeDate: zod.string().optional(),
+  programEndDate: zod.string().nullish(),
+  monthlyMinimumEur: zod.number().nullish(),
   passportNumber: zod.string().optional(),
   passportExpiry: zod.string().optional(),
   financingType: zod.string().optional(),
@@ -2196,6 +2198,415 @@ export const CreateEefWishBody = zod.object({
       "withdrawn",
     ])
     .optional(),
+});
+
+/**
+ * @summary List active scholarships (reference data)
+ */
+export const ListScholarshipsResponseItem = zod.object({
+  id: zod.number(),
+  code: zod.string(),
+  name: zod.string(),
+  provider: zod.string().nullish(),
+  description: zod.string().nullish(),
+  coversTuition: zod.boolean(),
+  coversLiving: zod.boolean(),
+  monthlyAmountEur: zod.number().nullish(),
+  countryCode: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListScholarshipsResponse = zod.array(ListScholarshipsResponseItem);
+
+export const ListFinancialProofsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListFinancialProofsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  proofType: zod.enum([
+    "bank_attestation",
+    "scholarship_letter",
+    "guarantor_declaration",
+    "avi_certificate",
+    "other",
+  ]),
+  scholarshipId: zod.number().nullish(),
+  providerName: zod.string().nullish(),
+  guarantorName: zod.string().nullish(),
+  guarantorRelation: zod.string().nullish(),
+  amountEur: zod.string(),
+  currency: zod.string(),
+  issueDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]),
+  derivedStatus: zod
+    .enum(["pending", "valid", "expired", "rejected"])
+    .optional(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListFinancialProofsResponse = zod.array(
+  ListFinancialProofsResponseItem,
+);
+
+export const CreateFinancialProofParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CreateFinancialProofBody = zod.object({
+  proofType: zod.enum([
+    "bank_attestation",
+    "scholarship_letter",
+    "guarantor_declaration",
+    "avi_certificate",
+    "other",
+  ]),
+  scholarshipId: zod.number().nullish(),
+  providerName: zod.string().nullish(),
+  guarantorName: zod.string().nullish(),
+  guarantorRelation: zod.string().nullish(),
+  amountEur: zod.string(),
+  currency: zod.string().optional(),
+  issueDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]).optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateFinancialProofParams = zod.object({
+  studentId: zod.coerce.number(),
+  proofId: zod.coerce.number(),
+});
+
+export const UpdateFinancialProofBody = zod.object({
+  proofType: zod
+    .enum([
+      "bank_attestation",
+      "scholarship_letter",
+      "guarantor_declaration",
+      "avi_certificate",
+      "other",
+    ])
+    .optional(),
+  scholarshipId: zod.number().nullish(),
+  providerName: zod.string().nullish(),
+  guarantorName: zod.string().nullish(),
+  guarantorRelation: zod.string().nullish(),
+  amountEur: zod.string().optional(),
+  currency: zod.string().optional(),
+  issueDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]).optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateFinancialProofResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  proofType: zod.enum([
+    "bank_attestation",
+    "scholarship_letter",
+    "guarantor_declaration",
+    "avi_certificate",
+    "other",
+  ]),
+  scholarshipId: zod.number().nullish(),
+  providerName: zod.string().nullish(),
+  guarantorName: zod.string().nullish(),
+  guarantorRelation: zod.string().nullish(),
+  amountEur: zod.string(),
+  currency: zod.string(),
+  issueDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]),
+  derivedStatus: zod
+    .enum(["pending", "valid", "expired", "rejected"])
+    .optional(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteFinancialProofParams = zod.object({
+  studentId: zod.coerce.number(),
+  proofId: zod.coerce.number(),
+});
+
+export const ListAccommodationRecordsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListAccommodationRecordsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  accommodationType: zod.enum([
+    "crous",
+    "private_lease",
+    "host_attestation",
+    "student_residence",
+    "hotel_temporary",
+    "other",
+  ]),
+  addressLine: zod.string().nullish(),
+  postalCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  countryCode: zod.string(),
+  providerName: zod.string().nullish(),
+  hostFirstName: zod.string().nullish(),
+  hostLastName: zod.string().nullish(),
+  hostRelation: zod.string().nullish(),
+  monthlyCostEur: zod.string().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListAccommodationRecordsResponse = zod.array(
+  ListAccommodationRecordsResponseItem,
+);
+
+export const CreateAccommodationRecordParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CreateAccommodationRecordBody = zod.object({
+  accommodationType: zod.enum([
+    "crous",
+    "private_lease",
+    "host_attestation",
+    "student_residence",
+    "hotel_temporary",
+    "other",
+  ]),
+  addressLine: zod.string().nullish(),
+  postalCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  countryCode: zod.string().optional(),
+  providerName: zod.string().nullish(),
+  hostFirstName: zod.string().nullish(),
+  hostLastName: zod.string().nullish(),
+  hostRelation: zod.string().nullish(),
+  monthlyCostEur: zod.string().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]).optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateAccommodationRecordParams = zod.object({
+  studentId: zod.coerce.number(),
+  recordId: zod.coerce.number(),
+});
+
+export const UpdateAccommodationRecordBody = zod.object({
+  accommodationType: zod
+    .enum([
+      "crous",
+      "private_lease",
+      "host_attestation",
+      "student_residence",
+      "hotel_temporary",
+      "other",
+    ])
+    .optional(),
+  addressLine: zod.string().nullish(),
+  postalCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  countryCode: zod.string().optional(),
+  providerName: zod.string().nullish(),
+  hostFirstName: zod.string().nullish(),
+  hostLastName: zod.string().nullish(),
+  hostRelation: zod.string().nullish(),
+  monthlyCostEur: zod.string().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]).optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateAccommodationRecordResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  accommodationType: zod.enum([
+    "crous",
+    "private_lease",
+    "host_attestation",
+    "student_residence",
+    "hotel_temporary",
+    "other",
+  ]),
+  addressLine: zod.string().nullish(),
+  postalCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  countryCode: zod.string(),
+  providerName: zod.string().nullish(),
+  hostFirstName: zod.string().nullish(),
+  hostLastName: zod.string().nullish(),
+  hostRelation: zod.string().nullish(),
+  monthlyCostEur: zod.string().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  documentId: zod.number().nullish(),
+  status: zod.enum(["pending", "valid", "expired", "rejected"]),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteAccommodationRecordParams = zod.object({
+  studentId: zod.coerce.number(),
+  recordId: zod.coerce.number(),
+});
+
+export const ListCvecPaymentsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListCvecPaymentsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  academicYear: zod.string(),
+  amountEur: zod.string(),
+  paidAt: zod.string().nullish(),
+  receiptNumber: zod.string().nullish(),
+  attestationDocumentId: zod.number().nullish(),
+  status: zod.enum(["pending", "paid", "exempted", "rejected"]),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListCvecPaymentsResponse = zod.array(ListCvecPaymentsResponseItem);
+
+export const UpsertCvecPaymentParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const UpsertCvecPaymentBody = zod.object({
+  academicYear: zod.string().nullish(),
+  amountEur: zod.string(),
+  paidAt: zod.string().nullish(),
+  receiptNumber: zod.string().nullish(),
+  attestationDocumentId: zod.number().nullish(),
+  status: zod.enum(["pending", "paid", "exempted", "rejected"]),
+  notes: zod.string().nullish(),
+});
+
+export const UpsertCvecPaymentResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  academicYear: zod.string(),
+  amountEur: zod.string(),
+  paidAt: zod.string().nullish(),
+  receiptNumber: zod.string().nullish(),
+  attestationDocumentId: zod.number().nullish(),
+  status: zod.enum(["pending", "paid", "exempted", "rejected"]),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const GetFinancialReadinessParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetFinancialReadinessResponse = zod.object({
+  studentId: zod.number(),
+  monthlyMinimumEur: zod.number(),
+  programDurationMonths: zod.number(),
+  programDurationIsEstimated: zod.boolean(),
+  requiredAmountEur: zod.number(),
+  totalValidAmountEur: zod.number(),
+  intakeDate: zod.string().nullish(),
+  programEndDate: zod.string().nullish(),
+  proofsCount: zod.number(),
+  expiredProofsCount: zod.number(),
+  financeReady: zod.boolean(),
+  accommodationReady: zod.boolean(),
+  cvecReady: zod.boolean(),
+  ready: zod.boolean(),
+  overrideActive: zod.boolean(),
+  overrideReason: zod.string().nullish(),
+  blockingReasons: zod.array(zod.string()),
+  cvecCurrent: zod
+    .union([
+      zod.null(),
+      zod.object({
+        id: zod.number(),
+        studentId: zod.number(),
+        academicYear: zod.string(),
+        amountEur: zod.string(),
+        paidAt: zod.string().nullish(),
+        receiptNumber: zod.string().nullish(),
+        attestationDocumentId: zod.number().nullish(),
+        status: zod.enum(["pending", "paid", "exempted", "rejected"]),
+        notes: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+        updatedAt: zod.coerce.date(),
+      }),
+    ])
+    .optional(),
+  validAccommodation: zod
+    .union([
+      zod.null(),
+      zod.object({
+        id: zod.number(),
+        studentId: zod.number(),
+        accommodationType: zod.enum([
+          "crous",
+          "private_lease",
+          "host_attestation",
+          "student_residence",
+          "hotel_temporary",
+          "other",
+        ]),
+        addressLine: zod.string().nullish(),
+        postalCode: zod.string().nullish(),
+        city: zod.string().nullish(),
+        countryCode: zod.string(),
+        providerName: zod.string().nullish(),
+        hostFirstName: zod.string().nullish(),
+        hostLastName: zod.string().nullish(),
+        hostRelation: zod.string().nullish(),
+        monthlyCostEur: zod.string().nullish(),
+        startDate: zod.string().nullish(),
+        endDate: zod.string().nullish(),
+        documentId: zod.number().nullish(),
+        status: zod.enum(["pending", "valid", "expired", "rejected"]),
+        notes: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+        updatedAt: zod.coerce.date(),
+      }),
+    ])
+    .optional(),
+});
+
+/**
+ * @summary Admin-only override of the submission gate
+ */
+export const SetSubmissionGateOverrideParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const SetSubmissionGateOverrideBody = zod.object({
+  enable: zod.boolean().optional(),
+  reason: zod.string().nullish(),
+});
+
+export const SetSubmissionGateOverrideResponse = zod.object({
+  submissionGateOverride: zod.boolean(),
+  reason: zod.string().nullish(),
 });
 
 export const UpdateEefWishParams = zod.object({

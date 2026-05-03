@@ -447,6 +447,10 @@ export interface UpdateStudentBody {
   schoolId?: number;
   programId?: number;
   intakeDate?: string;
+  /** @nullable */
+  programEndDate?: string | null;
+  /** @nullable */
+  monthlyMinimumEur?: number | null;
   passportNumber?: string;
   passportExpiry?: string;
   financingType?: string;
@@ -1219,6 +1223,415 @@ export interface StudentProfileDepth {
   expiringLanguageTests: ExpiringLanguageTest[];
 }
 
+export interface Scholarship {
+  id: number;
+  code: string;
+  name: string;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  description?: string | null;
+  coversTuition: boolean;
+  coversLiving: boolean;
+  /** @nullable */
+  monthlyAmountEur?: number | null;
+  /** @nullable */
+  countryCode?: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export type FinancialProofProofType =
+  (typeof FinancialProofProofType)[keyof typeof FinancialProofProofType];
+
+export const FinancialProofProofType = {
+  bank_attestation: "bank_attestation",
+  scholarship_letter: "scholarship_letter",
+  guarantor_declaration: "guarantor_declaration",
+  avi_certificate: "avi_certificate",
+  other: "other",
+} as const;
+
+export type FinancialProofStatus =
+  (typeof FinancialProofStatus)[keyof typeof FinancialProofStatus];
+
+export const FinancialProofStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export type FinancialProofDerivedStatus =
+  (typeof FinancialProofDerivedStatus)[keyof typeof FinancialProofDerivedStatus];
+
+export const FinancialProofDerivedStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface FinancialProof {
+  id: number;
+  studentId: number;
+  proofType: FinancialProofProofType;
+  /** @nullable */
+  scholarshipId?: number | null;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  guarantorName?: string | null;
+  /** @nullable */
+  guarantorRelation?: string | null;
+  amountEur: string;
+  currency: string;
+  /** @nullable */
+  issueDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status: FinancialProofStatus;
+  derivedStatus?: FinancialProofDerivedStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateFinancialProofBodyProofType =
+  (typeof CreateFinancialProofBodyProofType)[keyof typeof CreateFinancialProofBodyProofType];
+
+export const CreateFinancialProofBodyProofType = {
+  bank_attestation: "bank_attestation",
+  scholarship_letter: "scholarship_letter",
+  guarantor_declaration: "guarantor_declaration",
+  avi_certificate: "avi_certificate",
+  other: "other",
+} as const;
+
+export type CreateFinancialProofBodyStatus =
+  (typeof CreateFinancialProofBodyStatus)[keyof typeof CreateFinancialProofBodyStatus];
+
+export const CreateFinancialProofBodyStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface CreateFinancialProofBody {
+  proofType: CreateFinancialProofBodyProofType;
+  /** @nullable */
+  scholarshipId?: number | null;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  guarantorName?: string | null;
+  /** @nullable */
+  guarantorRelation?: string | null;
+  amountEur: string;
+  currency?: string;
+  /** @nullable */
+  issueDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status?: CreateFinancialProofBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type UpdateFinancialProofBodyProofType =
+  (typeof UpdateFinancialProofBodyProofType)[keyof typeof UpdateFinancialProofBodyProofType];
+
+export const UpdateFinancialProofBodyProofType = {
+  bank_attestation: "bank_attestation",
+  scholarship_letter: "scholarship_letter",
+  guarantor_declaration: "guarantor_declaration",
+  avi_certificate: "avi_certificate",
+  other: "other",
+} as const;
+
+export type UpdateFinancialProofBodyStatus =
+  (typeof UpdateFinancialProofBodyStatus)[keyof typeof UpdateFinancialProofBodyStatus];
+
+export const UpdateFinancialProofBodyStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateFinancialProofBody {
+  proofType?: UpdateFinancialProofBodyProofType;
+  /** @nullable */
+  scholarshipId?: number | null;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  guarantorName?: string | null;
+  /** @nullable */
+  guarantorRelation?: string | null;
+  amountEur?: string;
+  currency?: string;
+  /** @nullable */
+  issueDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status?: UpdateFinancialProofBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type AccommodationRecordAccommodationType =
+  (typeof AccommodationRecordAccommodationType)[keyof typeof AccommodationRecordAccommodationType];
+
+export const AccommodationRecordAccommodationType = {
+  crous: "crous",
+  private_lease: "private_lease",
+  host_attestation: "host_attestation",
+  student_residence: "student_residence",
+  hotel_temporary: "hotel_temporary",
+  other: "other",
+} as const;
+
+export type AccommodationRecordStatus =
+  (typeof AccommodationRecordStatus)[keyof typeof AccommodationRecordStatus];
+
+export const AccommodationRecordStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface AccommodationRecord {
+  id: number;
+  studentId: number;
+  accommodationType: AccommodationRecordAccommodationType;
+  /** @nullable */
+  addressLine?: string | null;
+  /** @nullable */
+  postalCode?: string | null;
+  /** @nullable */
+  city?: string | null;
+  countryCode: string;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  hostFirstName?: string | null;
+  /** @nullable */
+  hostLastName?: string | null;
+  /** @nullable */
+  hostRelation?: string | null;
+  /** @nullable */
+  monthlyCostEur?: string | null;
+  /** @nullable */
+  startDate?: string | null;
+  /** @nullable */
+  endDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status: AccommodationRecordStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateAccommodationRecordBodyAccommodationType =
+  (typeof CreateAccommodationRecordBodyAccommodationType)[keyof typeof CreateAccommodationRecordBodyAccommodationType];
+
+export const CreateAccommodationRecordBodyAccommodationType = {
+  crous: "crous",
+  private_lease: "private_lease",
+  host_attestation: "host_attestation",
+  student_residence: "student_residence",
+  hotel_temporary: "hotel_temporary",
+  other: "other",
+} as const;
+
+export type CreateAccommodationRecordBodyStatus =
+  (typeof CreateAccommodationRecordBodyStatus)[keyof typeof CreateAccommodationRecordBodyStatus];
+
+export const CreateAccommodationRecordBodyStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface CreateAccommodationRecordBody {
+  accommodationType: CreateAccommodationRecordBodyAccommodationType;
+  /** @nullable */
+  addressLine?: string | null;
+  /** @nullable */
+  postalCode?: string | null;
+  /** @nullable */
+  city?: string | null;
+  countryCode?: string;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  hostFirstName?: string | null;
+  /** @nullable */
+  hostLastName?: string | null;
+  /** @nullable */
+  hostRelation?: string | null;
+  /** @nullable */
+  monthlyCostEur?: string | null;
+  /** @nullable */
+  startDate?: string | null;
+  /** @nullable */
+  endDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status?: CreateAccommodationRecordBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type UpdateAccommodationRecordBodyAccommodationType =
+  (typeof UpdateAccommodationRecordBodyAccommodationType)[keyof typeof UpdateAccommodationRecordBodyAccommodationType];
+
+export const UpdateAccommodationRecordBodyAccommodationType = {
+  crous: "crous",
+  private_lease: "private_lease",
+  host_attestation: "host_attestation",
+  student_residence: "student_residence",
+  hotel_temporary: "hotel_temporary",
+  other: "other",
+} as const;
+
+export type UpdateAccommodationRecordBodyStatus =
+  (typeof UpdateAccommodationRecordBodyStatus)[keyof typeof UpdateAccommodationRecordBodyStatus];
+
+export const UpdateAccommodationRecordBodyStatus = {
+  pending: "pending",
+  valid: "valid",
+  expired: "expired",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateAccommodationRecordBody {
+  accommodationType?: UpdateAccommodationRecordBodyAccommodationType;
+  /** @nullable */
+  addressLine?: string | null;
+  /** @nullable */
+  postalCode?: string | null;
+  /** @nullable */
+  city?: string | null;
+  countryCode?: string;
+  /** @nullable */
+  providerName?: string | null;
+  /** @nullable */
+  hostFirstName?: string | null;
+  /** @nullable */
+  hostLastName?: string | null;
+  /** @nullable */
+  hostRelation?: string | null;
+  /** @nullable */
+  monthlyCostEur?: string | null;
+  /** @nullable */
+  startDate?: string | null;
+  /** @nullable */
+  endDate?: string | null;
+  /** @nullable */
+  documentId?: number | null;
+  status?: UpdateAccommodationRecordBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type CvecPaymentStatus =
+  (typeof CvecPaymentStatus)[keyof typeof CvecPaymentStatus];
+
+export const CvecPaymentStatus = {
+  pending: "pending",
+  paid: "paid",
+  exempted: "exempted",
+  rejected: "rejected",
+} as const;
+
+export interface CvecPayment {
+  id: number;
+  studentId: number;
+  academicYear: string;
+  amountEur: string;
+  /** @nullable */
+  paidAt?: string | null;
+  /** @nullable */
+  receiptNumber?: string | null;
+  /** @nullable */
+  attestationDocumentId?: number | null;
+  status: CvecPaymentStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UpsertCvecPaymentBodyStatus =
+  (typeof UpsertCvecPaymentBodyStatus)[keyof typeof UpsertCvecPaymentBodyStatus];
+
+export const UpsertCvecPaymentBodyStatus = {
+  pending: "pending",
+  paid: "paid",
+  exempted: "exempted",
+  rejected: "rejected",
+} as const;
+
+export interface UpsertCvecPaymentBody {
+  /** @nullable */
+  academicYear?: string | null;
+  amountEur: string;
+  /** @nullable */
+  paidAt?: string | null;
+  /** @nullable */
+  receiptNumber?: string | null;
+  /** @nullable */
+  attestationDocumentId?: number | null;
+  status: UpsertCvecPaymentBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface FinancialReadiness {
+  studentId: number;
+  monthlyMinimumEur: number;
+  programDurationMonths: number;
+  programDurationIsEstimated: boolean;
+  requiredAmountEur: number;
+  totalValidAmountEur: number;
+  /** @nullable */
+  intakeDate?: string | null;
+  /** @nullable */
+  programEndDate?: string | null;
+  proofsCount: number;
+  expiredProofsCount: number;
+  financeReady: boolean;
+  accommodationReady: boolean;
+  cvecReady: boolean;
+  ready: boolean;
+  overrideActive: boolean;
+  /** @nullable */
+  overrideReason?: string | null;
+  blockingReasons: string[];
+  cvecCurrent?: null | CvecPayment;
+  validAccommodation?: null | AccommodationRecord;
+}
+
+export interface SubmissionGateOverrideBody {
+  enable?: boolean;
+  /** @nullable */
+  reason?: string | null;
+}
+
 /**
  * Unauthorized
  */
@@ -1292,4 +1705,10 @@ export type ListAuditLogsParams = {
   action?: string;
   limit?: number;
   offset?: number;
+};
+
+export type SetSubmissionGateOverride200 = {
+  submissionGateOverride: boolean;
+  /** @nullable */
+  reason?: string | null;
 };

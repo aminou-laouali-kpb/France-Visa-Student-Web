@@ -11,6 +11,7 @@ import {
   notificationsTable,
   schoolsTable,
   programsTable,
+  scholarshipsTable,
 } from "@workspace/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { logger } from "./logger";
@@ -268,6 +269,91 @@ export const STEPS: SeedStep[] = [
   },
 ];
 
+const SCHOLARSHIPS = [
+  {
+    code: "BGF",
+    name: "Bourse du Gouvernement Français (BGF)",
+    provider: "Campus France / Ambassade de France",
+    description:
+      "Bourse d'excellence couvrant frais de scolarité, allocation mensuelle, sécurité sociale et voyage.",
+    coversTuition: true,
+    coversLiving: true,
+    monthlyAmountEur: 700,
+    countryCode: null,
+    isActive: true,
+  },
+  {
+    code: "EIFFEL",
+    name: "Bourse Eiffel",
+    provider: "Ministère de l'Europe et des Affaires étrangères",
+    description:
+      "Programme d'excellence pour Master et Doctorat, allocation mensuelle de 1 181€ (Master) à 1 700€ (Doctorat).",
+    coversTuition: false,
+    coversLiving: true,
+    monthlyAmountEur: 1181,
+    countryCode: null,
+    isActive: true,
+  },
+  {
+    code: "AUF",
+    name: "Bourse AUF",
+    provider: "Agence Universitaire de la Francophonie",
+    description:
+      "Bourses de mobilité Master/Doctorat pour étudiants francophones, allocation forfaitaire mensuelle.",
+    coversTuition: false,
+    coversLiving: true,
+    monthlyAmountEur: 1000,
+    countryCode: null,
+    isActive: true,
+  },
+  {
+    code: "ERASMUS_PLUS",
+    name: "Erasmus+",
+    provider: "Commission européenne",
+    description:
+      "Bourse de mobilité internationale pour étudiants inscrits dans une université partenaire.",
+    coversTuition: false,
+    coversLiving: true,
+    monthlyAmountEur: 850,
+    countryCode: null,
+    isActive: true,
+  },
+  {
+    code: "BOURSE_SN",
+    name: "Bourse d'État du Sénégal",
+    provider: "Ministère de l'Enseignement supérieur du Sénégal",
+    description:
+      "Bourse d'État sénégalaise pour étudiants admis dans une université française.",
+    coversTuition: true,
+    coversLiving: true,
+    monthlyAmountEur: 615,
+    countryCode: "SN",
+    isActive: true,
+  },
+  {
+    code: "BOURSE_CI",
+    name: "Bourse d'État de Côte d'Ivoire",
+    provider: "Ministère de l'Enseignement supérieur de Côte d'Ivoire",
+    description:
+      "Bourse d'État ivoirienne pour études en France.",
+    coversTuition: true,
+    coversLiving: true,
+    monthlyAmountEur: 615,
+    countryCode: "CI",
+    isActive: true,
+  },
+];
+
+async function seedScholarships(): Promise<void> {
+  const existing = await db.select().from(scholarshipsTable);
+  const existingCodes = new Set(existing.map((s) => s.code));
+  const toInsert = SCHOLARSHIPS.filter((s) => !existingCodes.has(s.code));
+  if (toInsert.length > 0) {
+    await db.insert(scholarshipsTable).values(toInsert);
+    logger.info(`Seeded ${toInsert.length} scholarships`);
+  }
+}
+
 export async function seedReferenceData(): Promise<void> {
   // Each dataset (countries, workflow template, workflow steps, schools,
   // programs) is checked and inserted independently so that pre-populated
@@ -371,6 +457,8 @@ export async function seedReferenceData(): Promise<void> {
         programsSeeded += s.programs.length;
       }
     }
+
+    await seedScholarships();
 
     logger.info(
       {

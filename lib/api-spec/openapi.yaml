@@ -42,6 +42,8 @@ tags:
     description: Dashboard summaries
   - name: storage
     description: File storage
+  - name: finance
+    description: Financial proofs, accommodation, CVEC and submission readiness
 
 paths:
   /healthz:
@@ -1543,6 +1545,225 @@ paths:
               schema:
                 $ref: "#/components/schemas/EefWish"
 
+  # ─── FINANCE / ACCOMMODATION / CVEC ──────────────────────────────────────
+  /scholarships:
+    get:
+      operationId: listScholarships
+      tags: [finance]
+      summary: List active scholarships (reference data)
+      responses:
+        "200":
+          description: Scholarships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Scholarship"
+
+  /students/{studentId}/financial-proofs:
+    get:
+      operationId: listFinancialProofs
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Financial proofs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinancialProof"
+    post:
+      operationId: createFinancialProof
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFinancialProofBody"
+      responses:
+        "201":
+          description: Created proof
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialProof"
+
+  /students/{studentId}/financial-proofs/{proofId}:
+    patch:
+      operationId: updateFinancialProof
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: proofId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFinancialProofBody"
+      responses:
+        "200":
+          description: Updated proof
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialProof"
+    delete:
+      operationId: deleteFinancialProof
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: proofId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{studentId}/accommodation:
+    get:
+      operationId: listAccommodationRecords
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Accommodation records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccommodationRecord"
+    post:
+      operationId: createAccommodationRecord
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccommodationRecordBody"
+      responses:
+        "201":
+          description: Created record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccommodationRecord"
+
+  /students/{studentId}/accommodation/{recordId}:
+    patch:
+      operationId: updateAccommodationRecord
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: recordId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccommodationRecordBody"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccommodationRecord"
+    delete:
+      operationId: deleteAccommodationRecord
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: recordId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{studentId}/cvec:
+    get:
+      operationId: listCvecPayments
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: CVEC payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CvecPayment"
+    put:
+      operationId: upsertCvecPayment
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertCvecPaymentBody"
+      responses:
+        "200":
+          description: Saved CVEC payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CvecPayment"
+
+  /students/{studentId}/financial-readiness:
+    get:
+      operationId: getFinancialReadiness
+      tags: [finance]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Aggregated readiness payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialReadiness"
+
+  /students/{studentId}/submission-gate-override:
+    post:
+      operationId: setSubmissionGateOverride
+      tags: [finance]
+      summary: Admin-only override of the submission gate
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionGateOverrideBody"
+      responses:
+        "200":
+          description: Override updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submissionGateOverride:
+                    type: boolean
+                  reason:
+                    type: ["string", "null"]
+                required: [submissionGateOverride]
+
   /students/{studentId}/eef-wishes/{wishId}:
     patch:
       operationId: updateEefWish
@@ -2041,6 +2262,10 @@ components:
           type: integer
         intakeDate:
           type: string
+        programEndDate:
+          type: ["string", "null"]
+        monthlyMinimumEur:
+          type: ["integer", "null"]
         passportNumber:
           type: string
         passportExpiry:
@@ -3410,3 +3635,248 @@ components:
         - eefWishes
         - profileCompletenessScore
         - expiringLanguageTests
+
+    # ── Finance / Accommodation / CVEC ────────────────────────────────────────
+    Scholarship:
+      type: object
+      properties:
+        id: { type: integer }
+        code: { type: string }
+        name: { type: string }
+        provider: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        coversTuition: { type: boolean }
+        coversLiving: { type: boolean }
+        monthlyAmountEur: { type: ["integer", "null"] }
+        countryCode: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, code, name, coversTuition, coversLiving, isActive, createdAt]
+
+    FinancialProof:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        proofType:
+          type: string
+          enum: [bank_attestation, scholarship_letter, guarantor_declaration, avi_certificate, other]
+        scholarshipId: { type: ["integer", "null"] }
+        providerName: { type: ["string", "null"] }
+        guarantorName: { type: ["string", "null"] }
+        guarantorRelation: { type: ["string", "null"] }
+        amountEur: { type: string }
+        currency: { type: string }
+        issueDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        derivedStatus:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, studentId, proofType, amountEur, currency, status, createdAt, updatedAt]
+
+    CreateFinancialProofBody:
+      type: object
+      properties:
+        proofType:
+          type: string
+          enum: [bank_attestation, scholarship_letter, guarantor_declaration, avi_certificate, other]
+        scholarshipId: { type: ["integer", "null"] }
+        providerName: { type: ["string", "null"] }
+        guarantorName: { type: ["string", "null"] }
+        guarantorRelation: { type: ["string", "null"] }
+        amountEur: { type: string }
+        currency: { type: string }
+        issueDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+      required: [proofType, amountEur]
+
+    UpdateFinancialProofBody:
+      type: object
+      properties:
+        proofType:
+          type: string
+          enum: [bank_attestation, scholarship_letter, guarantor_declaration, avi_certificate, other]
+        scholarshipId: { type: ["integer", "null"] }
+        providerName: { type: ["string", "null"] }
+        guarantorName: { type: ["string", "null"] }
+        guarantorRelation: { type: ["string", "null"] }
+        amountEur: { type: string }
+        currency: { type: string }
+        issueDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+
+    AccommodationRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        accommodationType:
+          type: string
+          enum: [crous, private_lease, host_attestation, student_residence, hotel_temporary, other]
+        addressLine: { type: ["string", "null"] }
+        postalCode: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        countryCode: { type: string }
+        providerName: { type: ["string", "null"] }
+        hostFirstName: { type: ["string", "null"] }
+        hostLastName: { type: ["string", "null"] }
+        hostRelation: { type: ["string", "null"] }
+        monthlyCostEur: { type: ["string", "null"] }
+        startDate: { type: ["string", "null"] }
+        endDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, studentId, accommodationType, countryCode, status, createdAt, updatedAt]
+
+    CreateAccommodationRecordBody:
+      type: object
+      properties:
+        accommodationType:
+          type: string
+          enum: [crous, private_lease, host_attestation, student_residence, hotel_temporary, other]
+        addressLine: { type: ["string", "null"] }
+        postalCode: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        countryCode: { type: string }
+        providerName: { type: ["string", "null"] }
+        hostFirstName: { type: ["string", "null"] }
+        hostLastName: { type: ["string", "null"] }
+        hostRelation: { type: ["string", "null"] }
+        monthlyCostEur: { type: ["string", "null"] }
+        startDate: { type: ["string", "null"] }
+        endDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+      required: [accommodationType]
+
+    UpdateAccommodationRecordBody:
+      type: object
+      properties:
+        accommodationType:
+          type: string
+          enum: [crous, private_lease, host_attestation, student_residence, hotel_temporary, other]
+        addressLine: { type: ["string", "null"] }
+        postalCode: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        countryCode: { type: string }
+        providerName: { type: ["string", "null"] }
+        hostFirstName: { type: ["string", "null"] }
+        hostLastName: { type: ["string", "null"] }
+        hostRelation: { type: ["string", "null"] }
+        monthlyCostEur: { type: ["string", "null"] }
+        startDate: { type: ["string", "null"] }
+        endDate: { type: ["string", "null"] }
+        documentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, valid, expired, rejected]
+        notes: { type: ["string", "null"] }
+
+    CvecPayment:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        academicYear: { type: string }
+        amountEur: { type: string }
+        paidAt: { type: ["string", "null"] }
+        receiptNumber: { type: ["string", "null"] }
+        attestationDocumentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, paid, exempted, rejected]
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, studentId, academicYear, amountEur, status, createdAt, updatedAt]
+
+    UpsertCvecPaymentBody:
+      type: object
+      properties:
+        academicYear: { type: ["string", "null"] }
+        amountEur: { type: string }
+        paidAt: { type: ["string", "null"] }
+        receiptNumber: { type: ["string", "null"] }
+        attestationDocumentId: { type: ["integer", "null"] }
+        status:
+          type: string
+          enum: [pending, paid, exempted, rejected]
+        notes: { type: ["string", "null"] }
+      required: [amountEur, status]
+
+    FinancialReadiness:
+      type: object
+      properties:
+        studentId: { type: integer }
+        monthlyMinimumEur: { type: integer }
+        programDurationMonths: { type: integer }
+        programDurationIsEstimated: { type: boolean }
+        requiredAmountEur: { type: integer }
+        totalValidAmountEur: { type: number }
+        intakeDate: { type: ["string", "null"] }
+        programEndDate: { type: ["string", "null"] }
+        proofsCount: { type: integer }
+        expiredProofsCount: { type: integer }
+        financeReady: { type: boolean }
+        accommodationReady: { type: boolean }
+        cvecReady: { type: boolean }
+        ready: { type: boolean }
+        overrideActive: { type: boolean }
+        overrideReason: { type: ["string", "null"] }
+        blockingReasons:
+          type: array
+          items: { type: string }
+        cvecCurrent:
+          oneOf:
+            - { type: "null" }
+            - $ref: "#/components/schemas/CvecPayment"
+        validAccommodation:
+          oneOf:
+            - { type: "null" }
+            - $ref: "#/components/schemas/AccommodationRecord"
+      required:
+        - studentId
+        - monthlyMinimumEur
+        - programDurationMonths
+        - programDurationIsEstimated
+        - requiredAmountEur
+        - totalValidAmountEur
+        - proofsCount
+        - expiredProofsCount
+        - financeReady
+        - accommodationReady
+        - cvecReady
+        - ready
+        - overrideActive
+        - blockingReasons
+
+    SubmissionGateOverrideBody:
+      type: object
+      properties:
+        enable: { type: boolean }
+        reason: { type: ["string", "null"] }

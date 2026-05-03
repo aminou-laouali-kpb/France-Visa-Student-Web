@@ -282,6 +282,25 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     delete body.status;
   }
   const previousStatus = student.status;
+
+  // ── Submission gate: block transition to "submitted" when financial proofs,
+  // accommodation or CVEC are not validated. Admins can override via the
+  // /students/:id/submission-gate-override endpoint.
+  if (body.status === "submitted" && previousStatus !== "submitted") {
+    const { computeFinancialReadiness } = await import("./finance");
+    const readiness = await computeFinancialReadiness(id);
+    if (readiness && !readiness.ready && !readiness.overrideActive) {
+      res.status(409).json({
+        error: "submission_blocked",
+        message:
+          "Le dossier ne peut pas être soumis : les garanties financières, le logement ou la CVEC sont incomplets.",
+        blockingReasons: readiness.blockingReasons,
+        readiness,
+      });
+      return;
+    }
+  }
+
   const [updated] = await db
     .update(studentsTable)
     .set({ ...body, updatedAt: new Date(), lastActivityAt: new Date() })

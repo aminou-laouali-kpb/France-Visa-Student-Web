@@ -13,3 +13,4 @@ export * from "./risk";
 export * from "./tenants";
 export * from "./ai";
 export * from "./profile";
+export * from "./finance";
