@@ -4,8 +4,10 @@ import {
   appointmentsTable,
   studentsTable,
   postArrivalStepsTable,
+  usersTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { randomBytes } from "crypto";
 import { requireAuth, isStaff, canAccessStudent } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -132,6 +134,81 @@ router.get("/students/:studentId/calendar.ics", requireAuth, async (req, res) =>
   const ics = buildIcs(`VisaFlow — ${student.firstName} ${student.lastName}`, events);
   res.setHeader("Content-Type", "text/calendar; charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="visaflow-student-${id}.ics"`);
+  res.send(ics);
+});
+
+async function eventsForUser(u: {
+  id: number;
+  role: string;
+  tenantId: number | null;
+  firstName: string;
+  lastName: string;
+}): Promise<{ name: string; events: IcsEvent[] }> {
+  let studentIds: number[] = [];
+  if (u.role === "student") {
+    const mine = await db.select().from(studentsTable).where(eq(studentsTable.userId, u.id));
+    studentIds = mine.map((s) => s.id);
+  } else {
+    const filter = u.role === "advisor"
+      ? eq(studentsTable.advisorId, u.id)
+      : u.role === "reviewer"
+        ? eq(studentsTable.reviewerId, u.id)
+        : undefined;
+    const tenantFilter = u.role === "superadmin" ? undefined : eq(studentsTable.tenantId, u.tenantId ?? 1);
+    const where = filter && tenantFilter ? and(filter, tenantFilter) : (filter ?? tenantFilter);
+    const rows = where
+      ? await db.select({ id: studentsTable.id }).from(studentsTable).where(where)
+      : await db.select({ id: studentsTable.id }).from(studentsTable);
+    studentIds = rows.map((r) => r.id);
+  }
+  let events: IcsEvent[] = [];
+  for (const id of studentIds) {
+    events = events.concat(await studentEvents(id));
+  }
+  return { name: `VisaFlow — ${u.firstName} ${u.lastName}`, events };
+}
+
+// Mint or rotate the per-user feed token. Rotating revokes any external
+// calendar subscriptions tied to the previous token.
+router.post("/me/calendar/feed-token", requireAuth, async (req, res) => {
+  const u = req.currentUser!;
+  const token = randomBytes(24).toString("base64url");
+  await db.update(usersTable).set({ calendarFeedToken: token }).where(eq(usersTable.id, u.id));
+  const base = process.env.APP_URL?.replace(/\/+$/, "") ??
+    (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "");
+  res.json({
+    token,
+    httpsUrl: `${base}/api/calendar/feed/${token}.ics`,
+    webcalUrl: `${base.replace(/^https?:/, "webcal:")}/api/calendar/feed/${token}.ics`,
+  });
+});
+
+// Public, unauthenticated subscription feed. External calendar clients
+// (Google / Outlook / Apple) cannot maintain Clerk session cookies, so
+// access is bearer-by-token: the token IS the access credential. Token is
+// rotated by the user via POST /me/calendar/feed-token to revoke any
+// existing subscriptions.
+router.get("/calendar/feed/:token.ics", async (req, res) => {
+  const tok = req.params.token;
+  if (!tok || tok.length < 16) {
+    res.status(400).type("text/plain").send("invalid token");
+    return;
+  }
+  const [u] = await db.select().from(usersTable).where(eq(usersTable.calendarFeedToken, tok));
+  if (!u) {
+    res.status(404).type("text/plain").send("feed not found");
+    return;
+  }
+  const { name, events } = await eventsForUser({
+    id: u.id,
+    role: u.role,
+    tenantId: u.tenantId,
+    firstName: u.firstName,
+    lastName: u.lastName,
+  });
+  const ics = buildIcs(name, events);
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader("Cache-Control", "private, max-age=300");
   res.send(ics);
 });
 

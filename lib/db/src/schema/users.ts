@@ -38,6 +38,12 @@ export const usersTable = pgTable("users", {
   notifyWhatsapp: boolean("notify_whatsapp").notNull().default(false),
   // Optional dedicated WhatsApp number; falls back to `phone` when unset.
   whatsappNumber: text("whatsapp_number"),
+  // Per-user secret used to construct an unauthenticated, revocable ICS
+  // subscription feed URL (`/api/calendar/feed/:token.ics`). External
+  // calendar clients (Google / Outlook) cannot maintain Clerk session
+  // cookies, so the token is the bearer of access for read-only feed
+  // requests. Rotating the token revokes any existing subscriptions.
+  calendarFeedToken: text("calendar_feed_token").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

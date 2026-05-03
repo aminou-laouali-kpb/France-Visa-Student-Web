@@ -196,19 +196,24 @@ async function buildPreview(
 
     let duplicate = false;
     if (parsed.email) {
-      // Tenant-scoped duplicate check — never reveals cross-tenant existence.
+      // The `students.email` column has a global unique constraint at the
+      // DB level, so we have to check cross-tenant existence here in preview
+      // to avoid surprise rollbacks at commit time. We surface the conflict
+      // as an error WITHOUT revealing which tenant holds the row — only the
+      // tenancy state of "this tenant" vs "elsewhere".
       const [existing] = await db
-        .select({ id: studentsTable.id })
+        .select({ id: studentsTable.id, tenantId: studentsTable.tenantId })
         .from(studentsTable)
-        .where(
-          and(
-            eq(studentsTable.tenantId, tenantId),
-            ilike(studentsTable.email, parsed.email),
-          ),
-        );
+        .where(ilike(studentsTable.email, parsed.email));
       if (existing) {
-        duplicate = true;
-        warnings.push("email déjà existant — sera ignoré");
+        if (existing.tenantId === tenantId) {
+          duplicate = true;
+          warnings.push("email déjà existant — sera ignoré");
+        } else {
+          // Cross-tenant: this row would fail the unique constraint at
+          // insert time. Reject up front so preview totals match commit.
+          errors.push("email déjà utilisé par une autre organisation");
+        }
       }
     }
 
