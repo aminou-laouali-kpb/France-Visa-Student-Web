@@ -6,6 +6,8 @@ import {
   useListCountries,
   useListSchools,
 } from "@workspace/api-client-react";
+import type { Country, School } from "@/types";
+import type { CreateStudentBody } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +42,7 @@ export function Onboarding() {
         countryId: form.countryId ? Number(form.countryId) : undefined,
         schoolId: form.schoolId ? Number(form.schoolId) : undefined,
       };
-      await create.mutateAsync({ data: data as any });
+      await create.mutateAsync({ data: data as unknown as CreateStudentBody });
       setLocation("/app");
     } finally {
       setSubmitting(false);
@@ -117,7 +119,7 @@ export function Onboarding() {
               data-testid="select-country"
             >
               <option value="">Sélectionnez votre pays</option>
-              {countries.map((c: any) => (
+              {(countries as unknown as Country[]).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
@@ -132,7 +134,7 @@ export function Onboarding() {
               onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
             >
               <option value="">Sélectionnez une école</option>
-              {schools.map((s: any) => (
+              {(schools as unknown as School[]).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.city})
                 </option>

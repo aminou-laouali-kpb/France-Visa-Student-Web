@@ -1,4 +1,12 @@
-import { useGetMe, useGetStudentDashboard, useGetAdvisorDashboard, useGetAdminDashboard, useListStudents } from "@workspace/api-client-react";
+import { useGetMe, useGetStudentDashboard, useGetAdvisorDashboard, useGetAdminDashboard } from "@workspace/api-client-react";
+import type {
+  StudentDashboardData,
+  AdvisorDashboardData,
+  AdminDashboardData,
+  Appointment,
+  Student,
+  AuditLog,
+} from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -31,7 +39,7 @@ export function Dashboard() {
 
 function StudentDashboard() {
   const { data: raw, isLoading } = useGetStudentDashboard();
-  const data = raw as any;
+  const data = raw as unknown as StudentDashboardData | undefined;
   if (isLoading) return <div>Chargement…</div>;
 
   if (!data?.student) {
@@ -134,7 +142,7 @@ function StudentDashboard() {
             <CardTitle className="text-base">Rendez-vous à venir</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {data.upcomingAppointments.map((apt: any) => (
+            {data.upcomingAppointments.map((apt: Appointment) => (
               <div
                 key={apt.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-slate-50"
@@ -158,7 +166,7 @@ function StudentDashboard() {
 function AdvisorDashboard() {
   const { data: me } = useGetMe();
   const { data: raw, isLoading } = useGetAdvisorDashboard();
-  const data = raw as any;
+  const data = raw as unknown as AdvisorDashboardData | undefined;
   if (isLoading) return <div>Chargement…</div>;
 
   return (
@@ -210,7 +218,7 @@ function AdvisorDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {(data?.students ?? []).slice(0, 8).map((s: any) => (
+            {(data?.students ?? []).slice(0, 8).map((s: Student & { completionScore: number }) => (
               <Link key={s.id} href={`/app/students/${s.id}`}>
                 <a className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <div>
@@ -243,7 +251,7 @@ function AdvisorDashboard() {
 
 function AdminDashboard() {
   const { data: raw, isLoading } = useGetAdminDashboard();
-  const data = raw as any;
+  const data = raw as unknown as AdminDashboardData | undefined;
   if (isLoading) return <div>Chargement…</div>;
 
   return (
@@ -301,7 +309,7 @@ function AdminDashboard() {
           <CardTitle className="text-base">Activité récente</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {(data?.recentActivity ?? []).slice(0, 10).map((log: any) => (
+          {(data?.recentActivity ?? []).slice(0, 10).map((log: AuditLog) => (
             <div
               key={log.id}
               className="flex items-center justify-between p-2 text-sm border-b last:border-0"

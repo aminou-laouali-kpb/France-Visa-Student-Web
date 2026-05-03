@@ -1,5 +1,30 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
+import { useAuth } from "@clerk/react";
+import type {
+  Student,
+  Step,
+  Document,
+  Comment,
+  Task,
+  Appointment,
+  UserRow,
+  Country,
+  School,
+  UploadUrlResponse,
+  StudentFormData,
+} from "@/types";
+import type {
+  UpdateStudentStepBody,
+  ReviewDocumentBody,
+  CreateCommentBody,
+  CreateTaskBody,
+  UpdateTaskBody,
+  CreateAppointmentBody,
+  AssignStudentBody,
+  UpdateStudentBody,
+} from "@workspace/api-client-react";
+
 import {
   useGetStudent,
   useUpdateStudent,
@@ -50,7 +75,7 @@ export function StudentDetail() {
   const params = useParams<{ id: string }>();
   const studentId = Number(params.id);
   const { data: studentRaw, refetch } = useGetStudent(studentId);
-  const student = studentRaw as any;
+  const student = studentRaw as unknown as Student | undefined;
   const { data: me } = useGetMe();
   const isStaff = me && ["advisor", "reviewer", "admin", "superadmin"].includes(me.role);
 
@@ -124,7 +149,11 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
   const update = useUpdateStudentStep();
 
   const handleStatus = async (stepId: number, status: string) => {
-    await update.mutateAsync({ studentId, stepId, data: { status } as any });
+    await update.mutateAsync({
+      studentId,
+      stepId,
+      data: { status } as unknown as UpdateStudentStepBody,
+    });
     refetch();
   };
 
@@ -132,7 +161,7 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
     <Card>
       <CardContent className="p-0">
         <div className="divide-y">
-          {steps.map((step: any, i: number) => {
+            {(steps as unknown as Step[]).map((step) => {
             const isCompleted = step.status === "validated";
             const isBlocked = step.status === "blocked" || step.status === "rejected";
             return (
@@ -214,40 +243,51 @@ const DOCUMENT_CATEGORIES = [
 function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
   const { data: docs = [], refetch } = useListDocuments(studentId);
   const review = useReviewDocument();
+  const { getToken } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [category, setCategory] = useState("passeport");
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
 
+  const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+
   const handleUpload = async () => {
     if (!file || !name) return;
     setUploading(true);
     try {
-      // 1) Get presigned URL
-      const tokenRes = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/storage/upload-url`, {
+      const token = (await getToken()) ?? "";
+      const authHeaders = {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      } as const;
+
+      const tokenRes = (await fetch(`${apiBase}/storage/upload-url`, {
         method: "POST",
         credentials: "include",
-        headers: { "content-type": "application/json", authorization: `Bearer ${(await (window as any).Clerk?.session?.getToken?.()) ?? ""}` },
-        body: JSON.stringify({ name: file.name, contentType: file.type }),
-      }).then((r) => r.json());
+        headers: authHeaders,
+        body: JSON.stringify({
+          name: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        }),
+      }).then((r) => r.json())) as UploadUrlResponse;
 
-      // 2) Upload to GCS
       await fetch(tokenRes.uploadURL, {
         method: "PUT",
         headers: { "content-type": file.type },
         body: file,
       });
 
-      // 3) Register document
-      await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/students/${studentId}/documents`, {
+      await fetch(`${apiBase}/students/${studentId}/documents`, {
         method: "POST",
         credentials: "include",
-        headers: { "content-type": "application/json", authorization: `Bearer ${(await (window as any).Clerk?.session?.getToken?.()) ?? ""}` },
+        headers: authHeaders,
         body: JSON.stringify({
           category,
           name,
           fileName: file.name,
           objectPath: tokenRes.objectPath,
+          uploadToken: tokenRes.uploadToken,
           mimeType: file.type,
           sizeBytes: file.size,
         }),
@@ -262,7 +302,11 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
 
   const handleReview = async (documentId: number, decision: "validated" | "rejected") => {
     const comment = decision === "rejected" ? prompt("Motif du rejet :") ?? "" : "";
-    await review.mutateAsync({ studentId, documentId, data: { decision, comment } as any });
+    await review.mutateAsync({
+      studentId,
+      documentId,
+      data: { decision, comment } as unknown as ReviewDocumentBody,
+    });
     refetch();
   };
 
@@ -316,7 +360,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {docs.map((d: any) => (
+            {(docs as unknown as Document[]).map((d) => (
               <div key={d.id} className="flex items-center gap-4 p-4">
                 <FileText className="w-8 h-8 text-blue-600" />
                 <div className="flex-1">
@@ -373,7 +417,11 @@ function CommentsTab({ studentId, isStaff }: { studentId: number; isStaff: boole
     if (!content.trim()) return;
     await create.mutateAsync({
       studentId,
-      data: { content, isInternal, isCorrectionRequest: isCorrection } as any,
+      data: {
+        content,
+        isInternal,
+        isCorrectionRequest: isCorrection,
+      } as unknown as CreateCommentBody,
     });
     setContent("");
     setIsInternal(false);
@@ -425,7 +473,7 @@ function CommentsTab({ studentId, isStaff }: { studentId: number; isStaff: boole
       </Card>
 
       <div className="space-y-2">
-        {comments.map((c: any) => (
+        {(comments as unknown as Comment[]).map((c) => (
           <Card key={c.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
@@ -483,7 +531,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
         priority,
         dueDate: dueDate || undefined,
         assignedToId: assignedToId ? Number(assignedToId) : undefined,
-      } as any,
+      } as unknown as CreateTaskBody,
     });
     setTitle("");
     setDescription("");
@@ -493,11 +541,11 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
   };
 
   const toggleStatus = async (taskId: number, status: string) => {
-    await update.mutateAsync({ taskId, data: { status } as any });
+    await update.mutateAsync({ taskId, data: { status } as unknown as UpdateTaskBody });
     refetch();
   };
 
-  const staff = users.filter((u: any) =>
+  const staff = (users as unknown as UserRow[]).filter((u) =>
     ["advisor", "reviewer", "admin", "superadmin"].includes(u.role),
   );
 
@@ -546,7 +594,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
                 data-testid="select-assignee"
               >
                 <option value="">Non assignée</option>
-                {staff.map((u: any) => (
+                {staff.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.firstName} {u.lastName} — {ROLE_LABELS[u.role]}
                   </option>
@@ -563,7 +611,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {tasks.map((t: any) => (
+            {(tasks as unknown as Task[]).map((t) => (
               <div key={t.id} className="flex items-start gap-3 p-4">
                 <input
                   type="checkbox"
@@ -609,7 +657,7 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
     if (!title || !scheduledAt) return;
     await create.mutateAsync({
       studentId,
-      data: { type, title, scheduledAt, location } as any,
+      data: { type, title, scheduledAt, location } as unknown as CreateAppointmentBody,
     });
     setTitle("");
     setScheduledAt("");
@@ -664,7 +712,7 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {apts.map((a: any) => (
+            {(apts as unknown as Appointment[]).map((a) => (
               <div key={a.id} className="flex items-center gap-4 p-4">
                 <Calendar className="w-8 h-8 text-blue-600" />
                 <div className="flex-1">
@@ -674,7 +722,7 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
                   </div>
                 </div>
                 <StatusBadge status={a.type} />
-                <StatusBadge status={a.status} />
+                <StatusBadge status={a.status ?? "upcoming"} />
               </div>
             ))}
             {apts.length === 0 && (
@@ -782,7 +830,7 @@ function ProfileTab({
   onUpdate,
 }: {
   studentId: number;
-  student: any;
+  student: Student;
   isStaff: boolean;
   onUpdate: () => void;
 }) {
@@ -791,20 +839,26 @@ function ProfileTab({
   const { data: countries = [] } = useListCountries();
   const { data: schools = [] } = useListSchools();
   const { data: users = [] } = useListUsers({});
-  const [form, setForm] = useState(student);
+  const [form, setForm] = useState<StudentFormData>(
+    student as unknown as StudentFormData,
+  );
 
   const handleSave = async () => {
-    await update.mutateAsync({ studentId, data: form });
+    await update.mutateAsync({ studentId, data: form as unknown as UpdateStudentBody });
     onUpdate();
   };
 
   const handleAssign = async (advisorId: number | null, reviewerId: number | null) => {
-    await assign.mutateAsync({ studentId, data: { advisorId, reviewerId } as any });
+    await assign.mutateAsync({
+      studentId,
+      data: { advisorId, reviewerId } as unknown as AssignStudentBody,
+    });
     onUpdate();
   };
 
-  const advisors = users.filter((u: any) => u.role === "advisor");
-  const reviewers = users.filter((u: any) => u.role === "reviewer");
+  const allUsers = users as unknown as UserRow[];
+  const advisors = allUsers.filter((u) => u.role === "advisor");
+  const reviewers = allUsers.filter((u) => u.role === "reviewer");
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -879,7 +933,7 @@ function ProfileTab({
               }
             >
               <option value="">—</option>
-              {countries.map((c: any) => (
+              {(countries as unknown as Country[]).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} {c.requiresCampusFrance ? "(Campus France requis)" : ""}
                 </option>
@@ -895,7 +949,7 @@ function ProfileTab({
               }
             >
               <option value="">—</option>
-              {schools.map((s: any) => (
+              {(schools as unknown as School[]).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.city})
                 </option>
@@ -942,13 +996,13 @@ function ProfileTab({
                   onChange={(e) =>
                     handleAssign(
                       e.target.value ? Number(e.target.value) : null,
-                      form.reviewerId,
+                      form.reviewerId ?? null,
                     )
                   }
                   data-testid="select-advisor"
                 >
                   <option value="">—</option>
-                  {advisors.map((u: any) => (
+                  {advisors.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.firstName} {u.lastName}
                     </option>
@@ -961,14 +1015,14 @@ function ProfileTab({
                   value={form.reviewerId ?? ""}
                   onChange={(e) =>
                     handleAssign(
-                      form.advisorId,
+                      form.advisorId ?? null,
                       e.target.value ? Number(e.target.value) : null,
                     )
                   }
                   data-testid="select-reviewer"
                 >
                   <option value="">—</option>
-                  {reviewers.map((u: any) => (
+                  {reviewers.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.firstName} {u.lastName}
                     </option>

@@ -7,9 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, CheckCheck } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
+import type { NotificationItem } from "@/types";
 
 export function Notifications() {
-  const { data: notifs = [], refetch } = useListNotifications({});
+  const { data: notifsRaw = [], refetch } = useListNotifications({});
+  const notifs = notifsRaw as unknown as NotificationItem[];
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
 
@@ -32,7 +34,7 @@ export function Notifications() {
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {notifs.map((n: any) => (
+            {notifs.map((n) => (
               <div
                 key={n.id}
                 className={`flex gap-4 p-4 ${!n.isRead ? "bg-blue-50/50" : ""}`}

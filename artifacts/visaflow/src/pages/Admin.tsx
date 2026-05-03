@@ -15,18 +15,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS, formatDateTime } from "@/lib/utils";
+import type { UserRow, AuditLog, School, Country } from "@/types";
+
+type UpdateUserBody = { role?: string; isActive?: boolean };
+type CreateSchoolBody = { name: string; city: string; website: string };
+type CreateCountryBody = {
+  name: string;
+  code: string;
+  requiresCampusFrance: boolean;
+  visaCenter: string;
+};
+type UpdateCountryPatchBody = { requiresCampusFrance?: boolean };
 
 export function AdminUsers() {
   const { data: users = [], refetch } = useListUsers({});
   const update = useUpdateUser();
 
   const setRole = async (userId: number, role: string) => {
-    await update.mutateAsync({ userId, data: { role } as any });
+    await update.mutateAsync({ userId, data: { role } as unknown as UpdateUserBody });
     refetch();
   };
 
   const toggleActive = async (userId: number, isActive: boolean) => {
-    await update.mutateAsync({ userId, data: { isActive } as any });
+    await update.mutateAsync({ userId, data: { isActive } as unknown as UpdateUserBody });
     refetch();
   };
 
@@ -45,7 +56,7 @@ export function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u: any) => (
+              {(users as unknown as UserRow[]).map((u) => (
                 <tr key={u.id} className="border-b">
                   <td className="px-4 py-3">
                     <div className="font-medium">
@@ -107,7 +118,7 @@ export function AdminAudit() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((l: any) => (
+              {(logs as unknown as AuditLog[]).map((l) => (
                 <tr key={l.id} className="border-b">
                   <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
                     {formatDateTime(l.createdAt)}
@@ -138,7 +149,7 @@ export function AdminSchools() {
 
   const handleCreate = async () => {
     if (!form.name || !form.city) return;
-    await create.mutateAsync({ data: form as any });
+    await create.mutateAsync({ data: form as unknown as CreateSchoolBody });
     setForm({ name: "", city: "", website: "" });
     refetch();
   };
@@ -176,7 +187,7 @@ export function AdminSchools() {
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {schools.map((s: any) => (
+            {(schools as unknown as School[]).map((s) => (
               <div key={s.id} className="p-4">
                 <div className="font-medium">{s.name}</div>
                 <div className="text-sm text-slate-500">{s.city}</div>
@@ -212,7 +223,7 @@ export function AdminCountries() {
 
   const handleCreate = async () => {
     if (!form.name || !form.code) return;
-    await create.mutateAsync({ data: form as any });
+    await create.mutateAsync({ data: form as unknown as CreateCountryBody });
     setForm({ name: "", code: "", requiresCampusFrance: false, visaCenter: "" });
     refetch();
   };
@@ -220,7 +231,7 @@ export function AdminCountries() {
   const toggleCampusFrance = async (countryId: number, current: boolean) => {
     await update.mutateAsync({
       countryId,
-      data: { requiresCampusFrance: !current } as any,
+      data: { requiresCampusFrance: !current } as unknown as UpdateCountryPatchBody as never,
     });
     refetch();
   };
@@ -277,7 +288,7 @@ export function AdminCountries() {
               </tr>
             </thead>
             <tbody>
-              {countries.map((c: any) => (
+              {(countries as unknown as Country[]).map((c) => (
                 <tr key={c.id} className="border-b">
                   <td className="px-4 py-3 font-medium">{c.name}</td>
                   <td className="px-4 py-3 text-sm">{c.code}</td>

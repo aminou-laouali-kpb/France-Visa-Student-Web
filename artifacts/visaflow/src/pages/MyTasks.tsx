@@ -2,18 +2,21 @@ import { useListMyTasks, useUpdateTask } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate } from "@/lib/utils";
+import type { Task } from "@/types";
+import type { UpdateTaskBody } from "@workspace/api-client-react";
 
 export function MyTasks() {
-  const { data: tasks = [], refetch } = useListMyTasks({});
+  const { data: tasksRaw = [], refetch } = useListMyTasks({});
+  const tasks = tasksRaw as unknown as Task[];
   const update = useUpdateTask();
 
   const toggle = async (id: number, status: string) => {
-    await update.mutateAsync({ taskId: id, data: { status } as any });
+    await update.mutateAsync({ taskId: id, data: { status } as unknown as UpdateTaskBody });
     refetch();
   };
 
-  const pending = tasks.filter((t: any) => t.status !== "done");
-  const done = tasks.filter((t: any) => t.status === "done");
+  const pending = tasks.filter((t) => t.status !== "done");
+  const done = tasks.filter((t) => t.status === "done");
 
   return (
     <div className="space-y-6">
@@ -21,7 +24,7 @@ export function MyTasks() {
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {pending.map((t: any) => (
+            {pending.map((t) => (
               <div key={t.id} className="flex items-center gap-3 p-4">
                 <input
                   type="checkbox"
@@ -56,7 +59,7 @@ export function MyTasks() {
           <Card>
             <CardContent className="p-0">
               <div className="divide-y">
-                {done.slice(0, 20).map((t: any) => (
+                {done.slice(0, 20).map((t) => (
                   <div key={t.id} className="flex items-center gap-3 p-4 opacity-60">
                     <input type="checkbox" checked readOnly />
                     <div className="flex-1 line-through">{t.title}</div>

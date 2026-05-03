@@ -8,6 +8,7 @@ import {
   workflowTemplatesTable,
   countriesTable,
   notificationsTable,
+  tasksTable,
   type Student,
   type User,
 } from "@workspace/db";
@@ -355,6 +356,54 @@ router.patch(
       .update(studentsTable)
       .set({ completionScore: score, lastActivityAt: new Date() })
       .where(eq(studentsTable.id, studentId));
+
+    // Task automation on transitions
+    if (status !== undefined && status !== existingStep.status) {
+      const [studentRow] = await db
+        .select()
+        .from(studentsTable)
+        .where(eq(studentsTable.id, studentId));
+      try {
+        if (status === "in_progress" && studentRow?.userId) {
+          await db.insert(tasksTable).values({
+            studentId,
+            title: `Étape « ${existingStep.stepName} » en cours`,
+            description: `Cette étape vient de démarrer. Pensez à téléverser les pièces requises et à compléter les actions associées.`,
+            assignedToId: studentRow.userId,
+            createdById: req.currentUser!.id,
+            priority: "medium",
+            status: "pending",
+          });
+        }
+        if (status === "submitted" && studentRow?.advisorId) {
+          await db.insert(tasksTable).values({
+            studentId,
+            title: `Vérifier l'étape « ${existingStep.stepName} »`,
+            description: `L'étudiant a soumis cette étape — à examiner.`,
+            assignedToId: studentRow.advisorId,
+            createdById: req.currentUser!.id,
+            priority: "high",
+            status: "pending",
+          });
+        }
+        if (status === "blocked") {
+          const blockedAssignee = studentRow?.advisorId ?? null;
+          if (blockedAssignee) {
+            await db.insert(tasksTable).values({
+              studentId,
+              title: `Débloquer « ${existingStep.stepName} »`,
+              description: blockedReason ?? "Étape bloquée — intervention requise.",
+              assignedToId: blockedAssignee,
+              createdById: req.currentUser!.id,
+              priority: "critical",
+              status: "pending",
+            });
+          }
+        }
+      } catch (taskErr) {
+        req.log.warn({ err: taskErr }, "Task automation failed (non-fatal)");
+      }
+    }
     await logAudit({
       userId: req.currentUser!.id,
       studentId,

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGetMe, useUpdateMe } from "@workspace/api-client-react";
+
+type UpdateMeBody = { firstName: string; lastName: string; phone: string };
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +25,7 @@ export function Profile() {
   }, [me]);
 
   const save = async () => {
-    await update.mutateAsync({ data: form as any });
+    await update.mutateAsync({ data: form as unknown as UpdateMeBody });
     refetch();
   };
 

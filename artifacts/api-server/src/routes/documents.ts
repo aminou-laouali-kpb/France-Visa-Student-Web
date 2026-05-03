@@ -15,9 +15,64 @@ import {
 } from "../middlewares/auth";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { logAudit } from "../lib/audit";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 const router: IRouter = Router();
 const storage = new ObjectStorageService();
+
+const UPLOAD_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+function uploadTokenSecret(): string {
+  const explicit = process.env["UPLOAD_TOKEN_SECRET"];
+  if (explicit && explicit.length >= 16) return explicit;
+  if (process.env["NODE_ENV"] === "production") {
+    throw new Error(
+      "UPLOAD_TOKEN_SECRET must be set (>=16 chars) in production",
+    );
+  }
+  return "dev-only-upload-token-secret-do-not-use-in-prod";
+}
+
+// Length-prefixed canonical encoding to prevent delimiter-collision attacks
+// when objectPath, userId, or expiresAt could otherwise be chosen to overlap.
+function canonicalPayload(
+  objectPath: string,
+  userId: number,
+  expiresAt: number,
+): string {
+  const parts = [objectPath, String(userId), String(expiresAt)];
+  return parts.map((p) => `${Buffer.byteLength(p, "utf8")}:${p}`).join("");
+}
+
+function signUploadToken(objectPath: string, userId: number, expiresAt: number): string {
+  const sig = createHmac("sha256", uploadTokenSecret())
+    .update(canonicalPayload(objectPath, userId, expiresAt))
+    .digest("hex");
+  return `${expiresAt}.${sig}`;
+}
+function verifyUploadToken(
+  token: string,
+  objectPath: string,
+  userId: number,
+): boolean {
+  const dot = token.indexOf(".");
+  if (dot <= 0) return false;
+  const expStr = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!sig || !/^[0-9a-f]+$/i.test(sig)) return false;
+  const expiresAt = Number(expStr);
+  if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
+  const expected = createHmac("sha256", uploadTokenSecret())
+    .update(canonicalPayload(objectPath, userId, expiresAt))
+    .digest("hex");
+  try {
+    const a = Buffer.from(sig, "hex");
+    const b = Buffer.from(expected, "hex");
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
 
 router.get(
   "/students/:studentId/documents",
@@ -42,9 +97,42 @@ router.post(
   requireStudentAccess("studentId", "read"),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
-    const { category, name, fileName, objectPath, mimeType, sizeBytes } = req.body ?? {};
+    const { category, name, fileName, objectPath, uploadToken, mimeType, sizeBytes } =
+      req.body ?? {};
     if (!objectPath || !category || !name) {
       res.status(400).json({ error: "Missing required fields" });
+      return;
+    }
+    if (
+      typeof objectPath !== "string" ||
+      typeof uploadToken !== "string" ||
+      !verifyUploadToken(uploadToken, objectPath, req.currentUser!.id)
+    ) {
+      res
+        .status(403)
+        .json({ error: "Invalid or expired upload token for this object path" });
+      return;
+    }
+    // Probe actual stored object — never trust client-supplied size/mime.
+    let actualSize: number | null = null;
+    let actualMime: string | null = null;
+    try {
+      const file = await storage.getObjectEntityFile(objectPath);
+      const [meta] = await file.getMetadata();
+      const sizeNum = typeof meta.size === "string" ? Number(meta.size) : (meta.size as number | undefined);
+      actualSize = Number.isFinite(sizeNum) ? (sizeNum as number) : null;
+      actualMime = (meta.contentType as string | undefined) ?? null;
+    } catch {
+      res.status(400).json({
+        error:
+          "Uploaded object not found at the provided objectPath. Complete the PUT before registering the document.",
+      });
+      return;
+    }
+    if (actualSize !== null && actualSize > MAX_UPLOAD_BYTES) {
+      res.status(413).json({
+        error: `File too large: ${actualSize} bytes (max ${MAX_UPLOAD_BYTES}).`,
+      });
       return;
     }
     const existing = await db
@@ -62,8 +150,8 @@ router.post(
         name,
         fileName: fileName ?? name,
         objectPath,
-        mimeType: mimeType ?? null,
-        sizeBytes: sizeBytes ?? null,
+        mimeType: actualMime ?? mimeType ?? null,
+        sizeBytes: actualSize ?? (typeof sizeBytes === "number" ? sizeBytes : null),
         status: "received",
         version,
       })
@@ -255,7 +343,15 @@ router.post("/storage/upload-url", requireAuth, async (req, res) => {
     }
     const uploadURL = await storage.getObjectEntityUploadURL();
     const objectPath = storage.normalizeObjectEntityPath(uploadURL);
-    res.json({ uploadURL, objectPath, metadata: { name, contentType } });
+    const expiresAt = Date.now() + UPLOAD_TOKEN_TTL_MS;
+    const uploadToken = signUploadToken(objectPath, req.currentUser!.id, expiresAt);
+    res.json({
+      uploadURL,
+      objectPath,
+      uploadToken,
+      expiresAt,
+      metadata: { name, contentType },
+    });
   } catch (err) {
     req.log.error({ err }, "upload URL error");
     res.status(500).json({ error: "Failed to generate upload URL" });

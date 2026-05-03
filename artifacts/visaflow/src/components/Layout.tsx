@@ -6,9 +6,7 @@ import {
   LayoutDashboard,
   Users,
   GraduationCap,
-  FileText,
   CheckSquare,
-  Calendar,
   Bell,
   Settings,
   ShieldCheck,
@@ -31,7 +29,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { user } = useUser();
   const { data: me } = useGetMe();
-  const { data: notifications } = useListNotifications({ unread: true } as any);
+  const { data: notifications } = useListNotifications({ unreadOnly: true });
 
   const role = me?.role ?? "student";
   const unreadCount = notifications?.length ?? 0;
@@ -43,11 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const navItems: NavItem[] = [
     { href: "/app", icon: LayoutDashboard, label: "Tableau de bord" },
     ...(isStudent
-      ? [
-          { href: "/app/dossier", icon: GraduationCap, label: "Mon dossier" },
-          { href: "/app/documents", icon: FileText, label: "Mes documents" },
-          { href: "/app/rendez-vous", icon: Calendar, label: "Rendez-vous" },
-        ]
+      ? [{ href: "/app/dossier", icon: GraduationCap, label: "Mon dossier" }]
       : []),
     ...(isStaff
       ? [

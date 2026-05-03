@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useListStudents } from "@workspace/api-client-react";
+import type { Student } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,11 @@ import { formatDate } from "@/lib/utils";
 export function StudentsList() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const { data: students = [], isLoading } = useListStudents({
-    ...(statusFilter && { status: statusFilter }),
-  } as any);
+  const { data: students = [], isLoading } = useListStudents(
+    statusFilter ? { status: statusFilter } : {},
+  );
 
-  const filtered = students.filter((s: any) => {
+  const filtered = (students as unknown as Student[]).filter((s: Student) => {
     if (!q) return true;
     const haystack = `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase();
     return haystack.includes(q.toLowerCase());
@@ -79,7 +80,7 @@ export function StudentsList() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((s: any) => (
+                {filtered.map((s: Student) => (
                   <tr key={s.id} className="border-b hover:bg-slate-50">
                     <td className="px-4 py-3">
                       <Link href={`/app/students/${s.id}`}>

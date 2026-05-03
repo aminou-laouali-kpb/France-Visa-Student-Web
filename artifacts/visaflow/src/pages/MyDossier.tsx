@@ -1,11 +1,12 @@
 import { useGetStudentDashboard } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import type { StudentDashboardData } from "@/types";
 
 export function MyDossier() {
   const { data, isLoading } = useGetStudentDashboard();
   const [, setLocation] = useLocation();
-  const d = data as any;
+  const d = data as unknown as StudentDashboardData | undefined;
 
   useEffect(() => {
     if (isLoading) return;
