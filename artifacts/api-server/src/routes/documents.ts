@@ -16,6 +16,13 @@ import {
 import { ObjectStorageService } from "../lib/objectStorage";
 import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { validateBody } from "../middlewares/validate";
+import {
+  CreateDocumentBody,
+  UpdateDocumentBody,
+  ReviewDocumentBody,
+  RequestUploadUrlBody,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
 const storage = new ObjectStorageService();
@@ -95,6 +102,7 @@ router.post(
   "/students/:studentId/documents",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(CreateDocumentBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const { category, name, fileName, objectPath, uploadToken, mimeType, sizeBytes } =
@@ -205,6 +213,7 @@ router.patch(
   "/students/:studentId/documents/:documentId",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(UpdateDocumentBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const id = Number(req.params.documentId);
@@ -250,6 +259,7 @@ router.post(
   "/students/:studentId/documents/:documentId/review",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(ReviewDocumentBody),
   async (req, res) => {
     if (!isStaff(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
@@ -326,7 +336,7 @@ const ALLOWED_MIME_TYPES = [
 ];
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15 MB
 
-router.post("/storage/upload-url", requireAuth, async (req, res) => {
+router.post("/storage/upload-url", requireAuth, validateBody(RequestUploadUrlBody), async (req, res) => {
   try {
     const { name, contentType, sizeBytes } = req.body ?? {};
     if (contentType && !ALLOWED_MIME_TYPES.includes(contentType)) {

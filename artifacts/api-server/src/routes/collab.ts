@@ -15,6 +15,14 @@ import {
   canAccessStudent,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
+import { validateBody } from "../middlewares/validate";
+import {
+  CreateCommentBody,
+  CreateTaskBody,
+  UpdateTaskBody,
+  CreateAppointmentBody,
+  UpdateAppointmentBody,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -41,6 +49,7 @@ router.post(
   "/students/:studentId/comments",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(CreateCommentBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const { content, isInternal, isCorrectionRequest } = req.body ?? {};
@@ -125,6 +134,7 @@ router.post(
   "/students/:studentId/tasks",
   requireAuth,
   requireStudentAccess("studentId", "write"),
+  validateBody(CreateTaskBody),
   async (req, res) => {
     if (!isStaff(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
@@ -164,7 +174,7 @@ router.post(
   },
 );
 
-router.patch("/tasks/:taskId", requireAuth, async (req, res) => {
+router.patch("/tasks/:taskId", requireAuth, validateBody(UpdateTaskBody), async (req, res) => {
   const id = Number(req.params.taskId);
   const [task] = await db.select().from(tasksTable).where(eq(tasksTable.id, id));
   if (!task) {
@@ -243,6 +253,7 @@ router.post(
   "/students/:studentId/appointments",
   requireAuth,
   requireStudentAccess("studentId", "write"),
+  validateBody(CreateAppointmentBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const { type, title, scheduledAt, location, notes } = req.body ?? {};
@@ -278,7 +289,7 @@ router.post(
   },
 );
 
-router.patch("/appointments/:appointmentId", requireAuth, async (req, res) => {
+router.patch("/appointments/:appointmentId", requireAuth, validateBody(UpdateAppointmentBody), async (req, res) => {
   const id = Number(req.params.appointmentId);
   const [apt] = await db
     .select()

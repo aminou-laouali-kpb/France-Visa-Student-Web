@@ -21,6 +21,14 @@ import {
   requireStudentAccess,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
+import { validateBody } from "../middlewares/validate";
+import {
+  CreateStudentBody,
+  UpdateStudentBody,
+  AssignStudentBody,
+  UpdateStudentStepBody,
+  UpdateChecklistItemBody,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -115,7 +123,7 @@ router.get("/students", requireAuth, async (req, res) => {
 });
 
 // CREATE student
-router.post("/students", requireAuth, async (req, res) => {
+router.post("/students", requireAuth, validateBody(CreateStudentBody), async (req, res) => {
   const u = req.currentUser!;
   if (!isStaff(u) && u.role !== "student") {
     res.status(403).json({ error: "Forbidden" });
@@ -155,7 +163,7 @@ router.get("/students/:studentId", requireAuth, async (req, res) => {
   res.json(student);
 });
 
-router.patch("/students/:studentId", requireAuth, async (req, res) => {
+router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody), async (req, res) => {
   const id = Number(req.params.studentId);
   const [student] = await db.select().from(studentsTable).where(eq(studentsTable.id, id));
   if (!student) {
@@ -191,6 +199,7 @@ router.patch("/students/:studentId", requireAuth, async (req, res) => {
 router.post(
   "/students/:studentId/assign",
   requireAuth,
+  validateBody(AssignStudentBody),
   async (req, res) => {
     if (!isStaff(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
@@ -261,6 +270,7 @@ router.patch(
   "/students/:studentId/steps/:stepId",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(UpdateStudentStepBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const stepId = Number(req.params.stepId);
@@ -452,6 +462,7 @@ router.patch(
   "/students/:studentId/checklist-items/:itemId",
   requireAuth,
   requireStudentAccess("studentId", "read"),
+  validateBody(UpdateChecklistItemBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const itemId = Number(req.params.itemId);

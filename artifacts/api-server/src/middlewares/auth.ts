@@ -11,20 +11,57 @@ declare global {
   }
 }
 
-export async function getOrCreateUser(clerkId: string): Promise<User | null> {
-  const [existing] = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));
-  if (existing) return existing;
+const VALID_ROLES = ["student", "advisor", "reviewer", "admin", "superadmin"] as const;
+type RoleLiteral = (typeof VALID_ROLES)[number];
 
-  // Fetch from Clerk and create local user
+function readClerkRole(meta: unknown): RoleLiteral | null {
+  if (!meta || typeof meta !== "object") return null;
+  const raw = (meta as Record<string, unknown>)["role"];
+  if (typeof raw !== "string") return null;
+  return (VALID_ROLES as readonly string[]).includes(raw) ? (raw as RoleLiteral) : null;
+}
+
+export async function getOrCreateUser(clerkId: string): Promise<User | null> {
   try {
     const clerkUser = await clerkClient.users.getUser(clerkId);
+    // Clerk is the source of truth for roles via publicMetadata.role.
+    // privateMetadata.role is honoured as a fallback (admin-set, not client-writable).
+    const clerkRole =
+      readClerkRole(clerkUser.publicMetadata) ??
+      readClerkRole(clerkUser.privateMetadata);
+
+    const [existing] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.clerkId, clerkId));
+
+    if (existing) {
+      // Sync role from Clerk if it has changed (Clerk is authoritative).
+      if (clerkRole && clerkRole !== existing.role) {
+        const [updated] = await db
+          .update(usersTable)
+          .set({ role: clerkRole })
+          .where(eq(usersTable.id, existing.id))
+          .returning();
+        return updated ?? existing;
+      }
+      return existing;
+    }
+
     const email = clerkUser.emailAddresses?.[0]?.emailAddress ?? `${clerkId}@unknown.local`;
     const firstName = clerkUser.firstName ?? "";
     const lastName = clerkUser.lastName ?? "";
 
-    // First user becomes superadmin; everyone else defaults to student
-    const allUsers = await db.select({ id: usersTable.id }).from(usersTable).limit(1);
-    const isFirstUser = allUsers.length === 0;
+    // Bootstrap: if Clerk has no role metadata, the very first user becomes
+    // superadmin so the platform can be configured; everyone else defaults
+    // to student until an admin promotes them in Clerk.
+    let resolvedRole: RoleLiteral;
+    if (clerkRole) {
+      resolvedRole = clerkRole;
+    } else {
+      const allUsers = await db.select({ id: usersTable.id }).from(usersTable).limit(1);
+      resolvedRole = allUsers.length === 0 ? "superadmin" : "student";
+    }
 
     const [created] = await db
       .insert(usersTable)
@@ -34,11 +71,11 @@ export async function getOrCreateUser(clerkId: string): Promise<User | null> {
         firstName: firstName || email.split("@")[0],
         lastName: lastName || "",
         avatarUrl: clerkUser.imageUrl ?? null,
-        role: isFirstUser ? "superadmin" : "student",
+        role: resolvedRole,
       })
       .returning();
     return created;
-  } catch (err) {
+  } catch {
     return null;
   }
 }
