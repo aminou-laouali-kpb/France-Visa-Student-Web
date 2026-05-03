@@ -17,6 +17,11 @@ registerTenantBudgetResolver();
 
 const app: Express = express();
 
+// Replit's preview/proxy terminates TLS in front of the API. Trust the
+// reverse proxy so `req.ip` reflects the real client IP (not the proxy),
+// which is what `requireAdminIp` consumes.
+app.set("trust proxy", true);
+
 app.use(
   pinoHttp({
     logger,

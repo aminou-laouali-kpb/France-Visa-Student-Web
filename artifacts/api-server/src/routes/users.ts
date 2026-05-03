@@ -44,7 +44,11 @@ router.get("/users", requireAuth, async (req, res) => {
     return;
   }
   const role = req.query.role as string | undefined;
-  const all = await db.select().from(usersTable);
+  // Tenant scoping: every non-superadmin caller sees only their tenant.
+  const all =
+    me.role === "superadmin" || !me.tenantId
+      ? await db.select().from(usersTable)
+      : await db.select().from(usersTable).where(eq(usersTable.tenantId, me.tenantId));
   const filtered = role ? all.filter((u) => u.role === role) : all;
   if (isAdmin(me)) {
     res.json(filtered);
@@ -77,6 +81,17 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
     res.status(404).json({ error: "User not found" });
     return;
   }
+  // Cross-tenant lookups are blocked unless the caller is the user
+  // themselves or a superadmin.
+  if (
+    u.id !== req.currentUser!.id &&
+    req.currentUser!.role !== "superadmin" &&
+    req.currentUser!.tenantId &&
+    u.tenantId !== req.currentUser!.tenantId
+  ) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
   // Non-admins get a limited public projection
   if (!isAdmin(req.currentUser!) && id !== req.currentUser!.id) {
     res.json({
@@ -99,6 +114,22 @@ router.patch(
   async (req, res) => {
     const id = Number(req.params.userId);
     const { role, isActive, firstName, lastName, phone } = req.body ?? {};
+    // Tenant scoping: admin can only mutate users in their own tenant.
+    const [target] = await db
+      .select({ id: usersTable.id, tenantId: usersTable.tenantId })
+      .from(usersTable)
+      .where(eq(usersTable.id, id));
+    if (!target) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    if (
+      req.currentUser!.role !== "superadmin" &&
+      target.tenantId !== req.currentUser!.tenantId
+    ) {
+      res.status(403).json({ error: "cross_tenant_forbidden" });
+      return;
+    }
     const [updated] = await db
       .update(usersTable)
       .set({

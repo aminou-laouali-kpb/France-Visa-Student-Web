@@ -96,7 +96,21 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
     return;
   }
   req.currentUser = user;
-  next();
+  // Globally enforce per-tenant admin IP allowlist + tenant 2FA policy on
+  // every authenticated request. The middlewares short-circuit for
+  // non-admin/non-required cases, so non-privileged routes are unaffected,
+  // and we no longer rely on path-prefix matching to apply these guards.
+  // Imports are deferred to avoid a circular module load.
+  const { requireAdminIp } = await import("./ipAllowlist");
+  const { enforce2FA } = await import("./twoFactor");
+  await new Promise<void>((resolve) => {
+    requireAdminIp(req, res, () => {
+      enforce2FA(req, res, () => {
+        resolve();
+        next();
+      });
+    });
+  });
 };
 
 export function requireRole(...roles: User["role"][]): RequestHandler {
@@ -122,6 +136,18 @@ export function isAdmin(user: User): boolean {
 }
 
 export function canAccessStudent(user: User, student: Student): boolean {
+  // Tenant boundary: only superadmin can read across tenants. Everyone else
+  // — including tenant admins — is restricted to their own tenant. A null
+  // tenantId on either side means the row predates multi-tenancy and is
+  // treated as the default tenant.
+  if (
+    user.role !== "superadmin" &&
+    user.tenantId &&
+    student.tenantId &&
+    student.tenantId !== user.tenantId
+  ) {
+    return false;
+  }
   if (isAdmin(user)) return true;
   if (user.role === "advisor" && student.advisorId === user.id) return true;
   if (user.role === "reviewer" && student.reviewerId === user.id) return true;

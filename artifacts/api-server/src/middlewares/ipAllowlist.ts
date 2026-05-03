@@ -25,11 +25,11 @@ function ipInCidr(ip: string, cidr: string): boolean {
   return (a & mask) === (b & mask);
 }
 
-function clientIp(req: { ip?: string; headers: Record<string, unknown> }): string {
-  const xff = req.headers["x-forwarded-for"];
-  if (typeof xff === "string" && xff.length > 0) {
-    return (xff.split(",")[0] ?? "").trim();
-  }
+function clientIp(req: { ip?: string }): string {
+  // Express resolves `req.ip` from the socket, walking back through proxies
+  // listed in the `trust proxy` setting. Never read raw `x-forwarded-for`
+  // ourselves: that header is client-controlled and would let an attacker
+  // spoof their way past the allowlist.
   return req.ip ?? "";
 }
 
@@ -53,7 +53,7 @@ export const requireAdminIp: RequestHandler = async (req, res, next) => {
     next();
     return;
   }
-  const ip = clientIp(req as unknown as { ip?: string; headers: Record<string, unknown> });
+  const ip = clientIp(req);
   const cidrs = allowlist
     .split(",")
     .map((s) => s.trim())

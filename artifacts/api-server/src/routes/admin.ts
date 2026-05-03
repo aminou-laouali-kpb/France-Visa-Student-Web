@@ -44,6 +44,21 @@ router.get("/audit-logs", requireAuth, async (req, res) => {
   if (studentId) conds.push(eq(auditLogsTable.studentId, studentId));
   if (userId) conds.push(eq(auditLogsTable.userId, userId));
   if (action) conds.push(eq(auditLogsTable.action, action));
+  // Tenant scoping: non-superadmin admins only see audit rows for actors in
+  // their own tenant. Superadmins keep the global view.
+  const me = req.currentUser!;
+  if (me.role !== "superadmin" && me.tenantId) {
+    const tenantUserIds = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.tenantId, me.tenantId));
+    const ids = tenantUserIds.map((u) => u.id);
+    if (ids.length === 0) {
+      res.json([]);
+      return;
+    }
+    conds.push(inArray(auditLogsTable.userId, ids));
+  }
   const whereExpr = conds.length ? and(...conds) : undefined;
 
   const rows = await db
