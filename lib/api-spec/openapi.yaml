@@ -4227,6 +4227,7 @@ components:
         studentId: { type: integer }
         refreshedAt: { type: string, format: date-time }
         stepsAdded: { type: integer }
+        stepsSkipped: { type: integer }
         checklistItemsAdded: { type: integer }
         checklistItemsRemoved: { type: integer }
         appliedMatrixEntryId: { type: ["integer", "null"] }
@@ -4237,6 +4238,7 @@ components:
         - studentId
         - refreshedAt
         - stepsAdded
+        - stepsSkipped
         - checklistItemsAdded
         - checklistItemsRemoved
         - documentCategories

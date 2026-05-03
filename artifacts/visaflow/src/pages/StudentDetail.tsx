@@ -131,19 +131,13 @@ export function StudentDetail() {
               disabled={refreshChecklist.isPending}
               onClick={async () => {
                 try {
-                  const res = await refreshChecklist.mutateAsync({ studentId });
-                  const r = res as unknown as {
-                    stepsAdded?: number;
-                    stepsSkipped?: number;
-                    checklistItemsAdded?: number;
-                    checklistItemsRemoved?: number;
-                  };
+                  const r = await refreshChecklist.mutateAsync({ studentId });
                   alert(
                     `Liste mise à jour selon la matrice nationalité :\n` +
-                      `+ ${r.checklistItemsAdded ?? 0} document(s) ajouté(s)\n` +
-                      `- ${r.checklistItemsRemoved ?? 0} retiré(s)\n` +
-                      `${r.stepsSkipped ?? 0} étape(s) marquée(s) non requises\n` +
-                      `${r.stepsAdded ?? 0} étape(s) restaurée(s)`,
+                      `+ ${r.checklistItemsAdded} document(s) ajouté(s)\n` +
+                      `- ${r.checklistItemsRemoved} retiré(s)\n` +
+                      `${r.stepsSkipped} étape(s) marquée(s) non requises\n` +
+                      `${r.stepsAdded} étape(s) restaurée(s)`,
                   );
                   await refetch();
                 } catch (e) {

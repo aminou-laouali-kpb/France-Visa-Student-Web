@@ -1721,6 +1721,7 @@ export interface RefreshChecklistResponse {
   studentId: number;
   refreshedAt: string;
   stepsAdded: number;
+  stepsSkipped: number;
   checklistItemsAdded: number;
   checklistItemsRemoved: number;
   /** @nullable */

@@ -606,6 +606,15 @@ export async function applyMatrixToStudent(
     : [];
   const wfById = new Map(wfSteps.map((s) => [s.id, s]));
 
+  // Reconcile each student step's `isRequired` flag against the matrix:
+  //   • Steps with no requiredDocumentCategories → keep template default.
+  //   • Steps whose categories overlap the matrix → required (template).
+  //   • Steps whose categories don't overlap the matrix → not required
+  //     (non-applicable for this nationality / level).
+  // We never touch `status`, so a student's in-progress / validated work
+  // is preserved verbatim. This is non-blocking: validation logic only
+  // gates progression on prior `isRequired` steps, and completion score
+  // is computed over required steps only (see students.ts).
   let stepsSkipped = 0;
   let stepsRestored = 0;
   let removed = 0;
@@ -616,19 +625,19 @@ export async function applyMatrixToStudent(
       const reqCats = ws.requiredDocumentCategories ?? [];
       if (reqCats.length === 0) continue; // non-document step → leave alone
       const overlaps = reqCats.some((c) => matrixCats.has(c));
-      if (!overlaps) {
-        // Only reconcile steps that are still untouched. Anything in
-        // progress, submitted, validated, etc. stays as-is so we never
-        // erase work the student or staff has already done.
-        if (ss.status === "not_started") {
-          await db
-            .update(studentStepsTable)
-            .set({
-              status: "blocked",
-              blockedReason: MATRIX_SKIP_REASON,
-            })
-            .where(eq(studentStepsTable.id, ss.id));
+      const desiredRequired = overlaps ? ws.isRequired : false;
+      if (ss.isRequired !== desiredRequired) {
+        await db
+          .update(studentStepsTable)
+          .set({
+            isRequired: desiredRequired,
+            notes: desiredRequired ? null : MATRIX_SKIP_REASON,
+          })
+          .where(eq(studentStepsTable.id, ss.id));
+        if (!desiredRequired) {
           stepsSkipped++;
+          // Step is no longer required → drop unchecked required checklist
+          // items so the student isn't shown obligations that don't apply.
           const items = await db
             .select()
             .from(checklistItemsTable)
@@ -646,27 +655,24 @@ export async function applyMatrixToStudent(
               .where(eq(checklistItemsTable.id, it.id));
             removed++;
           }
+        } else {
+          stepsRestored++;
         }
-      } else if (
-        ss.status === "blocked" &&
-        ss.blockedReason === MATRIX_SKIP_REASON
-      ) {
-        await db
-          .update(studentStepsTable)
-          .set({ status: "not_started", blockedReason: null })
-          .where(eq(studentStepsTable.id, ss.id));
-        stepsRestored++;
       }
     }
   }
 
+  // For matrix-only anchoring, "covered" means a step that's still
+  // required after reconciliation.
   const activeStepIds = new Set(
     existingSteps
-      .filter(
-        (s) =>
-          !matrixApplies ||
-          !(s.status === "blocked" && s.blockedReason === MATRIX_SKIP_REASON),
-      )
+      .filter((s) => {
+        if (!matrixApplies) return true;
+        const ws = wfById.get(s.workflowStepId);
+        const reqCats = ws?.requiredDocumentCategories ?? [];
+        if (reqCats.length === 0) return true;
+        return reqCats.some((c) => matrixCats.has(c));
+      })
       .map((s) => s.workflowStepId),
   );
   const coveredCats = new Set<string>();

@@ -2830,6 +2830,7 @@ export const RefreshStudentChecklistResponse = zod.object({
   studentId: zod.number(),
   refreshedAt: zod.coerce.date(),
   stepsAdded: zod.number(),
+  stepsSkipped: zod.number(),
   checklistItemsAdded: zod.number(),
   checklistItemsRemoved: zod.number(),
   appliedMatrixEntryId: zod.number().nullish(),
