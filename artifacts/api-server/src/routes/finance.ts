@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import {
   db,
   studentsTable,
@@ -8,7 +8,12 @@ import {
   cvecPaymentsTable,
 } from "@workspace/db";
 import { eq, and, asc, desc } from "drizzle-orm";
-import { requireAuth, canAccessStudent, isAdmin } from "../middlewares/auth";
+import {
+  requireAuth,
+  canAccessStudent,
+  isAdmin,
+  isStaff,
+} from "../middlewares/auth";
 import { validateBody } from "../middlewares/validate";
 import { logAudit } from "../lib/audit";
 import {
@@ -24,7 +29,7 @@ const router: IRouter = Router();
 export const DEFAULT_MONTHLY_MIN_EUR = 615;
 const BANK_ATTESTATION_VALIDITY_MONTHS = 3;
 
-function parseIdParam(name: string, req: any, res: any): number | null {
+function parseIdParam(name: string, req: Request, res: Response): number | null {
   const raw = req.params[name];
   const n = Number(raw);
   if (!Number.isInteger(n) || n <= 0) {
@@ -34,7 +39,29 @@ function parseIdParam(name: string, req: any, res: any): number | null {
   return n;
 }
 
-async function loadStudentOr403(req: any, res: any) {
+// Students may create/update their own evidence rows but they MUST NOT be
+// able to self-assert review states like "valid" / "paid" / "exempted" —
+// those are gated by staff review and feed into the submission readiness
+// gate. This sanitizer strips/forces the status field on writes coming from
+// student callers; staff/admin/reviewer/advisor pass through unchanged.
+type WithStatus = { status?: string | null };
+function sanitizeProofStatus<T extends WithStatus>(
+  body: T,
+  req: Request,
+  existingStatus?: string,
+): T {
+  if (isStaff(req.currentUser!)) return body;
+  const out: T = { ...body };
+  // Force pending on student-driven writes; never let students promote.
+  if (existingStatus && existingStatus !== "pending") {
+    delete out.status;
+  } else {
+    out.status = "pending";
+  }
+  return out;
+}
+
+async function loadStudentOr403(req: Request, res: Response) {
   const id = parseIdParam("studentId", req, res);
   if (id === null) return null;
   const [student] = await db
@@ -194,10 +221,11 @@ router.post(
       body.issueDate,
       body.expiryDate,
     );
+    const safeBody = sanitizeProofStatus(body, req);
     const [created] = await db
       .insert(financialProofsTable)
       .values({
-        ...body,
+        ...safeBody,
         studentId: student.id,
         expiryDate,
       })
@@ -244,9 +272,10 @@ router.patch(
         : body.issueDate !== undefined || body.proofType !== undefined
           ? computeProofExpiry(proofType, issueDate, null)
           : existing.expiryDate;
+    const safeBody = sanitizeProofStatus(body, req, existing.status);
     const [updated] = await db
       .update(financialProofsTable)
-      .set({ ...body, expiryDate, updatedAt: new Date() })
+      .set({ ...safeBody, expiryDate, updatedAt: new Date() })
       .where(eq(financialProofsTable.id, proofId))
       .returning();
     res.json(updated);
@@ -301,9 +330,10 @@ router.post(
   async (req, res) => {
     const student = await loadStudentOr403(req, res);
     if (!student) return;
+    const safeBody = sanitizeProofStatus(req.body ?? {}, req);
     const [created] = await db
       .insert(accommodationRecordsTable)
-      .values({ ...req.body, studentId: student.id })
+      .values({ ...safeBody, studentId: student.id })
       .returning();
     await logAudit({
       userId: req.currentUser!.id,
@@ -325,20 +355,25 @@ router.patch(
     if (!student) return;
     const recordId = parseIdParam("recordId", req, res);
     if (recordId === null) return;
-    const [updated] = await db
-      .update(accommodationRecordsTable)
-      .set({ ...req.body, updatedAt: new Date() })
+    const [existing] = await db
+      .select()
+      .from(accommodationRecordsTable)
       .where(
         and(
           eq(accommodationRecordsTable.id, recordId),
           eq(accommodationRecordsTable.studentId, student.id),
         ),
-      )
-      .returning();
-    if (!updated) {
+      );
+    if (!existing) {
       res.status(404).json({ error: "Record not found" });
       return;
     }
+    const safeBody = sanitizeProofStatus(req.body ?? {}, req, existing.status);
+    const [updated] = await db
+      .update(accommodationRecordsTable)
+      .set({ ...safeBody, updatedAt: new Date() })
+      .where(eq(accommodationRecordsTable.id, recordId))
+      .returning();
     res.json(updated);
   },
 );
@@ -398,17 +433,18 @@ router.put(
           eq(cvecPaymentsTable.academicYear, academicYear),
         ),
       );
+    const safeBody = sanitizeProofStatus(body, req, existing?.status);
     let saved;
     if (existing) {
       [saved] = await db
         .update(cvecPaymentsTable)
-        .set({ ...body, academicYear, updatedAt: new Date() })
+        .set({ ...safeBody, academicYear, updatedAt: new Date() })
         .where(eq(cvecPaymentsTable.id, existing.id))
         .returning();
     } else {
       [saved] = await db
         .insert(cvecPaymentsTable)
-        .values({ ...body, studentId: student.id, academicYear })
+        .values({ ...safeBody, studentId: student.id, academicYear })
         .returning();
     }
     await logAudit({

@@ -168,6 +168,7 @@ export function StudentDetail() {
         <TabsContent value="finance" className="mt-4">
           <FinancialReadinessTab
             studentId={studentId}
+            isStaff={!!isStaff}
             isAdmin={
               !!me && ["admin", "superadmin"].includes(me.role)
             }

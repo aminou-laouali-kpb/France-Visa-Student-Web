@@ -189,9 +189,11 @@ function DocumentAttachField({
 
 export function FinancialReadinessTab({
   studentId,
+  isStaff,
   isAdmin,
 }: {
   studentId: number;
+  isStaff: boolean;
   isAdmin: boolean;
 }) {
   const { data: readiness, refetch: refetchReadiness } =
@@ -448,27 +450,33 @@ export function FinancialReadinessTab({
                     )}
                   </div>
                 </div>
-                <select
-                  className="border rounded px-2 py-1 text-xs"
-                  value={p.status}
-                  onChange={async (e) => {
-                    await updateProof.mutateAsync({
-                      studentId,
-                      proofId: p.id,
-                      data: {
-                        status: e.target.value as FinancialProofStatus,
-                      },
-                    });
-                    reload();
-                  }}
-                  data-testid={`proof-status-${p.id}`}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
+                {isStaff ? (
+                  <select
+                    className="border rounded px-2 py-1 text-xs"
+                    value={p.status}
+                    onChange={async (e) => {
+                      await updateProof.mutateAsync({
+                        studentId,
+                        proofId: p.id,
+                        data: {
+                          status: e.target.value as FinancialProofStatus,
+                        },
+                      });
+                      reload();
+                    }}
+                    data-testid={`proof-status-${p.id}`}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-xs text-slate-500">
+                    Statut : {p.status}
+                  </span>
+                )}
                 <span
                   className={
                     "text-xs px-2 py-0.5 rounded " +
@@ -677,28 +685,34 @@ export function FinancialReadinessTab({
                   </div>
                 )}
               </div>
-              <select
-                className="border rounded px-2 py-1 text-xs"
-                value={a.status}
-                onChange={async (e) => {
-                  await updateAcc.mutateAsync({
-                    studentId,
-                    recordId: a.id,
-                    data: {
-                      status: e.target
-                        .value as (typeof STATUS_OPTIONS)[number]["value"],
-                    },
-                  });
-                  reload();
-                }}
-                data-testid={`acc-status-${a.id}`}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
+              {isStaff ? (
+                <select
+                  className="border rounded px-2 py-1 text-xs"
+                  value={a.status}
+                  onChange={async (e) => {
+                    await updateAcc.mutateAsync({
+                      studentId,
+                      recordId: a.id,
+                      data: {
+                        status: e.target
+                          .value as (typeof STATUS_OPTIONS)[number]["value"],
+                      },
+                    });
+                    reload();
+                  }}
+                  data-testid={`acc-status-${a.id}`}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-xs text-slate-500">
+                  Statut : {a.status}
+                </span>
+              )}
               <Button
                 size="icon"
                 variant="ghost"
@@ -962,26 +976,32 @@ export function FinancialReadinessTab({
                 data-testid="cvec-form-paid-at"
               />
             </div>
-            <div>
-              <Label className="text-xs">Statut</Label>
-              <select
-                className="w-full border rounded px-2 py-1 text-sm"
-                value={cvecForm.status}
-                onChange={(e) =>
-                  setCvecForm((f) => ({
-                    ...f,
-                    status: e.target.value as CvecPaymentStatus,
-                  }))
-                }
-                data-testid="cvec-form-status"
-              >
-                {CVEC_STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {isStaff ? (
+              <div>
+                <Label className="text-xs">Statut</Label>
+                <select
+                  className="w-full border rounded px-2 py-1 text-sm"
+                  value={cvecForm.status}
+                  onChange={(e) =>
+                    setCvecForm((f) => ({
+                      ...f,
+                      status: e.target.value as CvecPaymentStatus,
+                    }))
+                  }
+                  data-testid="cvec-form-status"
+                >
+                  {CVEC_STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="text-xs text-slate-500 self-end pb-2">
+                Le statut sera vérifié par votre conseiller.
+              </div>
+            )}
             <div className="md:col-span-2">
               <Label className="text-xs">N° de reçu</Label>
               <Input
