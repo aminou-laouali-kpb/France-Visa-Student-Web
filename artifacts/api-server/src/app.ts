@@ -10,6 +10,9 @@ import {
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { registerTenantBudgetResolver } from "./lib/aiBootstrap";
+
+registerTenantBudgetResolver();
 
 const app: Express = express();
 
