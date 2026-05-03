@@ -76,7 +76,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/StatusBadge";
-import { formatDate, formatDateTime, ROLE_LABELS } from "@/lib/utils";
+import { formatDate, formatDateTime } from "@/lib/utils";
 import {
   ArrowLeft,
   RefreshCw,
@@ -1153,7 +1153,7 @@ function TasksTab({ studentId, isStaff }: { studentId: number; isStaff: boolean 
                 <option value="">{t("detail.unassigned")}</option>
                 {staff.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.firstName} {u.lastName} — {ROLE_LABELS[u.role]}
+                    {u.firstName} {u.lastName} — {t(`role.${u.role}`, { defaultValue: u.role })}
                   </option>
                 ))}
               </select>

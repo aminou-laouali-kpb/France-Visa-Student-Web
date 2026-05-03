@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ProgressRing } from "@/components/ProgressRing";
-import { formatDateTime, formatDate, ROLE_LABELS } from "@/lib/utils";
+import { formatDateTime, formatDate } from "@/lib/utils";
 import {
   GraduationCap,
   FileText,

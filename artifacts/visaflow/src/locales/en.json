@@ -204,7 +204,7 @@
     "loggedInAs": "Signed in as"
   },
   "status": {
-    "not_started": "To do",
+    "not_started": "Not started",
     "in_progress": "In progress",
     "submitted": "Submitted",
     "under_review": "Under review",
@@ -217,7 +217,17 @@
     "visa_refused": "Visa refused",
     "done": "Done",
     "other": "Other",
-    "withdrawn": "Withdrawn"
+    "withdrawn": "Withdrawn",
+    "missing": "Missing",
+    "received": "Received",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "missed": "Missed",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
   },
   "risk": {
     "low": "Low",
@@ -798,5 +808,12 @@
     "expiringSoon": "Document expiring in {{days}} days ({{date}}).",
     "categoryMismatch": "Possible category: {{ai}} (instead of {{expected}}).",
     "lowConfidence": "Low-confidence extraction ({{pct}}%)."
+  },
+  "role": {
+    "student": "Student",
+    "advisor": "Advisor",
+    "reviewer": "Reviewer",
+    "admin": "Administrator",
+    "superadmin": "Super-admin"
   }
 }

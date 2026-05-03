@@ -206,7 +206,7 @@
   "status": {
     "not_started": "À faire",
     "in_progress": "En cours",
-    "submitted": "Soumis",
+    "submitted": "Déposé",
     "under_review": "En revue",
     "blocked": "Bloqué",
     "validated": "Validé",
@@ -217,7 +217,17 @@
     "visa_refused": "Visa refusé",
     "done": "Terminé",
     "other": "Autre",
-    "withdrawn": "Abandonné"
+    "withdrawn": "Abandonné",
+    "missing": "Manquant",
+    "received": "Reçu",
+    "pending": "En attente",
+    "cancelled": "Annulé",
+    "upcoming": "À venir",
+    "completed": "Terminé",
+    "missed": "Manqué",
+    "low": "Faible",
+    "medium": "Moyen",
+    "high": "Élevé"
   },
   "risk": {
     "low": "Faible",
@@ -798,5 +808,12 @@
     "expiringSoon": "Document expirant dans {{days}} jours ({{date}}).",
     "categoryMismatch": "Catégorie possible : {{ai}} (au lieu de {{expected}}).",
     "lowConfidence": "Extraction peu fiable (confiance {{pct}}%)."
+  },
+  "role": {
+    "student": "Étudiant",
+    "advisor": "Conseiller",
+    "reviewer": "Examinateur",
+    "admin": "Administrateur",
+    "superadmin": "Super-admin"
   }
 }

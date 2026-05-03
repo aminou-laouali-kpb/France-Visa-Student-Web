@@ -22,7 +22,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ShieldOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -223,7 +222,7 @@ function ProfileBody({
         <CardHeader>
           <CardTitle className="text-base flex items-center justify-between">
             <span>{t("profile.info")}</span>
-            <Badge variant="outline">{ROLE_LABELS[me.role]}</Badge>
+            <Badge variant="outline">{t(`role.${me.role}`, { defaultValue: me.role })}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

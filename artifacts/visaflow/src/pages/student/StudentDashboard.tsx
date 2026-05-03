@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ProgressRing";
 import { StatusBadge } from "@/components/StatusBadge";
-import { formatDateTime, ROLE_LABELS } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
 import {
   AlertTriangle,
@@ -211,7 +211,7 @@ export function StudentDashboard() {
                     <div className="text-sm font-medium text-slate-900">
                       {c.authorName}
                       <span className="ml-1 text-xs text-slate-500 font-normal">
-                        · {ROLE_LABELS[c.authorRole] ?? c.authorRole}
+                        · {t(`role.${c.authorRole}`, { defaultValue: c.authorRole })}
                       </span>
                     </div>
                     <div className="text-xs text-slate-500">

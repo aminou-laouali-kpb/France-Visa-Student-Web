@@ -148,7 +148,7 @@ export function Layout({ children }: { children: ReactNode }) {
               {me?.firstName} {me?.lastName}
             </div>
             <Badge variant="outline" className="mt-1 text-xs">
-              {ROLE_LABELS[role] ?? role}
+              {t(`role.${role}`, { defaultValue: role })}
             </Badge>
           </div>
         </div>

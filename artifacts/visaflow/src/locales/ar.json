@@ -204,7 +204,7 @@
     "loggedInAs": "متصل بوصفك"
   },
   "status": {
-    "not_started": "للتنفيذ",
+    "not_started": "لم يبدأ",
     "in_progress": "قيد التنفيذ",
     "submitted": "مقدَّم",
     "under_review": "قيد المراجعة",
@@ -215,9 +215,19 @@
     "active": "نشط",
     "visa_obtained": "تم الحصول على التأشيرة",
     "visa_refused": "رُفضت التأشيرة",
-    "done": "منجز",
+    "done": "منتهٍ",
     "other": "أخرى",
-    "withdrawn": "انسحب"
+    "withdrawn": "منسحب",
+    "missing": "مفقود",
+    "received": "مستلم",
+    "pending": "في الانتظار",
+    "cancelled": "ملغى",
+    "upcoming": "قادم",
+    "completed": "مكتمل",
+    "missed": "فائت",
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "مرتفع"
   },
   "risk": {
     "low": "منخفض",
@@ -798,5 +808,12 @@
     "expiringSoon": "تنتهي الوثيقة خلال {{days}} يومًا ({{date}}).",
     "categoryMismatch": "الفئة المحتملة: {{ai}} (بدلاً من {{expected}}).",
     "lowConfidence": "استخراج منخفض الثقة ({{pct}}%)."
+  },
+  "role": {
+    "student": "طالب",
+    "advisor": "مستشار",
+    "reviewer": "مراجع",
+    "admin": "مدير",
+    "superadmin": "مدير عام"
   }
 }

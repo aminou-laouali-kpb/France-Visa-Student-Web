@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ROLE_LABELS, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { CountryFlag } from "@/components/CountryFlag";
 import { UserPlus, Search } from "lucide-react";
 import type { UserRow, AuditLog, School, Country } from "@/types";
@@ -96,7 +96,7 @@ export function AdminUsers() {
             {["student", "advisor", "reviewer", "admin", "superadmin"].map(
               (r) => (
                 <option key={r} value={r}>
-                  {ROLE_LABELS[r]}
+                  {t(`role.${r}`, { defaultValue: r })}
                 </option>
               ),
             )}
@@ -133,7 +133,7 @@ export function AdminUsers() {
                     >
                       {["student", "advisor", "reviewer", "admin", "superadmin"].map((r) => (
                         <option key={r} value={r}>
-                          {ROLE_LABELS[r]}
+                          {t(`role.${r}`, { defaultValue: r })}
                         </option>
                       ))}
                     </select>

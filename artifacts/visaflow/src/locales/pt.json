@@ -204,7 +204,7 @@
     "loggedInAs": "Ligado como"
   },
   "status": {
-    "not_started": "A fazer",
+    "not_started": "Por fazer",
     "in_progress": "Em curso",
     "submitted": "Submetido",
     "under_review": "Em revisão",
@@ -217,7 +217,17 @@
     "visa_refused": "Visto recusado",
     "done": "Concluído",
     "other": "Outro",
-    "withdrawn": "Desistiu"
+    "withdrawn": "Desistido",
+    "missing": "Em falta",
+    "received": "Recebido",
+    "pending": "Pendente",
+    "cancelled": "Cancelado",
+    "upcoming": "Próximo",
+    "completed": "Completo",
+    "missed": "Falhado",
+    "low": "Baixo",
+    "medium": "Médio",
+    "high": "Alto"
   },
   "risk": {
     "low": "Baixo",
@@ -798,5 +808,12 @@
     "expiringSoon": "Documento a expirar em {{days}} dias ({{date}}).",
     "categoryMismatch": "Categoria possível: {{ai}} (em vez de {{expected}}).",
     "lowConfidence": "Extração pouco fiável ({{pct}}%)."
+  },
+  "role": {
+    "student": "Estudante",
+    "advisor": "Conselheiro",
+    "reviewer": "Revisor",
+    "admin": "Administrador",
+    "superadmin": "Super-admin"
   }
 }
