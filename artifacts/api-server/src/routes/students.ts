@@ -290,6 +290,15 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     delete body.intakeDate;
     delete body.riskLevel;
     delete body.riskScore;
+  }
+  // Submission-gate override is an admin-only privileged action. Strip
+  // these fields from the generic student PATCH for ALL non-admin
+  // callers (students, advisors, reviewers) so the only way to flip
+  // the gate is via POST /students/:id/submission-gate-override, which
+  // is admin-gated and audit-logged. Without this strip, an advisor
+  // with student-edit access could bypass the readiness check by
+  // PATCHing submissionGateOverride: true alongside status: submitted.
+  if (!isAdmin(req.currentUser!)) {
     delete body.submissionGateOverride;
     delete body.submissionGateOverrideReason;
   }
