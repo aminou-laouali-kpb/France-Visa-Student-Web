@@ -1809,6 +1809,125 @@ export interface UpsertIntakeCalendarEntryBody {
 }
 
 /**
+ * @nullable
+ */
+export type ProjetEtudesSections = { [key: string]: unknown } | null;
+
+export interface RubricScore {
+  /** @nullable */
+  coherence?: number | null;
+  /** @nullable */
+  french?: number | null;
+  /** @nullable */
+  specificity?: number | null;
+  /** @nullable */
+  returnPlan?: number | null;
+  /** @nullable */
+  overall?: number | null;
+}
+
+export interface ProjetEtudes {
+  id: number;
+  studentId: number;
+  content: string;
+  /** @nullable */
+  sections?: ProjetEtudesSections;
+  latestScore?: RubricScore | null;
+  /** @nullable */
+  lastCritique?: string | null;
+  wordCount: number;
+  /** @nullable */
+  lastCritiqueAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * @nullable
+ */
+export type UpsertProjetEtudesBodySections = { [key: string]: unknown } | null;
+
+export interface UpsertProjetEtudesBody {
+  content: string;
+  /** @nullable */
+  sections?: UpsertProjetEtudesBodySections;
+}
+
+/**
+ * @nullable
+ */
+export type ProjetEtudesVersionSections = { [key: string]: unknown } | null;
+
+export interface ProjetEtudesVersion {
+  id: number;
+  projetId: number;
+  studentId: number;
+  content: string;
+  /** @nullable */
+  sections?: ProjetEtudesVersionSections;
+  score?: RubricScore | null;
+  /** @nullable */
+  critique?: string | null;
+  wordCount: number;
+  /** @nullable */
+  createdByUserId?: number | null;
+  createdAt: string;
+}
+
+export interface MotivationLetter {
+  id: number;
+  studentId: number;
+  eefWishId: number;
+  content: string;
+  latestScore?: RubricScore | null;
+  /** @nullable */
+  lastCritique?: string | null;
+  wordCount: number;
+  /** @nullable */
+  lastCritiqueAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertMotivationLetterBody {
+  content: string;
+}
+
+export interface MotivationLetterVersion {
+  id: number;
+  letterId: number;
+  studentId: number;
+  content: string;
+  score?: RubricScore | null;
+  /** @nullable */
+  critique?: string | null;
+  wordCount: number;
+  /** @nullable */
+  createdByUserId?: number | null;
+  createdAt: string;
+}
+
+export interface CritiqueResult {
+  score: RubricScore;
+  critique: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+}
+
+export interface ImproveParagraphBody {
+  paragraph: string;
+  /** @nullable */
+  instruction?: string | null;
+}
+
+export interface ImproveParagraphResult {
+  improved: string;
+  /** @nullable */
+  rationale?: string | null;
+}
+
+/**
  * Unauthorized
  */
 export type UnauthorizedResponse = ErrorResponse;

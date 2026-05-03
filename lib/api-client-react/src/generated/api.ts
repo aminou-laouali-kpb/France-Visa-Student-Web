@@ -43,6 +43,7 @@ import type {
   CreateTaskBody,
   CreateWorkflowStepBody,
   CreateWorkflowTemplateBody,
+  CritiqueResult,
   CvecPayment,
   DiplomaEquivalence,
   Document,
@@ -57,6 +58,8 @@ import type {
   ForbiddenResponse,
   GetUpcomingIntakeDeadlinesParams,
   HealthStatus,
+  ImproveParagraphBody,
+  ImproveParagraphResult,
   IntakeCalendarEntry,
   LanguageTest,
   ListAuditLogsParams,
@@ -69,10 +72,14 @@ import type {
   ListStudentTasksParams,
   ListStudentsParams,
   ListUsersParams,
+  MotivationLetter,
+  MotivationLetterVersion,
   Notification,
   PortfolioStats,
   PriorSchoolingEntry,
   Program,
+  ProjetEtudes,
+  ProjetEtudesVersion,
   RefreshChecklistResponse,
   RequestUploadUrlBody,
   ResolveDocumentMatrixParams,
@@ -112,6 +119,8 @@ import type {
   UpsertCvecPaymentBody,
   UpsertDocumentMatrixEntryBody,
   UpsertIntakeCalendarEntryBody,
+  UpsertMotivationLetterBody,
+  UpsertProjetEtudesBody,
   UpsertStudentCivilStatusBody,
   UserProfile,
   WorkflowStep,
@@ -9089,6 +9098,1155 @@ export const useDeleteIntakeCalendarEntry = <
   TContext
 > => {
   return useMutation(getDeleteIntakeCalendarEntryMutationOptions(options));
+};
+
+/**
+ * @summary Get projet d'études for a student
+ */
+export const getGetProjetEtudesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes`;
+};
+
+export const getProjetEtudes = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<ProjetEtudes | null> => {
+  return customFetch<ProjetEtudes | null>(getGetProjetEtudesUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetProjetEtudesQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/projet-etudes`] as const;
+};
+
+export const getGetProjetEtudesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getProjetEtudes>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getProjetEtudes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetProjetEtudesQueryKey(studentId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProjetEtudes>>> = ({
+    signal,
+  }) => getProjetEtudes(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getProjetEtudes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetProjetEtudesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getProjetEtudes>>
+>;
+export type GetProjetEtudesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get projet d'études for a student
+ */
+
+export function useGetProjetEtudes<
+  TData = Awaited<ReturnType<typeof getProjetEtudes>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getProjetEtudes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetProjetEtudesQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create or autosave projet d'études
+ */
+export const getUpsertProjetEtudesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes`;
+};
+
+export const upsertProjetEtudes = async (
+  studentId: number,
+  upsertProjetEtudesBody: UpsertProjetEtudesBody,
+  options?: RequestInit,
+): Promise<ProjetEtudes> => {
+  return customFetch<ProjetEtudes>(getUpsertProjetEtudesUrl(studentId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(upsertProjetEtudesBody),
+  });
+};
+
+export const getUpsertProjetEtudesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertProjetEtudes>>,
+    TError,
+    { studentId: number; data: BodyType<UpsertProjetEtudesBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upsertProjetEtudes>>,
+  TError,
+  { studentId: number; data: BodyType<UpsertProjetEtudesBody> },
+  TContext
+> => {
+  const mutationKey = ["upsertProjetEtudes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upsertProjetEtudes>>,
+    { studentId: number; data: BodyType<UpsertProjetEtudesBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return upsertProjetEtudes(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpsertProjetEtudesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upsertProjetEtudes>>
+>;
+export type UpsertProjetEtudesMutationBody = BodyType<UpsertProjetEtudesBody>;
+export type UpsertProjetEtudesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create or autosave projet d'études
+ */
+export const useUpsertProjetEtudes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertProjetEtudes>>,
+    TError,
+    { studentId: number; data: BodyType<UpsertProjetEtudesBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof upsertProjetEtudes>>,
+  TError,
+  { studentId: number; data: BodyType<UpsertProjetEtudesBody> },
+  TContext
+> => {
+  return useMutation(getUpsertProjetEtudesMutationOptions(options));
+};
+
+/**
+ * @summary List version history of projet d'études
+ */
+export const getListProjetEtudesVersionsUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes/versions`;
+};
+
+export const listProjetEtudesVersions = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<ProjetEtudesVersion[]> => {
+  return customFetch<ProjetEtudesVersion[]>(
+    getListProjetEtudesVersionsUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListProjetEtudesVersionsQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/projet-etudes/versions`] as const;
+};
+
+export const getListProjetEtudesVersionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listProjetEtudesVersions>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listProjetEtudesVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListProjetEtudesVersionsQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listProjetEtudesVersions>>
+  > = ({ signal }) =>
+    listProjetEtudesVersions(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listProjetEtudesVersions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListProjetEtudesVersionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listProjetEtudesVersions>>
+>;
+export type ListProjetEtudesVersionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List version history of projet d'études
+ */
+
+export function useListProjetEtudesVersions<
+  TData = Awaited<ReturnType<typeof listProjetEtudesVersions>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listProjetEtudesVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListProjetEtudesVersionsQueryOptions(
+    studentId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a snapshot of the current projet d'études
+ */
+export const getSnapshotProjetEtudesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes/versions`;
+};
+
+export const snapshotProjetEtudes = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<ProjetEtudesVersion> => {
+  return customFetch<ProjetEtudesVersion>(
+    getSnapshotProjetEtudesUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getSnapshotProjetEtudesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof snapshotProjetEtudes>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof snapshotProjetEtudes>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["snapshotProjetEtudes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof snapshotProjetEtudes>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return snapshotProjetEtudes(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SnapshotProjetEtudesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof snapshotProjetEtudes>>
+>;
+
+export type SnapshotProjetEtudesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a snapshot of the current projet d'études
+ */
+export const useSnapshotProjetEtudes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof snapshotProjetEtudes>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof snapshotProjetEtudes>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getSnapshotProjetEtudesMutationOptions(options));
+};
+
+/**
+ * @summary Run AI critique on the projet d'études (synchronous)
+ */
+export const getCritiqueProjetEtudesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes/critique`;
+};
+
+export const critiqueProjetEtudes = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<CritiqueResult> => {
+  return customFetch<CritiqueResult>(getCritiqueProjetEtudesUrl(studentId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCritiqueProjetEtudesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueProjetEtudes>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof critiqueProjetEtudes>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["critiqueProjetEtudes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof critiqueProjetEtudes>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return critiqueProjetEtudes(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CritiqueProjetEtudesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof critiqueProjetEtudes>>
+>;
+
+export type CritiqueProjetEtudesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Run AI critique on the projet d'études (synchronous)
+ */
+export const useCritiqueProjetEtudes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueProjetEtudes>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof critiqueProjetEtudes>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getCritiqueProjetEtudesMutationOptions(options));
+};
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const getImproveProjetEtudesParagraphUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes/improve`;
+};
+
+export const improveProjetEtudesParagraph = async (
+  studentId: number,
+  improveParagraphBody: ImproveParagraphBody,
+  options?: RequestInit,
+): Promise<ImproveParagraphResult> => {
+  return customFetch<ImproveParagraphResult>(
+    getImproveProjetEtudesParagraphUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(improveParagraphBody),
+    },
+  );
+};
+
+export const getImproveProjetEtudesParagraphMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof improveProjetEtudesParagraph>>,
+    TError,
+    { studentId: number; data: BodyType<ImproveParagraphBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof improveProjetEtudesParagraph>>,
+  TError,
+  { studentId: number; data: BodyType<ImproveParagraphBody> },
+  TContext
+> => {
+  const mutationKey = ["improveProjetEtudesParagraph"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof improveProjetEtudesParagraph>>,
+    { studentId: number; data: BodyType<ImproveParagraphBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return improveProjetEtudesParagraph(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ImproveProjetEtudesParagraphMutationResult = NonNullable<
+  Awaited<ReturnType<typeof improveProjetEtudesParagraph>>
+>;
+export type ImproveProjetEtudesParagraphMutationBody =
+  BodyType<ImproveParagraphBody>;
+export type ImproveProjetEtudesParagraphMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const useImproveProjetEtudesParagraph = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof improveProjetEtudesParagraph>>,
+    TError,
+    { studentId: number; data: BodyType<ImproveParagraphBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof improveProjetEtudesParagraph>>,
+  TError,
+  { studentId: number; data: BodyType<ImproveParagraphBody> },
+  TContext
+> => {
+  return useMutation(getImproveProjetEtudesParagraphMutationOptions(options));
+};
+
+/**
+ * @summary Get motivation letter for an EEF wish
+ */
+export const getGetMotivationLetterUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter`;
+};
+
+export const getMotivationLetter = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<MotivationLetter | null> => {
+  return customFetch<MotivationLetter | null>(
+    getGetMotivationLetterUrl(studentId, wishId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetMotivationLetterQueryKey = (
+  studentId: number,
+  wishId: number,
+) => {
+  return [
+    `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter`,
+  ] as const;
+};
+
+export const getGetMotivationLetterQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMotivationLetter>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  wishId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMotivationLetter>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMotivationLetterQueryKey(studentId, wishId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMotivationLetter>>
+  > = ({ signal }) =>
+    getMotivationLetter(studentId, wishId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(studentId && wishId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMotivationLetter>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMotivationLetterQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMotivationLetter>>
+>;
+export type GetMotivationLetterQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get motivation letter for an EEF wish
+ */
+
+export function useGetMotivationLetter<
+  TData = Awaited<ReturnType<typeof getMotivationLetter>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  wishId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMotivationLetter>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMotivationLetterQueryOptions(
+    studentId,
+    wishId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create or autosave motivation letter
+ */
+export const getUpsertMotivationLetterUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter`;
+};
+
+export const upsertMotivationLetter = async (
+  studentId: number,
+  wishId: number,
+  upsertMotivationLetterBody: UpsertMotivationLetterBody,
+  options?: RequestInit,
+): Promise<MotivationLetter> => {
+  return customFetch<MotivationLetter>(
+    getUpsertMotivationLetterUrl(studentId, wishId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(upsertMotivationLetterBody),
+    },
+  );
+};
+
+export const getUpsertMotivationLetterMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertMotivationLetter>>,
+    TError,
+    {
+      studentId: number;
+      wishId: number;
+      data: BodyType<UpsertMotivationLetterBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upsertMotivationLetter>>,
+  TError,
+  {
+    studentId: number;
+    wishId: number;
+    data: BodyType<UpsertMotivationLetterBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["upsertMotivationLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upsertMotivationLetter>>,
+    {
+      studentId: number;
+      wishId: number;
+      data: BodyType<UpsertMotivationLetterBody>;
+    }
+  > = (props) => {
+    const { studentId, wishId, data } = props ?? {};
+
+    return upsertMotivationLetter(studentId, wishId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpsertMotivationLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upsertMotivationLetter>>
+>;
+export type UpsertMotivationLetterMutationBody =
+  BodyType<UpsertMotivationLetterBody>;
+export type UpsertMotivationLetterMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create or autosave motivation letter
+ */
+export const useUpsertMotivationLetter = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertMotivationLetter>>,
+    TError,
+    {
+      studentId: number;
+      wishId: number;
+      data: BodyType<UpsertMotivationLetterBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof upsertMotivationLetter>>,
+  TError,
+  {
+    studentId: number;
+    wishId: number;
+    data: BodyType<UpsertMotivationLetterBody>;
+  },
+  TContext
+> => {
+  return useMutation(getUpsertMotivationLetterMutationOptions(options));
+};
+
+/**
+ * @summary List version history of motivation letter
+ */
+export const getListMotivationLetterVersionsUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/versions`;
+};
+
+export const listMotivationLetterVersions = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<MotivationLetterVersion[]> => {
+  return customFetch<MotivationLetterVersion[]>(
+    getListMotivationLetterVersionsUrl(studentId, wishId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListMotivationLetterVersionsQueryKey = (
+  studentId: number,
+  wishId: number,
+) => {
+  return [
+    `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/versions`,
+  ] as const;
+};
+
+export const getListMotivationLetterVersionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMotivationLetterVersions>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  wishId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMotivationLetterVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getListMotivationLetterVersionsQueryKey(studentId, wishId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listMotivationLetterVersions>>
+  > = ({ signal }) =>
+    listMotivationLetterVersions(studentId, wishId, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(studentId && wishId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMotivationLetterVersions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMotivationLetterVersionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMotivationLetterVersions>>
+>;
+export type ListMotivationLetterVersionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List version history of motivation letter
+ */
+
+export function useListMotivationLetterVersions<
+  TData = Awaited<ReturnType<typeof listMotivationLetterVersions>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  wishId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMotivationLetterVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListMotivationLetterVersionsQueryOptions(
+    studentId,
+    wishId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a snapshot of the current motivation letter
+ */
+export const getSnapshotMotivationLetterUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/versions`;
+};
+
+export const snapshotMotivationLetter = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<MotivationLetterVersion> => {
+  return customFetch<MotivationLetterVersion>(
+    getSnapshotMotivationLetterUrl(studentId, wishId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getSnapshotMotivationLetterMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof snapshotMotivationLetter>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof snapshotMotivationLetter>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  const mutationKey = ["snapshotMotivationLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof snapshotMotivationLetter>>,
+    { studentId: number; wishId: number }
+  > = (props) => {
+    const { studentId, wishId } = props ?? {};
+
+    return snapshotMotivationLetter(studentId, wishId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SnapshotMotivationLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof snapshotMotivationLetter>>
+>;
+
+export type SnapshotMotivationLetterMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a snapshot of the current motivation letter
+ */
+export const useSnapshotMotivationLetter = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof snapshotMotivationLetter>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof snapshotMotivationLetter>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  return useMutation(getSnapshotMotivationLetterMutationOptions(options));
+};
+
+/**
+ * @summary Run AI critique on the motivation letter
+ */
+export const getCritiqueMotivationLetterUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/critique`;
+};
+
+export const critiqueMotivationLetter = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<CritiqueResult> => {
+  return customFetch<CritiqueResult>(
+    getCritiqueMotivationLetterUrl(studentId, wishId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getCritiqueMotivationLetterMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueMotivationLetter>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof critiqueMotivationLetter>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  const mutationKey = ["critiqueMotivationLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof critiqueMotivationLetter>>,
+    { studentId: number; wishId: number }
+  > = (props) => {
+    const { studentId, wishId } = props ?? {};
+
+    return critiqueMotivationLetter(studentId, wishId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CritiqueMotivationLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof critiqueMotivationLetter>>
+>;
+
+export type CritiqueMotivationLetterMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Run AI critique on the motivation letter
+ */
+export const useCritiqueMotivationLetter = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueMotivationLetter>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof critiqueMotivationLetter>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  return useMutation(getCritiqueMotivationLetterMutationOptions(options));
+};
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const getImproveMotivationLetterParagraphUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/improve`;
+};
+
+export const improveMotivationLetterParagraph = async (
+  studentId: number,
+  wishId: number,
+  improveParagraphBody: ImproveParagraphBody,
+  options?: RequestInit,
+): Promise<ImproveParagraphResult> => {
+  return customFetch<ImproveParagraphResult>(
+    getImproveMotivationLetterParagraphUrl(studentId, wishId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(improveParagraphBody),
+    },
+  );
+};
+
+export const getImproveMotivationLetterParagraphMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof improveMotivationLetterParagraph>>,
+    TError,
+    { studentId: number; wishId: number; data: BodyType<ImproveParagraphBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof improveMotivationLetterParagraph>>,
+  TError,
+  { studentId: number; wishId: number; data: BodyType<ImproveParagraphBody> },
+  TContext
+> => {
+  const mutationKey = ["improveMotivationLetterParagraph"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof improveMotivationLetterParagraph>>,
+    { studentId: number; wishId: number; data: BodyType<ImproveParagraphBody> }
+  > = (props) => {
+    const { studentId, wishId, data } = props ?? {};
+
+    return improveMotivationLetterParagraph(
+      studentId,
+      wishId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ImproveMotivationLetterParagraphMutationResult = NonNullable<
+  Awaited<ReturnType<typeof improveMotivationLetterParagraph>>
+>;
+export type ImproveMotivationLetterParagraphMutationBody =
+  BodyType<ImproveParagraphBody>;
+export type ImproveMotivationLetterParagraphMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const useImproveMotivationLetterParagraph = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof improveMotivationLetterParagraph>>,
+    TError,
+    { studentId: number; wishId: number; data: BodyType<ImproveParagraphBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof improveMotivationLetterParagraph>>,
+  TError,
+  { studentId: number; wishId: number; data: BodyType<ImproveParagraphBody> },
+  TContext
+> => {
+  return useMutation(
+    getImproveMotivationLetterParagraphMutationOptions(options),
+  );
 };
 
 /**

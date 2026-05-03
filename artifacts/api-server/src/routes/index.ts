@@ -10,6 +10,7 @@ import aiRouter from "./ai";
 import profileRouter from "./profile";
 import financeRouter from "./finance";
 import matrixRouter from "./matrix";
+import projetRouter from "./projet";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(aiRouter);
 router.use(profileRouter);
 router.use(financeRouter);
 router.use(matrixRouter);
+router.use(projetRouter);
 
 export default router;

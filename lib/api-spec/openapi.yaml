@@ -48,6 +48,8 @@ tags:
     description: Per-nationality × program-level document matrix
   - name: intake-calendar
     description: Campus France & visa intake deadlines per nationality
+  - name: projet-etudes
+    description: Projet d'études and motivation letters with AI coach
 
 paths:
   /healthz:
@@ -2007,6 +2009,217 @@ paths:
       responses:
         "204":
           description: Deleted
+
+  # ─── PROJET D'ÉTUDES & MOTIVATION LETTERS ───────────────────────────────────
+  /students/{studentId}/projet-etudes:
+    get:
+      operationId: getProjetEtudes
+      tags: [projet-etudes]
+      summary: Get projet d'études for a student
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Projet d'études (or null if none)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ProjetEtudes"
+                  - type: "null"
+    put:
+      operationId: upsertProjetEtudes
+      tags: [projet-etudes]
+      summary: Create or autosave projet d'études
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertProjetEtudesBody"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjetEtudes"
+
+  /students/{studentId}/projet-etudes/versions:
+    get:
+      operationId: listProjetEtudesVersions
+      tags: [projet-etudes]
+      summary: List version history of projet d'études
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjetEtudesVersion"
+    post:
+      operationId: snapshotProjetEtudes
+      tags: [projet-etudes]
+      summary: Create a snapshot of the current projet d'études
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "201":
+          description: Snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjetEtudesVersion"
+
+  /students/{studentId}/projet-etudes/critique:
+    post:
+      operationId: critiqueProjetEtudes
+      tags: [projet-etudes]
+      summary: Run AI critique on the projet d'études (synchronous)
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Critique with rubric scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CritiqueResult"
+
+  /students/{studentId}/projet-etudes/improve:
+    post:
+      operationId: improveProjetEtudesParagraph
+      tags: [projet-etudes]
+      summary: Suggest an improved version of a paragraph
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImproveParagraphBody"
+      responses:
+        "200":
+          description: Suggested rewrite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImproveParagraphResult"
+
+  /students/{studentId}/eef-wishes/{wishId}/motivation-letter:
+    get:
+      operationId: getMotivationLetter
+      tags: [projet-etudes]
+      summary: Get motivation letter for an EEF wish
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Motivation letter (or null if none)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MotivationLetter"
+                  - type: "null"
+    put:
+      operationId: upsertMotivationLetter
+      tags: [projet-etudes]
+      summary: Create or autosave motivation letter
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertMotivationLetterBody"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MotivationLetter"
+
+  /students/{studentId}/eef-wishes/{wishId}/motivation-letter/versions:
+    get:
+      operationId: listMotivationLetterVersions
+      tags: [projet-etudes]
+      summary: List version history of motivation letter
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MotivationLetterVersion"
+    post:
+      operationId: snapshotMotivationLetter
+      tags: [projet-etudes]
+      summary: Create a snapshot of the current motivation letter
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "201":
+          description: Snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MotivationLetterVersion"
+
+  /students/{studentId}/eef-wishes/{wishId}/motivation-letter/critique:
+    post:
+      operationId: critiqueMotivationLetter
+      tags: [projet-etudes]
+      summary: Run AI critique on the motivation letter
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Critique with rubric scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CritiqueResult"
+
+  /students/{studentId}/eef-wishes/{wishId}/motivation-letter/improve:
+    post:
+      operationId: improveMotivationLetterParagraph
+      tags: [projet-etudes]
+      summary: Suggest an improved version of a paragraph
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImproveParagraphBody"
+      responses:
+        "200":
+          description: Suggested rewrite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImproveParagraphResult"
 
   /intake-calendar/upcoming:
     get:
@@ -4340,3 +4553,127 @@ components:
         notes: { type: ["string", "null"] }
         sortOrder: { type: ["integer", "null"] }
       required: [nationalityCode, label, deadlineType, windowEnd]
+
+    ProjetEtudes:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        content: { type: string }
+        sections: { type: ["object", "null"], additionalProperties: true }
+        latestScore:
+          oneOf:
+            - $ref: "#/components/schemas/RubricScore"
+            - type: "null"
+        lastCritique: { type: ["string", "null"] }
+        wordCount: { type: integer }
+        lastCritiqueAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, studentId, content, wordCount, createdAt, updatedAt]
+
+    UpsertProjetEtudesBody:
+      type: object
+      properties:
+        content: { type: string }
+        sections: { type: ["object", "null"], additionalProperties: true }
+      required: [content]
+
+    ProjetEtudesVersion:
+      type: object
+      properties:
+        id: { type: integer }
+        projetId: { type: integer }
+        studentId: { type: integer }
+        content: { type: string }
+        sections: { type: ["object", "null"], additionalProperties: true }
+        score:
+          oneOf:
+            - $ref: "#/components/schemas/RubricScore"
+            - type: "null"
+        critique: { type: ["string", "null"] }
+        wordCount: { type: integer }
+        createdByUserId: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+      required: [id, projetId, studentId, content, wordCount, createdAt]
+
+    MotivationLetter:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        eefWishId: { type: integer }
+        content: { type: string }
+        latestScore:
+          oneOf:
+            - $ref: "#/components/schemas/RubricScore"
+            - type: "null"
+        lastCritique: { type: ["string", "null"] }
+        wordCount: { type: integer }
+        lastCritiqueAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, studentId, eefWishId, content, wordCount, createdAt, updatedAt]
+
+    UpsertMotivationLetterBody:
+      type: object
+      properties:
+        content: { type: string }
+      required: [content]
+
+    MotivationLetterVersion:
+      type: object
+      properties:
+        id: { type: integer }
+        letterId: { type: integer }
+        studentId: { type: integer }
+        content: { type: string }
+        score:
+          oneOf:
+            - $ref: "#/components/schemas/RubricScore"
+            - type: "null"
+        critique: { type: ["string", "null"] }
+        wordCount: { type: integer }
+        createdByUserId: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+      required: [id, letterId, studentId, content, wordCount, createdAt]
+
+    RubricScore:
+      type: object
+      properties:
+        coherence: { type: ["number", "null"] }
+        french: { type: ["number", "null"] }
+        specificity: { type: ["number", "null"] }
+        returnPlan: { type: ["number", "null"] }
+        overall: { type: ["number", "null"] }
+
+    CritiqueResult:
+      type: object
+      properties:
+        score:
+          $ref: "#/components/schemas/RubricScore"
+        critique: { type: string }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        suggestions:
+          type: array
+          items: { type: string }
+      required: [score, critique]
+
+    ImproveParagraphBody:
+      type: object
+      properties:
+        paragraph: { type: string }
+        instruction: { type: ["string", "null"] }
+      required: [paragraph]
+
+    ImproveParagraphResult:
+      type: object
+      properties:
+        improved: { type: string }
+        rationale: { type: ["string", "null"] }
+      required: [improved]

@@ -3080,6 +3080,308 @@ export const DeleteIntakeCalendarEntryParams = zod.object({
 });
 
 /**
+ * @summary Get projet d'études for a student
+ */
+export const GetProjetEtudesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetProjetEtudesResponse = zod.union([
+  zod.object({
+    id: zod.number(),
+    studentId: zod.number(),
+    content: zod.string(),
+    sections: zod.record(zod.string(), zod.unknown()).nullish(),
+    latestScore: zod
+      .union([
+        zod.object({
+          coherence: zod.number().nullish(),
+          french: zod.number().nullish(),
+          specificity: zod.number().nullish(),
+          returnPlan: zod.number().nullish(),
+          overall: zod.number().nullish(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    lastCritique: zod.string().nullish(),
+    wordCount: zod.number(),
+    lastCritiqueAt: zod.coerce.date().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  }),
+  zod.null(),
+]);
+
+/**
+ * @summary Create or autosave projet d'études
+ */
+export const UpsertProjetEtudesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const UpsertProjetEtudesBody = zod.object({
+  content: zod.string(),
+  sections: zod.record(zod.string(), zod.unknown()).nullish(),
+});
+
+export const UpsertProjetEtudesResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  content: zod.string(),
+  sections: zod.record(zod.string(), zod.unknown()).nullish(),
+  latestScore: zod
+    .union([
+      zod.object({
+        coherence: zod.number().nullish(),
+        french: zod.number().nullish(),
+        specificity: zod.number().nullish(),
+        returnPlan: zod.number().nullish(),
+        overall: zod.number().nullish(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  lastCritique: zod.string().nullish(),
+  wordCount: zod.number(),
+  lastCritiqueAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List version history of projet d'études
+ */
+export const ListProjetEtudesVersionsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListProjetEtudesVersionsResponseItem = zod.object({
+  id: zod.number(),
+  projetId: zod.number(),
+  studentId: zod.number(),
+  content: zod.string(),
+  sections: zod.record(zod.string(), zod.unknown()).nullish(),
+  score: zod
+    .union([
+      zod.object({
+        coherence: zod.number().nullish(),
+        french: zod.number().nullish(),
+        specificity: zod.number().nullish(),
+        returnPlan: zod.number().nullish(),
+        overall: zod.number().nullish(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  critique: zod.string().nullish(),
+  wordCount: zod.number(),
+  createdByUserId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListProjetEtudesVersionsResponse = zod.array(
+  ListProjetEtudesVersionsResponseItem,
+);
+
+/**
+ * @summary Create a snapshot of the current projet d'études
+ */
+export const SnapshotProjetEtudesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+/**
+ * @summary Run AI critique on the projet d'études (synchronous)
+ */
+export const CritiqueProjetEtudesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CritiqueProjetEtudesResponse = zod.object({
+  score: zod.object({
+    coherence: zod.number().nullish(),
+    french: zod.number().nullish(),
+    specificity: zod.number().nullish(),
+    returnPlan: zod.number().nullish(),
+    overall: zod.number().nullish(),
+  }),
+  critique: zod.string(),
+  strengths: zod.array(zod.string()).optional(),
+  weaknesses: zod.array(zod.string()).optional(),
+  suggestions: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const ImproveProjetEtudesParagraphParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ImproveProjetEtudesParagraphBody = zod.object({
+  paragraph: zod.string(),
+  instruction: zod.string().nullish(),
+});
+
+export const ImproveProjetEtudesParagraphResponse = zod.object({
+  improved: zod.string(),
+  rationale: zod.string().nullish(),
+});
+
+/**
+ * @summary Get motivation letter for an EEF wish
+ */
+export const GetMotivationLetterParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const GetMotivationLetterResponse = zod.union([
+  zod.object({
+    id: zod.number(),
+    studentId: zod.number(),
+    eefWishId: zod.number(),
+    content: zod.string(),
+    latestScore: zod
+      .union([
+        zod.object({
+          coherence: zod.number().nullish(),
+          french: zod.number().nullish(),
+          specificity: zod.number().nullish(),
+          returnPlan: zod.number().nullish(),
+          overall: zod.number().nullish(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    lastCritique: zod.string().nullish(),
+    wordCount: zod.number(),
+    lastCritiqueAt: zod.coerce.date().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  }),
+  zod.null(),
+]);
+
+/**
+ * @summary Create or autosave motivation letter
+ */
+export const UpsertMotivationLetterParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const UpsertMotivationLetterBody = zod.object({
+  content: zod.string(),
+});
+
+export const UpsertMotivationLetterResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  eefWishId: zod.number(),
+  content: zod.string(),
+  latestScore: zod
+    .union([
+      zod.object({
+        coherence: zod.number().nullish(),
+        french: zod.number().nullish(),
+        specificity: zod.number().nullish(),
+        returnPlan: zod.number().nullish(),
+        overall: zod.number().nullish(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  lastCritique: zod.string().nullish(),
+  wordCount: zod.number(),
+  lastCritiqueAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List version history of motivation letter
+ */
+export const ListMotivationLetterVersionsParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const ListMotivationLetterVersionsResponseItem = zod.object({
+  id: zod.number(),
+  letterId: zod.number(),
+  studentId: zod.number(),
+  content: zod.string(),
+  score: zod
+    .union([
+      zod.object({
+        coherence: zod.number().nullish(),
+        french: zod.number().nullish(),
+        specificity: zod.number().nullish(),
+        returnPlan: zod.number().nullish(),
+        overall: zod.number().nullish(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  critique: zod.string().nullish(),
+  wordCount: zod.number(),
+  createdByUserId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListMotivationLetterVersionsResponse = zod.array(
+  ListMotivationLetterVersionsResponseItem,
+);
+
+/**
+ * @summary Create a snapshot of the current motivation letter
+ */
+export const SnapshotMotivationLetterParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+/**
+ * @summary Run AI critique on the motivation letter
+ */
+export const CritiqueMotivationLetterParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const CritiqueMotivationLetterResponse = zod.object({
+  score: zod.object({
+    coherence: zod.number().nullish(),
+    french: zod.number().nullish(),
+    specificity: zod.number().nullish(),
+    returnPlan: zod.number().nullish(),
+    overall: zod.number().nullish(),
+  }),
+  critique: zod.string(),
+  strengths: zod.array(zod.string()).optional(),
+  weaknesses: zod.array(zod.string()).optional(),
+  suggestions: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Suggest an improved version of a paragraph
+ */
+export const ImproveMotivationLetterParagraphParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const ImproveMotivationLetterParagraphBody = zod.object({
+  paragraph: zod.string(),
+  instruction: zod.string().nullish(),
+});
+
+export const ImproveMotivationLetterParagraphResponse = zod.object({
+  improved: zod.string(),
+  rationale: zod.string().nullish(),
+});
+
+/**
  * @summary Upcoming deadlines for a nationality (defaults to caller's student)
  */
 export const getUpcomingIntakeDeadlinesQueryLimitDefault = 3;

@@ -54,6 +54,7 @@ import {
 import type { ChecklistItem } from "@workspace/api-client-react";
 import { ProfileDepthTab } from "./ProfileDepthTab";
 import { FinancialReadinessTab } from "./FinancialReadinessTab";
+import { ProjetReviewTab } from "./ProjetReviewTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,6 +169,7 @@ export function StudentDetail() {
           <TabsTrigger value="profile" data-testid="tab-profile">Profil</TabsTrigger>
           <TabsTrigger value="profile-depth" data-testid="tab-profile-depth">Profil approfondi</TabsTrigger>
           <TabsTrigger value="finance" data-testid="tab-finance">Garanties &amp; logement</TabsTrigger>
+          <TabsTrigger value="projet" data-testid="tab-projet">Projet & lettres</TabsTrigger>
         </TabsList>
 
         <TabsContent value="steps" className="mt-4">
@@ -197,6 +199,9 @@ export function StudentDetail() {
         </TabsContent>
         <TabsContent value="profile-depth" className="mt-4">
           <ProfileDepthTab studentId={studentId} />
+        </TabsContent>
+        <TabsContent value="projet" className="mt-4">
+          <ProjetReviewTab studentId={studentId} />
         </TabsContent>
         <TabsContent value="finance" className="mt-4">
           <FinancialReadinessTab
