@@ -137,6 +137,8 @@ export interface StudentDashboardData {
   unreadNotifications: number;
   upcomingAppointments?: Appointment[];
   currentStep?: Step | null;
+  nextActions?: string[];
+  recentComments?: Comment[];
 }
 
 export interface AdvisorDashboardData {

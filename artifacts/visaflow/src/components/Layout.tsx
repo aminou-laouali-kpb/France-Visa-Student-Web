@@ -47,6 +47,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/app", icon: LayoutDashboard, label: "Tableau de bord" },
     ...(isStudent
       ? [
+          { href: "/student", icon: LayoutDashboard, label: "Accueil" },
           { href: "/student/steps", icon: ListChecks, label: "Mon parcours" },
           { href: "/student/documents", icon: FileText, label: "Documents" },
           { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
@@ -60,7 +61,7 @@ export function Layout({ children }: { children: ReactNode }) {
         ]
       : []),
     {
-      href: "/app/notifications",
+      href: isStudent ? "/student/notifications" : "/app/notifications",
       icon: Bell,
       label: "Notifications",
       badge: unreadCount,

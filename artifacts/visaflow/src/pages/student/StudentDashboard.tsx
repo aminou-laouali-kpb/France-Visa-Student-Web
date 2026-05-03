@@ -1,0 +1,259 @@
+import { Link, Redirect } from "wouter";
+import {
+  useGetMe,
+  useGetStudentDashboard,
+  useListDocuments,
+  useListStudentSteps,
+} from "@workspace/api-client-react";
+import type { StudentDashboardData, Document, Step, Comment } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { ProgressRing } from "@/components/ProgressRing";
+import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateTime, ROLE_LABELS } from "@/lib/utils";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  GraduationCap,
+  ListChecks,
+  MessageSquare,
+} from "lucide-react";
+
+export function StudentDashboard() {
+  const { data: me } = useGetMe();
+  const { data: raw, isLoading } = useGetStudentDashboard();
+  const data = raw as unknown as StudentDashboardData | undefined;
+
+  const studentId = data?.student?.id ?? 0;
+  const { data: docsRaw } = useListDocuments(
+    studentId,
+    {},
+    { query: { enabled: !!studentId, queryKey: ["docs", studentId] } },
+  );
+  const { data: stepsRaw } = useListStudentSteps(studentId, {
+    query: { enabled: !!studentId, queryKey: ["steps", studentId] },
+  });
+
+  if (me && me.role !== "student") return <Redirect to="/app" />;
+  if (isLoading) return <div className="p-8">Chargement…</div>;
+
+  if (!data?.student) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <GraduationCap className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Bienvenue sur VisaFlow !</h2>
+          <p className="text-slate-600 mb-6">
+            Créons votre dossier visa étudiant pour démarrer votre parcours en France.
+          </p>
+          <Link href="/app/onboarding">
+            <Button size="lg" data-testid="button-create-dossier">
+              Créer mon dossier
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const docs = (docsRaw ?? []) as Document[];
+  const steps = (stepsRaw ?? []) as Step[];
+  const rejectedDocs = docs.filter((d) => d.status === "rejected");
+  const blockedSteps = steps.filter((s) => s.status === "blocked");
+  const nextStep =
+    data.currentStep ??
+    steps.find((s) => s.status === "in_progress") ??
+    steps.find((s) => s.status === "pending");
+
+  const apiActions = data.nextActions ?? [];
+  const derivedActions: { label: string; href: string; icon: typeof FileText }[] = [];
+  if (rejectedDocs.length > 0) {
+    derivedActions.push({
+      label: `Corriger ${rejectedDocs.length} document(s) rejeté(s)`,
+      href: "/student/documents",
+      icon: AlertTriangle,
+    });
+  }
+  if (blockedSteps.length > 0) {
+    derivedActions.push({
+      label: `Débloquer ${blockedSteps.length} étape(s)`,
+      href: "/student/steps",
+      icon: ListChecks,
+    });
+  }
+  if (nextStep) {
+    derivedActions.push({
+      label: `Avancer sur : ${nextStep.stepName}`,
+      href: "/student/steps",
+      icon: ArrowRight,
+    });
+  }
+  if ((data.upcomingAppointments?.length ?? 0) > 0) {
+    derivedActions.push({
+      label: `Préparer ${data.upcomingAppointments!.length} rendez-vous`,
+      href: "/student/appointments",
+      icon: Calendar,
+    });
+  }
+
+  const advisorComments = (data.recentComments ?? []).filter(
+    (c: Comment) => !c.isInternal && c.authorRole !== "student",
+  );
+
+  return (
+    <div className="space-y-6" data-testid="student-dashboard">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Mon parcours</h1>
+        <p className="text-slate-600 mt-1">
+          {data.completedSteps} sur {data.totalSteps} étapes validées
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between gap-6">
+            <ProgressRing value={data.completionScore} label="complété" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-sm text-slate-600">Statut du dossier</div>
+                <StatusBadge status={data.student.status} />
+              </div>
+              <div className="text-lg font-semibold text-slate-900">
+                {data.completedSteps} / {data.totalSteps} étapes validées
+              </div>
+              <Progress value={data.completionScore} className="h-2 mt-2" />
+              {data.pendingDocuments > 0 && (
+                <div className="text-sm text-amber-700 mt-3 flex items-center gap-1">
+                  <AlertTriangle className="w-4 h-4" />
+                  {data.pendingDocuments} document(s) à corriger
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card data-testid="card-next-actions">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-blue-600" />
+              Prochaines actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {apiActions.length === 0 && derivedActions.length === 0 ? (
+              <div className="text-sm text-slate-500 flex items-center gap-2 py-4">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Tout est à jour. Bravo !
+              </div>
+            ) : (
+              <>
+                {apiActions.map((action, i) => (
+                  <div
+                    key={`api-${i}`}
+                    className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800"
+                    data-testid={`next-action-api-${i}`}
+                  >
+                    <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 shrink-0" />
+                    <span>{action}</span>
+                  </div>
+                ))}
+                {derivedActions.map((a, i) => (
+                  <Link key={`derived-${i}`} href={a.href}>
+                    <a
+                      className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm text-slate-800 transition-colors"
+                      data-testid={`next-action-${i}`}
+                    >
+                      <a.icon className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="flex-1">{a.label}</span>
+                      <ArrowRight className="w-4 h-4 text-slate-400" />
+                    </a>
+                  </Link>
+                ))}
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-advisor-comments">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-blue-600" />
+              Commentaires de votre conseiller
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {advisorComments.length === 0 ? (
+              <div className="text-sm text-slate-500 py-4">
+                Aucun commentaire pour le moment.
+              </div>
+            ) : (
+              advisorComments.slice(0, 4).map((c) => (
+                <div
+                  key={c.id}
+                  className="p-3 rounded-lg border border-slate-200 bg-white"
+                  data-testid={`advisor-comment-${c.id}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-medium text-slate-900">
+                      {c.authorName}
+                      <span className="ml-1 text-xs text-slate-500 font-normal">
+                        · {ROLE_LABELS[c.authorRole] ?? c.authorRole}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {formatDateTime(c.createdAt)}
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-700 whitespace-pre-wrap">
+                    {c.content}
+                  </div>
+                </div>
+              ))
+            )}
+            <Link href="/student/messages">
+              <a
+                className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
+                data-testid="link-all-messages"
+              >
+                Voir tous les messages
+                <ArrowRight className="w-3 h-3" />
+              </a>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-5">
+            <FileText className="w-6 h-6 text-blue-600 mb-2" />
+            <div className="text-2xl font-bold">{data.documentsCount}</div>
+            <div className="text-sm text-slate-600">Documents téléversés</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <Calendar className="w-6 h-6 text-blue-600 mb-2" />
+            <div className="text-2xl font-bold">
+              {data.upcomingAppointments?.length ?? 0}
+            </div>
+            <div className="text-sm text-slate-600">Rendez-vous à venir</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <ListChecks className="w-6 h-6 text-blue-600 mb-2" />
+            <div className="text-2xl font-bold">{data.completedSteps}</div>
+            <div className="text-sm text-slate-600">Étapes validées</div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

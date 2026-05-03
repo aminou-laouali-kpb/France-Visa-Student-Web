@@ -1,4 +1,5 @@
 import {
+  useGetMe,
   useListNotifications,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
@@ -11,6 +12,9 @@ import { formatDateTime } from "@/lib/utils";
 import type { NotificationItem } from "@/types";
 
 export function NotificationBell() {
+  const { data: me } = useGetMe();
+  const isStudent = me?.role === "student";
+  const notifsHref = isStudent ? "/student/notifications" : "/app/notifications";
   const { data: notifsRaw = [], refetch } = useListNotifications({});
   const notifs = notifsRaw as unknown as NotificationItem[];
   const unread = notifs.filter((n) => !n.isRead);
@@ -99,7 +103,7 @@ export function NotificationBell() {
           )}
         </div>
         <div className="border-t p-2 text-center">
-          <Link href="/app/notifications">
+          <Link href={notifsHref}>
             <a className="text-sm text-blue-600 hover:underline">
               Voir tout
             </a>

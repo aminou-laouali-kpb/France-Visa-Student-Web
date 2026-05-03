@@ -12,6 +12,7 @@ import { Onboarding } from "@/pages/Onboarding";
 import { StudentsList } from "@/pages/StudentsList";
 import { StudentDetail } from "@/pages/StudentDetail";
 import { MyDossier } from "@/pages/MyDossier";
+import { StudentDashboard } from "@/pages/student/StudentDashboard";
 import { StudentSteps } from "@/pages/student/StudentSteps";
 import { StudentDocuments } from "@/pages/student/StudentDocuments";
 import { StudentAppointments } from "@/pages/student/StudentAppointments";
@@ -80,7 +81,14 @@ function AppRouter() {
         </Protected>
       </Route>
       <Route path="/student">
-        <Redirect to="/student/steps" />
+        <Protected>
+          <StudentDashboard />
+        </Protected>
+      </Route>
+      <Route path="/student/notifications">
+        <Protected>
+          <Notifications />
+        </Protected>
       </Route>
       <Route path="/student/steps">
         <Protected>
