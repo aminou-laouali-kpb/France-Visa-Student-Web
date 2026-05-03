@@ -18,6 +18,7 @@ import {
 import { logAudit } from "../lib/audit";
 import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
 import { detectLanguage, translateText, isGroqConfigured } from "@workspace/ai";
+import { requireAiPlan, resolveDefaultTenantId } from "../lib/planGuard";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateCommentBody,
@@ -94,41 +95,59 @@ router.post(
     let translatedContent: string | null = null;
     let translatedToLanguage: string | null = null;
     if (!internalFlag && content.trim().length > 0 && isGroqConfigured()) {
-      try {
-        const student = req.targetStudent!;
-        let recipientLang: string | null = null;
-        if (isStaff(req.currentUser!)) {
-          if (student.userId) {
-            const [studentUser] = await db
-              .select()
-              .from(usersTable)
-              .where(eq(usersTable.id, student.userId));
-            recipientLang = studentUser?.preferredLanguage ?? null;
+      // Translation is an AI feature → gate by plan tier. We probe the plan
+      // *without* writing a 402 to the response (we only want to skip the AI
+      // step on free tier, not block the comment from being saved).
+      const { getPlanTier } = await import("../lib/planGuard");
+      const tier = await getPlanTier();
+      const aiAllowed = tier === "pro" || tier === "enterprise";
+      if (aiAllowed) {
+        try {
+          const student = req.targetStudent!;
+          const tenantId = await resolveDefaultTenantId();
+          let recipientLang: string | null = null;
+          if (isStaff(req.currentUser!)) {
+            if (student.userId) {
+              const [studentUser] = await db
+                .select()
+                .from(usersTable)
+                .where(eq(usersTable.id, student.userId));
+              recipientLang = studentUser?.preferredLanguage ?? null;
+            }
+          } else {
+            recipientLang = "fr";
           }
-        } else {
-          recipientLang = "fr";
-        }
-        if (recipientLang && recipientLang !== "fr" && !isStaff(req.currentUser!)) {
-          // student wrote → translate to fr for advisor view
-          recipientLang = "fr";
-        }
-        const detected = await detectLanguage({
-          ctx: { feature: "chat.detect_language", userId: req.currentUser!.id, studentId },
-          text: content,
-        });
-        originalLanguage = detected;
-        if (recipientLang && recipientLang !== detected) {
-          const translated = await translateText({
-            ctx: { feature: "chat.translate", userId: req.currentUser!.id, studentId },
+          if (recipientLang && recipientLang !== "fr" && !isStaff(req.currentUser!)) {
+            recipientLang = "fr";
+          }
+          const detected = await detectLanguage({
+            ctx: {
+              feature: "chat.detect_language",
+              userId: req.currentUser!.id,
+              studentId,
+              tenantId,
+            },
             text: content,
-            to: recipientLang as "fr" | "en" | "wo" | "ln" | "ar",
-            from: detected,
           });
-          translatedContent = translated;
-          translatedToLanguage = recipientLang;
+          originalLanguage = detected;
+          if (recipientLang && recipientLang !== detected) {
+            const translated = await translateText({
+              ctx: {
+                feature: "chat.translate",
+                userId: req.currentUser!.id,
+                studentId,
+                tenantId,
+              },
+              text: content,
+              to: recipientLang as "fr" | "en" | "wo" | "ln" | "ar",
+              from: detected,
+            });
+            translatedContent = translated;
+            translatedToLanguage = recipientLang;
+          }
+        } catch {
+          // best-effort: if AI fails, store the original only
         }
-      } catch {
-        // best-effort: if AI fails, store the original only
       }
     }
     const [created] = await db

@@ -1,9 +1,11 @@
-import { useGetMe, useGetStudentDashboard, useGetAdvisorDashboard, useGetAdminDashboard } from "@workspace/api-client-react";
+import { useGetMe, useGetStudentDashboard, useGetAdvisorDashboard, useGetAdminDashboard, useListStudents } from "@workspace/api-client-react";
 import type {
   StudentDashboardData,
   Appointment,
   AuditLog,
+  StudentSummary,
 } from "@/types";
+import { Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -175,6 +177,10 @@ function StudentDashboard() {
 function AdvisorDashboard() {
   const { data: me } = useGetMe();
   const { data, isLoading } = useGetAdvisorDashboard();
+  const { data: highRiskStudents = [] } = useListStudents({ riskLevel: "high" });
+  const explained = (highRiskStudents as unknown as StudentSummary[])
+    .filter((s) => s.riskNarrative && s.riskNarrative.trim().length > 0)
+    .slice(0, 5);
   if (isLoading) return <div>Chargement…</div>;
 
   return (
@@ -253,6 +259,38 @@ function AdvisorDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {explained.length > 0 && (
+        <Card data-testid="card-risk-narratives">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              Risques expliqués par l'IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {explained.map((s) => (
+                <Link key={s.id} href={`/app/students/${s.id}`}>
+                  <a className="block p-3 rounded-lg border border-slate-200 hover:border-purple-300 hover:bg-purple-50/40 transition">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-medium text-slate-900">
+                        {s.firstName} {s.lastName}
+                      </div>
+                      <span className="text-xs uppercase tracking-wide font-semibold text-red-600">
+                        Risque élevé
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {s.riskNarrative}
+                    </p>
+                  </a>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

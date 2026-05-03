@@ -16,7 +16,7 @@ import { z } from "zod";
 import { chat, transcribe, isGroqConfigured } from "@workspace/ai";
 import { requireAuth, canAccessStudent } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
-import { requireAiPlan } from "../lib/planGuard";
+import { requireAiPlan, resolveDefaultTenantId } from "../lib/planGuard";
 
 const router: IRouter = Router();
 
@@ -83,6 +83,7 @@ async function generateNextQuestion(opts: {
   interview: Interview;
   history: InterviewTurn[];
   userId: number;
+  tenantId?: number | null;
 }): Promise<string> {
   const { interview, history } = opts;
   const transcriptBlocks = history.map((t) =>
@@ -100,6 +101,7 @@ async function generateNextQuestion(opts: {
       feature: "interview.next_question",
       userId: opts.userId,
       studentId: interview.studentId,
+      tenantId: opts.tenantId ?? null,
     },
     messages: [
       {
@@ -138,6 +140,7 @@ async function gradeInterview(opts: {
   interview: Interview;
   turns: InterviewTurn[];
   userId: number;
+  tenantId?: number | null;
 }): Promise<{
   score: InterviewRubric;
   feedback: string;
@@ -153,6 +156,7 @@ async function gradeInterview(opts: {
       feature: "interview.grade",
       userId: opts.userId,
       studentId: opts.interview.studentId,
+      tenantId: opts.tenantId ?? null,
     },
     messages: [
       {
@@ -224,10 +228,12 @@ router.post("/students/:studentId/interviews", requireAuth, async (req, res) => 
     })
     .returning();
   try {
+    const tenantId = await resolveDefaultTenantId();
     const opening = await generateNextQuestion({
       interview: created,
       history: [],
       userId: req.currentUser!.id,
+      tenantId,
     });
     await db.insert(interviewTurnsTable).values({
       interviewId: created.id,
@@ -300,10 +306,12 @@ async function appendStudentAnswerAndNextQuestion(opts: {
         .from(interviewTurnsTable)
         .where(eq(interviewTurnsTable.interviewId, interview.id))
         .orderBy(asc(interviewTurnsTable.turnIndex));
+      const tenantId = await resolveDefaultTenantId();
       const next = await generateNextQuestion({
         interview,
         history: refreshed,
         userId,
+        tenantId,
       });
       await db.insert(interviewTurnsTable).values({
         interviewId: interview.id,
@@ -372,11 +380,13 @@ router.post("/interviews/:interviewId/transcribe", requireAuth, async (req, res)
       : "webm";
   let transcribed = "";
   try {
+    const tenantId = await resolveDefaultTenantId();
     const out = await transcribe({
       ctx: {
         feature: "interview.transcribe",
         userId: req.currentUser!.id,
         studentId: ctx.interview.studentId,
+        tenantId,
       },
       audio: buf,
       filename: `turn-${Date.now()}.${ext}`,
@@ -424,10 +434,12 @@ router.post("/interviews/:interviewId/finish", requireAuth, async (req, res) => 
     return;
   }
   try {
+    const tenantId = await resolveDefaultTenantId();
     const grade = await gradeInterview({
       interview: ctx.interview,
       turns,
       userId: req.currentUser!.id,
+      tenantId,
     });
     const score: InterviewRubric = grade.score;
     const [updated] = await db

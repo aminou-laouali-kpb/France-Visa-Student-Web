@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import { isGroqConfigured } from "@workspace/ai";
 import { requireAuth, isStaff, canAccessStudent } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
-import { requireAiPlan } from "../lib/planGuard";
+import { requireAiPlan, resolveDefaultTenantId } from "../lib/planGuard";
 import { calculateRiskScore } from "../lib/risk";
 import {
   buildRiskNarrative,
@@ -101,10 +101,12 @@ router.post("/students/:studentId/risk/narrative", requireAuth, async (req, res)
     return;
   }
   try {
+    const tenantId = await resolveDefaultTenantId();
     const narrative = await buildRiskNarrative({
       student,
       risk: existing ?? fresh,
       userId: req.currentUser!.id,
+      tenantId,
     });
     const now = new Date();
     await db
@@ -150,9 +152,11 @@ router.post("/students/:studentId/copilot/summary", requireAuth, async (req, res
     return;
   }
   try {
+    const tenantId = await resolveDefaultTenantId();
     const summary = await buildCopilotSummary({
       ctx,
       userId: req.currentUser!.id,
+      tenantId,
     });
     await logAudit({
       userId: req.currentUser!.id,

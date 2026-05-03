@@ -14,7 +14,7 @@ let cachedTenantId: number | null = null;
 // auth is introduced, replace `resolveDefaultTenantId()` with a function that
 // reads the tenant from `req.user`/`req.auth` and remove the cache so plan
 // gating is scoped per request rather than globally.
-async function resolveDefaultTenantId(): Promise<number | null> {
+export async function resolveDefaultTenantId(): Promise<number | null> {
   if (cachedTenantId != null) return cachedTenantId;
   try {
     const [row] = await db
