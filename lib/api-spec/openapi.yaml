@@ -50,6 +50,10 @@ tags:
     description: Campus France & visa intake deadlines per nationality
   - name: projet-etudes
     description: Projet d'études and motivation letters with AI coach
+  - name: copilot
+    description: Advisor AI copilot, risk narrative explainer and chat translation
+  - name: interviews
+    description: Campus France interview simulator
 
 paths:
   /healthz:
@@ -2325,6 +2329,201 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImproveParagraphResult"
 
+  # ─── COPILOT & RISK NARRATIVE ───────────────────────────────────────────────
+  /students/{studentId}/risk/narrative:
+    get:
+      operationId: getRiskNarrative
+      tags: [copilot]
+      summary: Get cached AI risk narrative for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Risk narrative payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskNarrativeResponse"
+    post:
+      operationId: regenerateRiskNarrative
+      tags: [copilot]
+      summary: Regenerate the AI risk narrative for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Regenerated narrative
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskNarrativeResponse"
+
+  /students/{studentId}/copilot/summary:
+    post:
+      operationId: getCopilotSummary
+      tags: [copilot]
+      summary: Generate advisor copilot summary (missing/risky/changed + drafts)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Copilot summary payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopilotSummaryResponse"
+
+  /copilot/feedback:
+    post:
+      operationId: postCopilotFeedback
+      tags: [copilot]
+      summary: Record thumbs feedback on a copilot suggestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopilotFeedbackBody"
+      responses:
+        "204":
+          description: Recorded
+
+  # ─── INTERVIEW SIMULATOR ────────────────────────────────────────────────────
+  /students/{studentId}/interviews:
+    get:
+      operationId: listStudentInterviews
+      tags: [interviews]
+      summary: List a student's interview sessions
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Interview list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Interview"
+    post:
+      operationId: startInterview
+      tags: [interviews]
+      summary: Start a new interview session
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartInterviewBody"
+      responses:
+        "201":
+          description: Started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithTurns"
+
+  /interviews/{interviewId}:
+    get:
+      operationId: getInterview
+      tags: [interviews]
+      summary: Get an interview with its turns
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Interview with turns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithTurns"
+
+  /interviews/{interviewId}/turn:
+    post:
+      operationId: submitInterviewTurn
+      tags: [interviews]
+      summary: Submit the student's text answer and get the next question
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitInterviewTurnBody"
+      responses:
+        "200":
+          description: Updated interview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithTurns"
+
+  /interviews/{interviewId}/transcribe:
+    post:
+      operationId: transcribeInterviewTurn
+      tags: [interviews]
+      summary: Transcribe an audio answer (base64) and submit it as a turn
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranscribeInterviewTurnBody"
+      responses:
+        "200":
+          description: Updated interview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithTurns"
+
+  /interviews/{interviewId}/finish:
+    post:
+      operationId: finishInterview
+      tags: [interviews]
+      summary: Finish the interview and produce the rubric-based report
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Finalized report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewWithTurns"
+
   /intake-calendar/upcoming:
     get:
       operationId: getUpcomingIntakeDeadlines
@@ -2426,6 +2625,8 @@ components:
           type: ["string", "null"]
         phone:
           type: ["string", "null"]
+        preferredLanguage:
+          type: ["string", "null"]
         isActive:
           type: boolean
         createdAt:
@@ -2449,6 +2650,8 @@ components:
         lastName:
           type: string
         phone:
+          type: string
+        preferredLanguage:
           type: string
         role:
           type: string
@@ -2622,6 +2825,8 @@ components:
           type: ["string", "null"]
         riskScore:
           type: ["integer", "null"]
+        riskNarrative:
+          type: ["string", "null"]
         intakeDate:
           type: ["string", "null"]
         currentStepName:
@@ -3163,6 +3368,12 @@ components:
           type: boolean
         isCorrectionRequest:
           type: boolean
+        originalLanguage:
+          type: ["string", "null"]
+        translatedContent:
+          type: ["string", "null"]
+        translatedToLanguage:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -4871,3 +5082,149 @@ components:
         improved: { type: string }
         rationale: { type: ["string", "null"] }
       required: [improved]
+
+    # ── Copilot ───────────────────────────────────────────────────────────────
+    RiskNarrativeResponse:
+      type: object
+      properties:
+        narrative:
+          type: ["string", "null"]
+        signalsHash:
+          type: ["string", "null"]
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+        score:
+          type: ["integer", "null"]
+        level:
+          type: ["string", "null"]
+      required: [narrative]
+
+    CopilotSummaryResponse:
+      type: object
+      properties:
+        missing:
+          type: array
+          items: { type: string }
+        risky:
+          type: array
+          items: { type: string }
+        changed:
+          type: array
+          items: { type: string }
+        draftReply:
+          type: string
+        correctionRequest:
+          type: string
+        promptHash:
+          type: string
+      required: [missing, risky, changed, draftReply, correctionRequest, promptHash]
+
+    CopilotFeedbackBody:
+      type: object
+      properties:
+        studentId: { type: integer }
+        feature: { type: string }
+        vote:
+          type: string
+          enum: [up, down]
+        comment: { type: ["string", "null"] }
+        promptHash: { type: ["string", "null"] }
+      required: [studentId, feature, vote]
+
+    # ── Interviews ────────────────────────────────────────────────────────────
+    InterviewRubric:
+      type: object
+      properties:
+        motivation: { type: number }
+        coherence: { type: number }
+        french: { type: number }
+        knowledge: { type: number }
+        returnPlan: { type: number }
+        overall: { type: number }
+
+    InterviewTurn:
+      type: object
+      properties:
+        id: { type: integer }
+        interviewId: { type: integer }
+        turnIndex: { type: integer }
+        role:
+          type: string
+          enum: [interviewer, student]
+        content: { type: string }
+        transcription: { type: ["string", "null"] }
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, interviewId, turnIndex, role, content, createdAt]
+
+    Interview:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        mode:
+          type: string
+          enum: [text, voice]
+        status:
+          type: string
+          enum: [in_progress, completed, abandoned]
+        programName: { type: ["string", "null"] }
+        schoolName: { type: ["string", "null"] }
+        countryName: { type: ["string", "null"] }
+        language: { type: string }
+        score:
+          oneOf:
+            - $ref: "#/components/schemas/InterviewRubric"
+            - type: "null"
+        feedback: { type: ["string", "null"] }
+        strengths:
+          type: ["array", "null"]
+          items: { type: string }
+        weaknesses:
+          type: ["array", "null"]
+          items: { type: string }
+        suggestions:
+          type: ["array", "null"]
+          items: { type: string }
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+      required: [id, studentId, mode, status, language, createdAt]
+
+    InterviewWithTurns:
+      allOf:
+        - $ref: "#/components/schemas/Interview"
+        - type: object
+          properties:
+            turns:
+              type: array
+              items:
+                $ref: "#/components/schemas/InterviewTurn"
+          required: [turns]
+
+    StartInterviewBody:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [text, voice]
+        language: { type: ["string", "null"] }
+      required: [mode]
+
+    SubmitInterviewTurnBody:
+      type: object
+      properties:
+        answer: { type: string }
+      required: [answer]
+
+    TranscribeInterviewTurnBody:
+      type: object
+      properties:
+        audioBase64: { type: string }
+        mimeType: { type: ["string", "null"] }
+      required: [audioBase64]

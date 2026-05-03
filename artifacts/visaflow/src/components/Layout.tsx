@@ -21,6 +21,7 @@ import {
   Wallet,
   BarChart3,
   Workflow,
+  Sparkles,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
           { href: "/student/post-arrival", icon: Plane, label: "Après l'arrivée" },
           { href: "/student/messages", icon: MessageSquare, label: "Messages" },
+          { href: "/student/interview", icon: Sparkles, label: "Simulateur d'entretien" },
         ]
       : []),
     ...(isStaff && !isAdmin

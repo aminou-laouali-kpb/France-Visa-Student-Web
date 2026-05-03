@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime } from "@/lib/utils";
 import { MessageSquare, AlertCircle } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
+import { CommentBody } from "@/components/CommentBubble";
 
 export function StudentMessages() {
   return (
@@ -111,7 +112,10 @@ function Inner() {
                       Correction demandée
                     </div>
                   )}
-                  {c.content}
+                  <CommentBody
+                    comment={c}
+                    viewerLanguage={me?.preferredLanguage ?? "fr"}
+                  />
                 </div>
               </div>
             </div>

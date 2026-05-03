@@ -13,7 +13,8 @@ router.get("/users/me", requireAuth, async (req, res) => {
 });
 
 router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, res) => {
-  const { firstName, lastName, phone, avatarUrl } = req.body ?? {};
+  const { firstName, lastName, phone, avatarUrl, preferredLanguage } = req.body ?? {};
+  const allowedLangs = ["fr", "en", "wo", "ln", "ar"];
   const [updated] = await db
     .update(usersTable)
     .set({
@@ -21,6 +22,10 @@ router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, r
       lastName: lastName ?? req.currentUser!.lastName,
       phone: phone ?? req.currentUser!.phone,
       avatarUrl: avatarUrl ?? req.currentUser!.avatarUrl,
+      preferredLanguage:
+        typeof preferredLanguage === "string" && allowedLangs.includes(preferredLanguage)
+          ? preferredLanguage
+          : req.currentUser!.preferredLanguage,
       updatedAt: new Date(),
     })
     .where(eq(usersTable.id, req.currentUser!.id))

@@ -17,6 +17,7 @@ import {
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
 import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
+import { detectLanguage, translateText, isGroqConfigured } from "@workspace/ai";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateCommentBody,
@@ -84,6 +85,52 @@ router.post(
       return;
     }
     const internalFlag = isStaff(req.currentUser!) ? !!isInternal : false;
+
+    // Multilingual translation: a student writing in their preferred language
+    // gets translated to French for the advisor; an advisor writing in French
+    // gets translated to the student's language. Internal notes are never
+    // translated. Failures here are non-fatal — store the original only.
+    let originalLanguage: string | null = null;
+    let translatedContent: string | null = null;
+    let translatedToLanguage: string | null = null;
+    if (!internalFlag && content.trim().length > 0 && isGroqConfigured()) {
+      try {
+        const student = req.targetStudent!;
+        let recipientLang: string | null = null;
+        if (isStaff(req.currentUser!)) {
+          if (student.userId) {
+            const [studentUser] = await db
+              .select()
+              .from(usersTable)
+              .where(eq(usersTable.id, student.userId));
+            recipientLang = studentUser?.preferredLanguage ?? null;
+          }
+        } else {
+          recipientLang = "fr";
+        }
+        if (recipientLang && recipientLang !== "fr" && !isStaff(req.currentUser!)) {
+          // student wrote → translate to fr for advisor view
+          recipientLang = "fr";
+        }
+        const detected = await detectLanguage({
+          ctx: { feature: "chat.detect_language", userId: req.currentUser!.id, studentId },
+          text: content,
+        });
+        originalLanguage = detected;
+        if (recipientLang && recipientLang !== detected) {
+          const translated = await translateText({
+            ctx: { feature: "chat.translate", userId: req.currentUser!.id, studentId },
+            text: content,
+            to: recipientLang as "fr" | "en" | "wo" | "ln" | "ar",
+            from: detected,
+          });
+          translatedContent = translated;
+          translatedToLanguage = recipientLang;
+        }
+      } catch {
+        // best-effort: if AI fails, store the original only
+      }
+    }
     const [created] = await db
       .insert(commentsTable)
       .values({
@@ -92,6 +139,9 @@ router.post(
         content,
         isInternal: internalFlag,
         isCorrectionRequest: !!isCorrectionRequest,
+        originalLanguage,
+        translatedContent,
+        translatedToLanguage,
       })
       .returning();
     const student = req.targetStudent!;

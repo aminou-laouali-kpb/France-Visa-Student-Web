@@ -38,6 +38,7 @@ export const GetMeResponse = zod.object({
   role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
   avatarUrl: zod.string().nullish(),
   phone: zod.string().nullish(),
+  preferredLanguage: zod.string().nullish(),
   isActive: zod.boolean(),
   createdAt: zod.coerce.date(),
 });
@@ -49,6 +50,7 @@ export const UpdateMeBody = zod.object({
   firstName: zod.string().optional(),
   lastName: zod.string().optional(),
   phone: zod.string().optional(),
+  preferredLanguage: zod.string().optional(),
   role: zod.string().optional(),
   isActive: zod.boolean().optional(),
 });
@@ -62,6 +64,7 @@ export const UpdateMeResponse = zod.object({
   role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
   avatarUrl: zod.string().nullish(),
   phone: zod.string().nullish(),
+  preferredLanguage: zod.string().nullish(),
   isActive: zod.boolean(),
   createdAt: zod.coerce.date(),
 });
@@ -83,6 +86,7 @@ export const ListUsersResponseItem = zod.object({
   role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
   avatarUrl: zod.string().nullish(),
   phone: zod.string().nullish(),
+  preferredLanguage: zod.string().nullish(),
   isActive: zod.boolean(),
   createdAt: zod.coerce.date(),
 });
@@ -104,6 +108,7 @@ export const GetUserResponse = zod.object({
   role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
   avatarUrl: zod.string().nullish(),
   phone: zod.string().nullish(),
+  preferredLanguage: zod.string().nullish(),
   isActive: zod.boolean(),
   createdAt: zod.coerce.date(),
 });
@@ -119,6 +124,7 @@ export const UpdateUserBody = zod.object({
   firstName: zod.string().optional(),
   lastName: zod.string().optional(),
   phone: zod.string().optional(),
+  preferredLanguage: zod.string().optional(),
   role: zod.string().optional(),
   isActive: zod.boolean().optional(),
 });
@@ -132,6 +138,7 @@ export const UpdateUserResponse = zod.object({
   role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
   avatarUrl: zod.string().nullish(),
   phone: zod.string().nullish(),
+  preferredLanguage: zod.string().nullish(),
   isActive: zod.boolean(),
   createdAt: zod.coerce.date(),
 });
@@ -283,6 +290,7 @@ export const ListStudentsResponseItem = zod.object({
   completionScore: zod.number(),
   riskLevel: zod.string().nullish(),
   riskScore: zod.number().nullish(),
+  riskNarrative: zod.string().nullish(),
   intakeDate: zod.string().nullish(),
   currentStepName: zod.string().nullish(),
   lastActivityAt: zod.coerce.date().nullish(),
@@ -449,6 +457,9 @@ export const GetStudentResponse = zod.object({
       content: zod.string(),
       isInternal: zod.boolean(),
       isCorrectionRequest: zod.boolean(),
+      originalLanguage: zod.string().nullish(),
+      translatedContent: zod.string().nullish(),
+      translatedToLanguage: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -521,6 +532,7 @@ export const GetStudentResponse = zod.object({
       role: zod.enum(["student", "advisor", "reviewer", "admin", "superadmin"]),
       avatarUrl: zod.string().nullish(),
       phone: zod.string().nullish(),
+      preferredLanguage: zod.string().nullish(),
       isActive: zod.boolean(),
       createdAt: zod.coerce.date(),
     })
@@ -1144,6 +1156,9 @@ export const ListCommentsResponseItem = zod.object({
   content: zod.string(),
   isInternal: zod.boolean(),
   isCorrectionRequest: zod.boolean(),
+  originalLanguage: zod.string().nullish(),
+  translatedContent: zod.string().nullish(),
+  translatedToLanguage: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListCommentsResponse = zod.array(ListCommentsResponseItem);
@@ -1658,6 +1673,9 @@ export const GetStudentDashboardResponse = zod.object({
       content: zod.string(),
       isInternal: zod.boolean(),
       isCorrectionRequest: zod.boolean(),
+      originalLanguage: zod.string().nullish(),
+      translatedContent: zod.string().nullish(),
+      translatedToLanguage: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -1738,6 +1756,7 @@ export const GetAdvisorDashboardResponse = zod.object({
       completionScore: zod.number(),
       riskLevel: zod.string().nullish(),
       riskScore: zod.number().nullish(),
+      riskNarrative: zod.string().nullish(),
       intakeDate: zod.string().nullish(),
       currentStepName: zod.string().nullish(),
       lastActivityAt: zod.coerce.date().nullish(),
@@ -3619,6 +3638,336 @@ export const ImproveMotivationLetterParagraphResponse = zod.object({
   improved: zod.string(),
   rationale: zod.string().nullish(),
 });
+
+/**
+ * @summary Get cached AI risk narrative for a student
+ */
+export const GetRiskNarrativeParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetRiskNarrativeResponse = zod.object({
+  narrative: zod.string().nullable(),
+  signalsHash: zod.string().nullish(),
+  updatedAt: zod.coerce.date().nullish(),
+  score: zod.number().nullish(),
+  level: zod.string().nullish(),
+});
+
+/**
+ * @summary Regenerate the AI risk narrative for a student
+ */
+export const RegenerateRiskNarrativeParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const RegenerateRiskNarrativeResponse = zod.object({
+  narrative: zod.string().nullable(),
+  signalsHash: zod.string().nullish(),
+  updatedAt: zod.coerce.date().nullish(),
+  score: zod.number().nullish(),
+  level: zod.string().nullish(),
+});
+
+/**
+ * @summary Generate advisor copilot summary (missing/risky/changed + drafts)
+ */
+export const GetCopilotSummaryParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetCopilotSummaryResponse = zod.object({
+  missing: zod.array(zod.string()),
+  risky: zod.array(zod.string()),
+  changed: zod.array(zod.string()),
+  draftReply: zod.string(),
+  correctionRequest: zod.string(),
+  promptHash: zod.string(),
+});
+
+/**
+ * @summary Record thumbs feedback on a copilot suggestion
+ */
+export const PostCopilotFeedbackBody = zod.object({
+  studentId: zod.number(),
+  feature: zod.string(),
+  vote: zod.enum(["up", "down"]),
+  comment: zod.string().nullish(),
+  promptHash: zod.string().nullish(),
+});
+
+/**
+ * @summary List a student's interview sessions
+ */
+export const ListStudentInterviewsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListStudentInterviewsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  mode: zod.enum(["text", "voice"]),
+  status: zod.enum(["in_progress", "completed", "abandoned"]),
+  programName: zod.string().nullish(),
+  schoolName: zod.string().nullish(),
+  countryName: zod.string().nullish(),
+  language: zod.string(),
+  score: zod
+    .union([
+      zod.object({
+        motivation: zod.number().optional(),
+        coherence: zod.number().optional(),
+        french: zod.number().optional(),
+        knowledge: zod.number().optional(),
+        returnPlan: zod.number().optional(),
+        overall: zod.number().optional(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  feedback: zod.string().nullish(),
+  strengths: zod.array(zod.string()).nullish(),
+  weaknesses: zod.array(zod.string()).nullish(),
+  suggestions: zod.array(zod.string()).nullish(),
+  createdAt: zod.coerce.date(),
+  completedAt: zod.coerce.date().nullish(),
+});
+export const ListStudentInterviewsResponse = zod.array(
+  ListStudentInterviewsResponseItem,
+);
+
+/**
+ * @summary Start a new interview session
+ */
+export const StartInterviewParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const StartInterviewBody = zod.object({
+  mode: zod.enum(["text", "voice"]),
+  language: zod.string().nullish(),
+});
+
+/**
+ * @summary Get an interview with its turns
+ */
+export const GetInterviewParams = zod.object({
+  interviewId: zod.coerce.number(),
+});
+
+export const GetInterviewResponse = zod
+  .object({
+    id: zod.number(),
+    studentId: zod.number(),
+    mode: zod.enum(["text", "voice"]),
+    status: zod.enum(["in_progress", "completed", "abandoned"]),
+    programName: zod.string().nullish(),
+    schoolName: zod.string().nullish(),
+    countryName: zod.string().nullish(),
+    language: zod.string(),
+    score: zod
+      .union([
+        zod.object({
+          motivation: zod.number().optional(),
+          coherence: zod.number().optional(),
+          french: zod.number().optional(),
+          knowledge: zod.number().optional(),
+          returnPlan: zod.number().optional(),
+          overall: zod.number().optional(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    feedback: zod.string().nullish(),
+    strengths: zod.array(zod.string()).nullish(),
+    weaknesses: zod.array(zod.string()).nullish(),
+    suggestions: zod.array(zod.string()).nullish(),
+    createdAt: zod.coerce.date(),
+    completedAt: zod.coerce.date().nullish(),
+  })
+  .and(
+    zod.object({
+      turns: zod.array(
+        zod.object({
+          id: zod.number(),
+          interviewId: zod.number(),
+          turnIndex: zod.number(),
+          role: zod.enum(["interviewer", "student"]),
+          content: zod.string(),
+          transcription: zod.string().nullish(),
+          createdAt: zod.coerce.date(),
+        }),
+      ),
+    }),
+  );
+
+/**
+ * @summary Submit the student's text answer and get the next question
+ */
+export const SubmitInterviewTurnParams = zod.object({
+  interviewId: zod.coerce.number(),
+});
+
+export const SubmitInterviewTurnBody = zod.object({
+  answer: zod.string(),
+});
+
+export const SubmitInterviewTurnResponse = zod
+  .object({
+    id: zod.number(),
+    studentId: zod.number(),
+    mode: zod.enum(["text", "voice"]),
+    status: zod.enum(["in_progress", "completed", "abandoned"]),
+    programName: zod.string().nullish(),
+    schoolName: zod.string().nullish(),
+    countryName: zod.string().nullish(),
+    language: zod.string(),
+    score: zod
+      .union([
+        zod.object({
+          motivation: zod.number().optional(),
+          coherence: zod.number().optional(),
+          french: zod.number().optional(),
+          knowledge: zod.number().optional(),
+          returnPlan: zod.number().optional(),
+          overall: zod.number().optional(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    feedback: zod.string().nullish(),
+    strengths: zod.array(zod.string()).nullish(),
+    weaknesses: zod.array(zod.string()).nullish(),
+    suggestions: zod.array(zod.string()).nullish(),
+    createdAt: zod.coerce.date(),
+    completedAt: zod.coerce.date().nullish(),
+  })
+  .and(
+    zod.object({
+      turns: zod.array(
+        zod.object({
+          id: zod.number(),
+          interviewId: zod.number(),
+          turnIndex: zod.number(),
+          role: zod.enum(["interviewer", "student"]),
+          content: zod.string(),
+          transcription: zod.string().nullish(),
+          createdAt: zod.coerce.date(),
+        }),
+      ),
+    }),
+  );
+
+/**
+ * @summary Transcribe an audio answer (base64) and submit it as a turn
+ */
+export const TranscribeInterviewTurnParams = zod.object({
+  interviewId: zod.coerce.number(),
+});
+
+export const TranscribeInterviewTurnBody = zod.object({
+  audioBase64: zod.string(),
+  mimeType: zod.string().nullish(),
+});
+
+export const TranscribeInterviewTurnResponse = zod
+  .object({
+    id: zod.number(),
+    studentId: zod.number(),
+    mode: zod.enum(["text", "voice"]),
+    status: zod.enum(["in_progress", "completed", "abandoned"]),
+    programName: zod.string().nullish(),
+    schoolName: zod.string().nullish(),
+    countryName: zod.string().nullish(),
+    language: zod.string(),
+    score: zod
+      .union([
+        zod.object({
+          motivation: zod.number().optional(),
+          coherence: zod.number().optional(),
+          french: zod.number().optional(),
+          knowledge: zod.number().optional(),
+          returnPlan: zod.number().optional(),
+          overall: zod.number().optional(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    feedback: zod.string().nullish(),
+    strengths: zod.array(zod.string()).nullish(),
+    weaknesses: zod.array(zod.string()).nullish(),
+    suggestions: zod.array(zod.string()).nullish(),
+    createdAt: zod.coerce.date(),
+    completedAt: zod.coerce.date().nullish(),
+  })
+  .and(
+    zod.object({
+      turns: zod.array(
+        zod.object({
+          id: zod.number(),
+          interviewId: zod.number(),
+          turnIndex: zod.number(),
+          role: zod.enum(["interviewer", "student"]),
+          content: zod.string(),
+          transcription: zod.string().nullish(),
+          createdAt: zod.coerce.date(),
+        }),
+      ),
+    }),
+  );
+
+/**
+ * @summary Finish the interview and produce the rubric-based report
+ */
+export const FinishInterviewParams = zod.object({
+  interviewId: zod.coerce.number(),
+});
+
+export const FinishInterviewResponse = zod
+  .object({
+    id: zod.number(),
+    studentId: zod.number(),
+    mode: zod.enum(["text", "voice"]),
+    status: zod.enum(["in_progress", "completed", "abandoned"]),
+    programName: zod.string().nullish(),
+    schoolName: zod.string().nullish(),
+    countryName: zod.string().nullish(),
+    language: zod.string(),
+    score: zod
+      .union([
+        zod.object({
+          motivation: zod.number().optional(),
+          coherence: zod.number().optional(),
+          french: zod.number().optional(),
+          knowledge: zod.number().optional(),
+          returnPlan: zod.number().optional(),
+          overall: zod.number().optional(),
+        }),
+        zod.null(),
+      ])
+      .optional(),
+    feedback: zod.string().nullish(),
+    strengths: zod.array(zod.string()).nullish(),
+    weaknesses: zod.array(zod.string()).nullish(),
+    suggestions: zod.array(zod.string()).nullish(),
+    createdAt: zod.coerce.date(),
+    completedAt: zod.coerce.date().nullish(),
+  })
+  .and(
+    zod.object({
+      turns: zod.array(
+        zod.object({
+          id: zod.number(),
+          interviewId: zod.number(),
+          turnIndex: zod.number(),
+          role: zod.enum(["interviewer", "student"]),
+          content: zod.string(),
+          transcription: zod.string().nullish(),
+          createdAt: zod.coerce.date(),
+        }),
+      ),
+    }),
+  );
 
 /**
  * @summary Upcoming deadlines for a nationality (defaults to caller's student)

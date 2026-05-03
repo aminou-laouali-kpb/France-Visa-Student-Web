@@ -1,7 +1,20 @@
 import { useState, useEffect } from "react";
 import { useGetMe, useUpdateMe } from "@workspace/api-client-react";
 
-type UpdateMeBody = { firstName: string; lastName: string; phone: string };
+type UpdateMeBody = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  preferredLanguage?: string;
+};
+
+const LANGUAGES: { value: string; label: string }[] = [
+  { value: "fr", label: "Français" },
+  { value: "en", label: "Anglais" },
+  { value: "wo", label: "Wolof" },
+  { value: "ln", label: "Lingala" },
+  { value: "ar", label: "العربية" },
+];
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +25,12 @@ import { Badge } from "@/components/ui/badge";
 export function Profile() {
   const { data: me, refetch } = useGetMe();
   const update = useUpdateMe();
-  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    preferredLanguage: "fr",
+  });
 
   useEffect(() => {
     if (me) {
@@ -20,6 +38,8 @@ export function Profile() {
         firstName: me.firstName ?? "",
         lastName: me.lastName ?? "",
         phone: me.phone ?? "",
+        preferredLanguage:
+          (me as { preferredLanguage?: string | null }).preferredLanguage ?? "fr",
       });
     }
   }, [me]);
@@ -72,6 +92,26 @@ export function Profile() {
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               data-testid="input-phone"
             />
+          </div>
+          <div>
+            <Label>Langue préférée pour la messagerie</Label>
+            <select
+              className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
+              value={form.preferredLanguage}
+              onChange={(e) =>
+                setForm({ ...form, preferredLanguage: e.target.value })
+              }
+              data-testid="select-preferred-language"
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500 mt-1">
+              Vos messages seront automatiquement traduits dans cette langue.
+            </p>
           </div>
           <Button onClick={save} data-testid="button-save-profile">
             Enregistrer

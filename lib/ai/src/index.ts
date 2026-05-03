@@ -2,6 +2,8 @@ export { chat, chatStream } from "./chat";
 export { vision } from "./vision";
 export { isGroqConfigured } from "./client";
 export { transcribe } from "./transcribe";
+export { detectLanguage, translateText } from "./translate";
+export type { LangCode } from "./translate";
 export { checkAiHealth } from "./health";
 export {
   getMonthSpendUsd,

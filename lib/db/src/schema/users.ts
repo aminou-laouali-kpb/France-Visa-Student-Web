@@ -13,6 +13,9 @@ export const usersTable = pgTable("users", {
   role: roleEnum("role").notNull().default("student"),
   avatarUrl: text("avatar_url"),
   phone: text("phone"),
+  // Preferred locale for chat translation: 'fr' (default) for advisors,
+  // 'wo' (Wolof), 'ln' (Lingala), 'ar' (Arabic), 'en' (English) for students.
+  preferredLanguage: text("preferred_language").notNull().default("fr"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

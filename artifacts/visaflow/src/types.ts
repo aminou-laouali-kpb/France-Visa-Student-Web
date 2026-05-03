@@ -123,6 +123,47 @@ export interface Comment {
   authorRole: string;
   isInternal?: boolean;
   isCorrectionRequest?: boolean;
+  originalLanguage?: string | null;
+  translatedContent?: string | null;
+  translatedToLanguage?: string | null;
+}
+
+export type InterviewMode = "text" | "voice";
+export type InterviewStatus = "in_progress" | "completed" | "abandoned";
+export interface InterviewRubric {
+  motivation?: number;
+  coherence?: number;
+  french?: number;
+  knowledge?: number;
+  returnPlan?: number;
+  overall?: number;
+}
+export interface InterviewTurnUI {
+  id: number;
+  interviewId: number;
+  turnIndex: number;
+  role: "interviewer" | "student";
+  content: string;
+  transcription?: string | null;
+  createdAt: string;
+}
+export interface InterviewUI {
+  id: number;
+  studentId: number;
+  mode: InterviewMode;
+  status: InterviewStatus;
+  programName?: string | null;
+  schoolName?: string | null;
+  countryName?: string | null;
+  language: string;
+  score?: InterviewRubric | null;
+  feedback?: string | null;
+  strengths?: string[] | null;
+  weaknesses?: string[] | null;
+  suggestions?: string[] | null;
+  createdAt: string;
+  completedAt?: string | null;
+  turns?: InterviewTurnUI[];
 }
 
 export interface NotificationItem {

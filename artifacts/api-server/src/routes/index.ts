@@ -12,6 +12,8 @@ import financeRouter from "./finance";
 import matrixRouter from "./matrix";
 import projetRouter from "./projet";
 import postArrivalRouter from "./postArrival";
+import copilotRouter from "./copilot";
+import interviewRouter from "./interview";
 
 const router: IRouter = Router();
 
@@ -28,5 +30,7 @@ router.use(financeRouter);
 router.use(matrixRouter);
 router.use(projetRouter);
 router.use(postArrivalRouter);
+router.use(copilotRouter);
+router.use(interviewRouter);
 
 export default router;

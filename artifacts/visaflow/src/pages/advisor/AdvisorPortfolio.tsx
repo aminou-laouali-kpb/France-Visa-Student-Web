@@ -218,7 +218,10 @@ export function AdvisorPortfolio() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <RiskBadge level={s.riskLevel ?? null} />
+                        <RiskBadge
+                          level={s.riskLevel ?? null}
+                          narrative={(s as { riskNarrative?: string | null }).riskNarrative ?? null}
+                        />
                       </td>
                       <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
                         {formatDate(s.lastActivityAt)}
@@ -308,7 +311,13 @@ function Th({
   );
 }
 
-function RiskBadge({ level }: { level: string | null }) {
+function RiskBadge({
+  level,
+  narrative,
+}: {
+  level: string | null;
+  narrative?: string | null;
+}) {
   if (!level) return <span className="text-slate-400 text-xs">—</span>;
   const styles: Record<string, string> = {
     low: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -320,10 +329,18 @@ function RiskBadge({ level }: { level: string | null }) {
     medium: "Moyen",
     high: "Élevé",
   };
+  // Show the AI explanation as a native title tooltip when available so the
+  // advisor can scan the portfolio and understand why a row is risky without
+  // navigating into the dossier.
+  const tooltip = narrative
+    ? narrative
+    : "Aucune explication générée — ouvrir le dossier puis « Risque ».";
   return (
-    <Badge variant="outline" className={`${styles[level] ?? ""}`}>
-      {level === "high" && <AlertTriangle className="w-3 h-3 mr-1" />}
-      {labels[level] ?? level}
-    </Badge>
+    <span title={tooltip} data-testid={narrative ? "risk-narrative-tooltip" : undefined}>
+      <Badge variant="outline" className={`${styles[level] ?? ""}`}>
+        {level === "high" && <AlertTriangle className="w-3 h-3 mr-1" />}
+        {labels[level] ?? level}
+      </Badge>
+    </span>
   );
 }

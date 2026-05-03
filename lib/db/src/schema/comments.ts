@@ -11,6 +11,13 @@ export const commentsTable = pgTable("comments", {
   content: text("content").notNull(),
   isInternal: boolean("is_internal").notNull().default(false),
   isCorrectionRequest: boolean("is_correction_request").notNull().default(false),
+  // Detected source language of `content` (e.g. 'fr', 'wo', 'ln', 'ar', 'en').
+  originalLanguage: text("original_language"),
+  // AI-translated mirror of `content` (target depends on the recipient's
+  // preferred language: students see content in their language, advisors
+  // always see French). Stored alongside the original — never replaces it.
+  translatedContent: text("translated_content"),
+  translatedToLanguage: text("translated_to_language"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

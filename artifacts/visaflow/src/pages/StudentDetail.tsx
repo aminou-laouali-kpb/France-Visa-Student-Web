@@ -55,6 +55,9 @@ import type { ChecklistItem } from "@workspace/api-client-react";
 import { ProfileDepthTab } from "./ProfileDepthTab";
 import { FinancialReadinessTab } from "./FinancialReadinessTab";
 import { ProjetReviewTab } from "./ProjetReviewTab";
+import { CommentBody } from "@/components/CommentBubble";
+import { AdvisorCopilotPanel } from "@/components/AdvisorCopilotPanel";
+import { RiskNarrativeCard } from "@/components/RiskNarrativeCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1015,6 +1018,7 @@ function CommentsTab({
                           ? "bg-blue-600 text-white"
                           : "bg-white border border-slate-200 text-slate-800"
                   }`}
+                  data-comment-translated={c.translatedContent ? "1" : undefined}
                 >
                   {(c.isCorrectionRequest || c.isInternal) && (
                     <div className="flex items-center gap-1 text-xs font-semibold mb-1 uppercase tracking-wide">
@@ -1029,7 +1033,10 @@ function CommentsTab({
                       )}
                     </div>
                   )}
-                  {c.content}
+                  <CommentBody
+                    comment={c}
+                    viewerLanguage={isStaff ? "fr" : "fr"}
+                  />
                 </div>
               </div>
             </div>
@@ -1274,6 +1281,16 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
 }
 
 function RiskTab({ studentId }: { studentId: number }) {
+  return (
+    <div className="space-y-4">
+      <RiskNarrativeCard studentId={studentId} />
+      <RiskScoreSection studentId={studentId} />
+      <AdvisorCopilotPanel studentId={studentId} />
+    </div>
+  );
+}
+
+function RiskScoreSection({ studentId }: { studentId: number }) {
   const { data: score, refetch } = useGetStudentRiskScore(studentId);
   const recalc = useRecalculateRiskScore();
 
@@ -1285,7 +1302,7 @@ function RiskTab({ studentId }: { studentId: number }) {
   if (!score) return <div>Chargement…</div>;
 
   return (
-    <div className="space-y-4">
+    <>
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -1316,7 +1333,7 @@ function RiskTab({ studentId }: { studentId: number }) {
             <CardTitle className="text-base">Facteurs de risque</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <RiskRow label="Documents manquants" value={score.missingDocuments} />
+            <RiskRow label="Documents manquants" value={score.missingDocuments ?? 0} />
             <RiskRow label="Documents rejetés" value={score.rejectedDocuments} />
             <RiskRow label="Tâches en retard" value={score.overdueTasks} />
             <RiskRow
@@ -1348,7 +1365,7 @@ function RiskTab({ studentId }: { studentId: number }) {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 }
 

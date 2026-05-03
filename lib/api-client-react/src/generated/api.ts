@@ -26,6 +26,8 @@ import type {
   AuditLog,
   ChecklistItem,
   Comment,
+  CopilotFeedbackBody,
+  CopilotSummaryResponse,
   Country,
   CreateAccommodationRecordBody,
   CreateAppointmentBody,
@@ -61,6 +63,8 @@ import type {
   ImproveParagraphBody,
   ImproveParagraphResult,
   IntakeCalendarEntry,
+  Interview,
+  InterviewWithTurns,
   LanguageTest,
   ListAuditLogsParams,
   ListCommentsParams,
@@ -87,11 +91,13 @@ import type {
   ResolveDocumentMatrixParams,
   ResolvedDocumentMatrix,
   ReviewDocumentBody,
+  RiskNarrativeResponse,
   RiskScore,
   Scholarship,
   School,
   SchoolWithPrograms,
   SetSubmissionGateOverride200,
+  StartInterviewBody,
   Student,
   StudentCivilStatus,
   StudentDashboard,
@@ -100,8 +106,10 @@ import type {
   StudentStep,
   StudentSummary,
   SubmissionGateOverrideBody,
+  SubmitInterviewTurnBody,
   SuccessResponse,
   Task,
+  TranscribeInterviewTurnBody,
   UnauthorizedResponse,
   UpdateAccommodationRecordBody,
   UpdateAppointmentBody,
@@ -10716,6 +10724,884 @@ export const useImproveMotivationLetterParagraph = <
   return useMutation(
     getImproveMotivationLetterParagraphMutationOptions(options),
   );
+};
+
+/**
+ * @summary Get cached AI risk narrative for a student
+ */
+export const getGetRiskNarrativeUrl = (studentId: number) => {
+  return `/api/students/${studentId}/risk/narrative`;
+};
+
+export const getRiskNarrative = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<RiskNarrativeResponse> => {
+  return customFetch<RiskNarrativeResponse>(getGetRiskNarrativeUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetRiskNarrativeQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/risk/narrative`] as const;
+};
+
+export const getGetRiskNarrativeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRiskNarrative>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getRiskNarrative>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRiskNarrativeQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRiskNarrative>>
+  > = ({ signal }) =>
+    getRiskNarrative(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRiskNarrative>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetRiskNarrativeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRiskNarrative>>
+>;
+export type GetRiskNarrativeQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get cached AI risk narrative for a student
+ */
+
+export function useGetRiskNarrative<
+  TData = Awaited<ReturnType<typeof getRiskNarrative>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getRiskNarrative>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRiskNarrativeQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Regenerate the AI risk narrative for a student
+ */
+export const getRegenerateRiskNarrativeUrl = (studentId: number) => {
+  return `/api/students/${studentId}/risk/narrative`;
+};
+
+export const regenerateRiskNarrative = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<RiskNarrativeResponse> => {
+  return customFetch<RiskNarrativeResponse>(
+    getRegenerateRiskNarrativeUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getRegenerateRiskNarrativeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateRiskNarrative>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof regenerateRiskNarrative>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["regenerateRiskNarrative"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof regenerateRiskNarrative>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return regenerateRiskNarrative(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegenerateRiskNarrativeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof regenerateRiskNarrative>>
+>;
+
+export type RegenerateRiskNarrativeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Regenerate the AI risk narrative for a student
+ */
+export const useRegenerateRiskNarrative = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateRiskNarrative>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof regenerateRiskNarrative>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getRegenerateRiskNarrativeMutationOptions(options));
+};
+
+/**
+ * @summary Generate advisor copilot summary (missing/risky/changed + drafts)
+ */
+export const getGetCopilotSummaryUrl = (studentId: number) => {
+  return `/api/students/${studentId}/copilot/summary`;
+};
+
+export const getCopilotSummary = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<CopilotSummaryResponse> => {
+  return customFetch<CopilotSummaryResponse>(
+    getGetCopilotSummaryUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getGetCopilotSummaryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getCopilotSummary>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof getCopilotSummary>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["getCopilotSummary"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof getCopilotSummary>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return getCopilotSummary(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GetCopilotSummaryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof getCopilotSummary>>
+>;
+
+export type GetCopilotSummaryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate advisor copilot summary (missing/risky/changed + drafts)
+ */
+export const useGetCopilotSummary = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getCopilotSummary>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof getCopilotSummary>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getGetCopilotSummaryMutationOptions(options));
+};
+
+/**
+ * @summary Record thumbs feedback on a copilot suggestion
+ */
+export const getPostCopilotFeedbackUrl = () => {
+  return `/api/copilot/feedback`;
+};
+
+export const postCopilotFeedback = async (
+  copilotFeedbackBody: CopilotFeedbackBody,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getPostCopilotFeedbackUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(copilotFeedbackBody),
+  });
+};
+
+export const getPostCopilotFeedbackMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postCopilotFeedback>>,
+    TError,
+    { data: BodyType<CopilotFeedbackBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postCopilotFeedback>>,
+  TError,
+  { data: BodyType<CopilotFeedbackBody> },
+  TContext
+> => {
+  const mutationKey = ["postCopilotFeedback"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postCopilotFeedback>>,
+    { data: BodyType<CopilotFeedbackBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postCopilotFeedback(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostCopilotFeedbackMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postCopilotFeedback>>
+>;
+export type PostCopilotFeedbackMutationBody = BodyType<CopilotFeedbackBody>;
+export type PostCopilotFeedbackMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Record thumbs feedback on a copilot suggestion
+ */
+export const usePostCopilotFeedback = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postCopilotFeedback>>,
+    TError,
+    { data: BodyType<CopilotFeedbackBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof postCopilotFeedback>>,
+  TError,
+  { data: BodyType<CopilotFeedbackBody> },
+  TContext
+> => {
+  return useMutation(getPostCopilotFeedbackMutationOptions(options));
+};
+
+/**
+ * @summary List a student's interview sessions
+ */
+export const getListStudentInterviewsUrl = (studentId: number) => {
+  return `/api/students/${studentId}/interviews`;
+};
+
+export const listStudentInterviews = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<Interview[]> => {
+  return customFetch<Interview[]>(getListStudentInterviewsUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStudentInterviewsQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/interviews`] as const;
+};
+
+export const getListStudentInterviewsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStudentInterviews>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentInterviews>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListStudentInterviewsQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStudentInterviews>>
+  > = ({ signal }) =>
+    listStudentInterviews(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStudentInterviews>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStudentInterviewsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStudentInterviews>>
+>;
+export type ListStudentInterviewsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List a student's interview sessions
+ */
+
+export function useListStudentInterviews<
+  TData = Awaited<ReturnType<typeof listStudentInterviews>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentInterviews>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStudentInterviewsQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Start a new interview session
+ */
+export const getStartInterviewUrl = (studentId: number) => {
+  return `/api/students/${studentId}/interviews`;
+};
+
+export const startInterview = async (
+  studentId: number,
+  startInterviewBody: StartInterviewBody,
+  options?: RequestInit,
+): Promise<InterviewWithTurns> => {
+  return customFetch<InterviewWithTurns>(getStartInterviewUrl(studentId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(startInterviewBody),
+  });
+};
+
+export const getStartInterviewMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof startInterview>>,
+    TError,
+    { studentId: number; data: BodyType<StartInterviewBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof startInterview>>,
+  TError,
+  { studentId: number; data: BodyType<StartInterviewBody> },
+  TContext
+> => {
+  const mutationKey = ["startInterview"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof startInterview>>,
+    { studentId: number; data: BodyType<StartInterviewBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return startInterview(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StartInterviewMutationResult = NonNullable<
+  Awaited<ReturnType<typeof startInterview>>
+>;
+export type StartInterviewMutationBody = BodyType<StartInterviewBody>;
+export type StartInterviewMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Start a new interview session
+ */
+export const useStartInterview = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof startInterview>>,
+    TError,
+    { studentId: number; data: BodyType<StartInterviewBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof startInterview>>,
+  TError,
+  { studentId: number; data: BodyType<StartInterviewBody> },
+  TContext
+> => {
+  return useMutation(getStartInterviewMutationOptions(options));
+};
+
+/**
+ * @summary Get an interview with its turns
+ */
+export const getGetInterviewUrl = (interviewId: number) => {
+  return `/api/interviews/${interviewId}`;
+};
+
+export const getInterview = async (
+  interviewId: number,
+  options?: RequestInit,
+): Promise<InterviewWithTurns> => {
+  return customFetch<InterviewWithTurns>(getGetInterviewUrl(interviewId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInterviewQueryKey = (interviewId: number) => {
+  return [`/api/interviews/${interviewId}`] as const;
+};
+
+export const getGetInterviewQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInterview>>,
+  TError = ErrorType<unknown>,
+>(
+  interviewId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInterview>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetInterviewQueryKey(interviewId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getInterview>>> = ({
+    signal,
+  }) => getInterview(interviewId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!interviewId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInterview>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInterviewQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInterview>>
+>;
+export type GetInterviewQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get an interview with its turns
+ */
+
+export function useGetInterview<
+  TData = Awaited<ReturnType<typeof getInterview>>,
+  TError = ErrorType<unknown>,
+>(
+  interviewId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInterview>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInterviewQueryOptions(interviewId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Submit the student's text answer and get the next question
+ */
+export const getSubmitInterviewTurnUrl = (interviewId: number) => {
+  return `/api/interviews/${interviewId}/turn`;
+};
+
+export const submitInterviewTurn = async (
+  interviewId: number,
+  submitInterviewTurnBody: SubmitInterviewTurnBody,
+  options?: RequestInit,
+): Promise<InterviewWithTurns> => {
+  return customFetch<InterviewWithTurns>(
+    getSubmitInterviewTurnUrl(interviewId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(submitInterviewTurnBody),
+    },
+  );
+};
+
+export const getSubmitInterviewTurnMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitInterviewTurn>>,
+    TError,
+    { interviewId: number; data: BodyType<SubmitInterviewTurnBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitInterviewTurn>>,
+  TError,
+  { interviewId: number; data: BodyType<SubmitInterviewTurnBody> },
+  TContext
+> => {
+  const mutationKey = ["submitInterviewTurn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitInterviewTurn>>,
+    { interviewId: number; data: BodyType<SubmitInterviewTurnBody> }
+  > = (props) => {
+    const { interviewId, data } = props ?? {};
+
+    return submitInterviewTurn(interviewId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitInterviewTurnMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitInterviewTurn>>
+>;
+export type SubmitInterviewTurnMutationBody = BodyType<SubmitInterviewTurnBody>;
+export type SubmitInterviewTurnMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit the student's text answer and get the next question
+ */
+export const useSubmitInterviewTurn = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitInterviewTurn>>,
+    TError,
+    { interviewId: number; data: BodyType<SubmitInterviewTurnBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitInterviewTurn>>,
+  TError,
+  { interviewId: number; data: BodyType<SubmitInterviewTurnBody> },
+  TContext
+> => {
+  return useMutation(getSubmitInterviewTurnMutationOptions(options));
+};
+
+/**
+ * @summary Transcribe an audio answer (base64) and submit it as a turn
+ */
+export const getTranscribeInterviewTurnUrl = (interviewId: number) => {
+  return `/api/interviews/${interviewId}/transcribe`;
+};
+
+export const transcribeInterviewTurn = async (
+  interviewId: number,
+  transcribeInterviewTurnBody: TranscribeInterviewTurnBody,
+  options?: RequestInit,
+): Promise<InterviewWithTurns> => {
+  return customFetch<InterviewWithTurns>(
+    getTranscribeInterviewTurnUrl(interviewId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(transcribeInterviewTurnBody),
+    },
+  );
+};
+
+export const getTranscribeInterviewTurnMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof transcribeInterviewTurn>>,
+    TError,
+    { interviewId: number; data: BodyType<TranscribeInterviewTurnBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof transcribeInterviewTurn>>,
+  TError,
+  { interviewId: number; data: BodyType<TranscribeInterviewTurnBody> },
+  TContext
+> => {
+  const mutationKey = ["transcribeInterviewTurn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof transcribeInterviewTurn>>,
+    { interviewId: number; data: BodyType<TranscribeInterviewTurnBody> }
+  > = (props) => {
+    const { interviewId, data } = props ?? {};
+
+    return transcribeInterviewTurn(interviewId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TranscribeInterviewTurnMutationResult = NonNullable<
+  Awaited<ReturnType<typeof transcribeInterviewTurn>>
+>;
+export type TranscribeInterviewTurnMutationBody =
+  BodyType<TranscribeInterviewTurnBody>;
+export type TranscribeInterviewTurnMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Transcribe an audio answer (base64) and submit it as a turn
+ */
+export const useTranscribeInterviewTurn = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof transcribeInterviewTurn>>,
+    TError,
+    { interviewId: number; data: BodyType<TranscribeInterviewTurnBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof transcribeInterviewTurn>>,
+  TError,
+  { interviewId: number; data: BodyType<TranscribeInterviewTurnBody> },
+  TContext
+> => {
+  return useMutation(getTranscribeInterviewTurnMutationOptions(options));
+};
+
+/**
+ * @summary Finish the interview and produce the rubric-based report
+ */
+export const getFinishInterviewUrl = (interviewId: number) => {
+  return `/api/interviews/${interviewId}/finish`;
+};
+
+export const finishInterview = async (
+  interviewId: number,
+  options?: RequestInit,
+): Promise<InterviewWithTurns> => {
+  return customFetch<InterviewWithTurns>(getFinishInterviewUrl(interviewId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getFinishInterviewMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof finishInterview>>,
+    TError,
+    { interviewId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof finishInterview>>,
+  TError,
+  { interviewId: number },
+  TContext
+> => {
+  const mutationKey = ["finishInterview"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof finishInterview>>,
+    { interviewId: number }
+  > = (props) => {
+    const { interviewId } = props ?? {};
+
+    return finishInterview(interviewId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type FinishInterviewMutationResult = NonNullable<
+  Awaited<ReturnType<typeof finishInterview>>
+>;
+
+export type FinishInterviewMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Finish the interview and produce the rubric-based report
+ */
+export const useFinishInterview = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof finishInterview>>,
+    TError,
+    { interviewId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof finishInterview>>,
+  TError,
+  { interviewId: number },
+  TContext
+> => {
+  return useMutation(getFinishInterviewMutationOptions(options));
 };
 
 /**

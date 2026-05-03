@@ -49,6 +49,8 @@ export interface UserProfile {
   avatarUrl?: string | null;
   /** @nullable */
   phone?: string | null;
+  /** @nullable */
+  preferredLanguage?: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -57,6 +59,7 @@ export interface UpdateUserBody {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  preferredLanguage?: string;
   role?: string;
   isActive?: boolean;
 }
@@ -153,6 +156,8 @@ export interface StudentSummary {
   riskLevel?: string | null;
   /** @nullable */
   riskScore?: number | null;
+  /** @nullable */
+  riskNarrative?: string | null;
   /** @nullable */
   intakeDate?: string | null;
   /** @nullable */
@@ -360,6 +365,12 @@ export interface Comment {
   content: string;
   isInternal: boolean;
   isCorrectionRequest: boolean;
+  /** @nullable */
+  originalLanguage?: string | null;
+  /** @nullable */
+  translatedContent?: string | null;
+  /** @nullable */
+  translatedToLanguage?: string | null;
   createdAt: string;
 }
 
@@ -2078,6 +2089,144 @@ export interface ImproveParagraphResult {
   improved: string;
   /** @nullable */
   rationale?: string | null;
+}
+
+export interface RiskNarrativeResponse {
+  /** @nullable */
+  narrative: string | null;
+  /** @nullable */
+  signalsHash?: string | null;
+  /** @nullable */
+  updatedAt?: string | null;
+  /** @nullable */
+  score?: number | null;
+  /** @nullable */
+  level?: string | null;
+}
+
+export interface CopilotSummaryResponse {
+  missing: string[];
+  risky: string[];
+  changed: string[];
+  draftReply: string;
+  correctionRequest: string;
+  promptHash: string;
+}
+
+export type CopilotFeedbackBodyVote =
+  (typeof CopilotFeedbackBodyVote)[keyof typeof CopilotFeedbackBodyVote];
+
+export const CopilotFeedbackBodyVote = {
+  up: "up",
+  down: "down",
+} as const;
+
+export interface CopilotFeedbackBody {
+  studentId: number;
+  feature: string;
+  vote: CopilotFeedbackBodyVote;
+  /** @nullable */
+  comment?: string | null;
+  /** @nullable */
+  promptHash?: string | null;
+}
+
+export interface InterviewRubric {
+  motivation?: number;
+  coherence?: number;
+  french?: number;
+  knowledge?: number;
+  returnPlan?: number;
+  overall?: number;
+}
+
+export type InterviewTurnRole =
+  (typeof InterviewTurnRole)[keyof typeof InterviewTurnRole];
+
+export const InterviewTurnRole = {
+  interviewer: "interviewer",
+  student: "student",
+} as const;
+
+export interface InterviewTurn {
+  id: number;
+  interviewId: number;
+  turnIndex: number;
+  role: InterviewTurnRole;
+  content: string;
+  /** @nullable */
+  transcription?: string | null;
+  createdAt: string;
+}
+
+export type InterviewMode = (typeof InterviewMode)[keyof typeof InterviewMode];
+
+export const InterviewMode = {
+  text: "text",
+  voice: "voice",
+} as const;
+
+export type InterviewStatus =
+  (typeof InterviewStatus)[keyof typeof InterviewStatus];
+
+export const InterviewStatus = {
+  in_progress: "in_progress",
+  completed: "completed",
+  abandoned: "abandoned",
+} as const;
+
+export interface Interview {
+  id: number;
+  studentId: number;
+  mode: InterviewMode;
+  status: InterviewStatus;
+  /** @nullable */
+  programName?: string | null;
+  /** @nullable */
+  schoolName?: string | null;
+  /** @nullable */
+  countryName?: string | null;
+  language: string;
+  score?: InterviewRubric | null;
+  /** @nullable */
+  feedback?: string | null;
+  /** @nullable */
+  strengths?: string[] | null;
+  /** @nullable */
+  weaknesses?: string[] | null;
+  /** @nullable */
+  suggestions?: string[] | null;
+  createdAt: string;
+  /** @nullable */
+  completedAt?: string | null;
+}
+
+export type InterviewWithTurns = Interview & {
+  turns: InterviewTurn[];
+};
+
+export type StartInterviewBodyMode =
+  (typeof StartInterviewBodyMode)[keyof typeof StartInterviewBodyMode];
+
+export const StartInterviewBodyMode = {
+  text: "text",
+  voice: "voice",
+} as const;
+
+export interface StartInterviewBody {
+  mode: StartInterviewBodyMode;
+  /** @nullable */
+  language?: string | null;
+}
+
+export interface SubmitInterviewTurnBody {
+  answer: string;
+}
+
+export interface TranscribeInterviewTurnBody {
+  audioBase64: string;
+  /** @nullable */
+  mimeType?: string | null;
 }
 
 /**

@@ -159,6 +159,7 @@ router.get("/students", requireAuth, async (req, res) => {
       advisorLastName: advisorAlias.lastName,
       riskLevel: riskScoresTable.level,
       riskScore: riskScoresTable.score,
+      riskNarrative: riskScoresTable.narrativeText,
     })
     .from(studentsTable)
     .leftJoin(countriesTable, eq(studentsTable.countryId, countriesTable.id))
@@ -211,10 +212,10 @@ router.get("/students", requireAuth, async (req, res) => {
         ? `${r.advisorFirstName ?? ""} ${r.advisorLastName ?? ""}`.trim()
         : null;
     // Strip risk fields for non-staff (students must not see their own risk score)
-    const { riskLevel, riskScore, ...rest } = r;
+    const { riskLevel, riskScore, riskNarrative, ...rest } = r;
     return {
       ...rest,
-      ...(isStaffRole ? { riskLevel, riskScore } : {}),
+      ...(isStaffRole ? { riskLevel, riskScore, riskNarrative } : {}),
       advisorName,
       currentStepName: next?.stepName ?? null,
     };
