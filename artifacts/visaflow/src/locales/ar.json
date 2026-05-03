@@ -183,7 +183,9 @@
   "students": {
     "title": "الطلاب",
     "empty": "لا يوجد طلاب",
-    "submitted": "مقدَّم"
+    "submitted": "مقدَّم",
+    "newDossier": "ملف جديد",
+    "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني…"
   },
   "dashboard": {
     "welcome": "!مرحباً بك في VisaFlow",
@@ -313,7 +315,8 @@
     "prepareAppts": "التحضير لـ {{n}} موعد(مواعيد)",
     "completed": "مكتمل",
     "view": "عرض",
-    "todayAppts": "مواعيد اليوم"
+    "todayAppts": "مواعيد اليوم",
+    "createDossierHint": "لنبدأ بإنشاء ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا."
   },
   "stepDetail": {
     "back": "العودة إلى القائمة",
@@ -508,7 +511,7 @@
     "exporting": "جارٍ التحضير…",
     "deleteTitle": "حذف حسابي",
     "deleteDesc": "سيُجهَّل حسابك فوراً: سيُحذف الاسم والبريد والهاتف وسيُلغى وصولك. هذا الإجراء لا يمكن التراجع عنه.",
-    "deleteConfirmLabel": "اكتب DELETE للتأكيد",
+    "deleteConfirmLabel": "اكتب الكلمة المفتاحية أدناه للتأكيد",
     "deleteBtn": "حذف حسابي نهائياً",
     "deleting": "جارٍ الحذف…",
     "confirmDeletion": "هل تؤكد الحذف النهائي لحسابك؟",
@@ -752,5 +755,32 @@
     "wishProgram": "البرنامج / التكوين",
     "wishMotivation": "الدافع",
     "equivTitle": "تعادل الشهادات (ENIC-NARIC)"
+  },
+  "extract": {
+    "done": "اكتمل الاستخراج",
+    "processing": "جارٍ التحليل…",
+    "pending": "في الانتظار",
+    "failed": "فشل",
+    "skipped": "لم يُعالج",
+    "confidence": "الثقة {{pct}}%",
+    "retry": "إعادة تشغيل الذكاء الاصطناعي",
+    "retrying": "جارٍ الإعادة…",
+    "fieldNumber": "رقم",
+    "fieldFirstName": "الاسم الأول",
+    "fieldLastName": "اسم العائلة",
+    "fieldDob": "تاريخ الميلاد",
+    "fieldNationality": "الجنسية",
+    "fieldIssueDate": "تاريخ الإصدار",
+    "fieldExpiry": "تاريخ الانتهاء",
+    "fieldBalance": "الرصيد (يورو)",
+    "fieldBank": "البنك",
+    "fieldDiploma": "الشهادة",
+    "fieldInstitution": "المؤسسة",
+    "fieldLangTest": "اختبار اللغة",
+    "fieldScore": "النتيجة",
+    "expired": "انتهت صلاحية الوثيقة في {{date}}.",
+    "expiringSoon": "تنتهي الوثيقة خلال {{days}} يومًا ({{date}}).",
+    "categoryMismatch": "الفئة المحتملة: {{ai}} (بدلاً من {{expected}}).",
+    "lowConfidence": "استخراج منخفض الثقة ({{pct}}%)."
   }
 }

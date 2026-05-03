@@ -31,7 +31,7 @@ export function StudentsList() {
         <h1 className="text-3xl font-bold text-slate-900">{tr("students.title")}</h1>
         <Link href="/app/students/new">
           <Button data-testid="button-new-student">
-            <Plus className="w-4 h-4 mr-2" /> Nouveau dossier
+            <Plus className="w-4 h-4 mr-2" /> {tr("students.newDossier")}
           </Button>
         </Link>
       </div>
@@ -41,7 +41,7 @@ export function StudentsList() {
           <div className="flex-1 min-w-[200px] relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              placeholder="Rechercher par nom ou email…"
+              placeholder={tr("students.searchPlaceholder")}
               className="pl-9"
               value={q}
               onChange={(e) => setQ(e.target.value)}

@@ -183,7 +183,9 @@
   "students": {
     "title": "Students",
     "empty": "No students found",
-    "submitted": "Submitted"
+    "submitted": "Submitted",
+    "newDossier": "New application",
+    "searchPlaceholder": "Search by name or email…"
   },
   "dashboard": {
     "welcome": "Welcome to VisaFlow!",
@@ -313,7 +315,8 @@
     "prepareAppts": "Prepare {{n}} appointment(s)",
     "completed": "completed",
     "view": "View",
-    "todayAppts": "Today's appts"
+    "todayAppts": "Today's appts",
+    "createDossierHint": "Let's create your student visa application to start your journey in France."
   },
   "stepDetail": {
     "back": "Back to list",
@@ -508,7 +511,7 @@
     "exporting": "Preparing…",
     "deleteTitle": "Delete my account",
     "deleteDesc": "Your account will be anonymised immediately: name, email and phone will be erased, your access will be revoked. Audit logs (French regulation) are kept without your personal data. This action is irreversible.",
-    "deleteConfirmLabel": "Type DELETE to confirm",
+    "deleteConfirmLabel": "Type the keyword below to confirm",
     "deleteBtn": "Permanently delete my account",
     "deleting": "Deleting…",
     "confirmDeletion": "Do you confirm the permanent deletion of your account?",
@@ -752,5 +755,32 @@
     "wishProgram": "Programme / Course",
     "wishMotivation": "Motivation",
     "equivTitle": "Diploma equivalences (ENIC-NARIC)"
+  },
+  "extract": {
+    "done": "extraction complete",
+    "processing": "analysing…",
+    "pending": "pending",
+    "failed": "failed",
+    "skipped": "not processed",
+    "confidence": "confidence {{pct}}%",
+    "retry": "Re-run AI",
+    "retrying": "Re-running…",
+    "fieldNumber": "No.",
+    "fieldFirstName": "First name",
+    "fieldLastName": "Last name",
+    "fieldDob": "Date of birth",
+    "fieldNationality": "Nationality",
+    "fieldIssueDate": "Issue date",
+    "fieldExpiry": "Expiry",
+    "fieldBalance": "Balance (EUR)",
+    "fieldBank": "Bank",
+    "fieldDiploma": "Diploma",
+    "fieldInstitution": "Institution",
+    "fieldLangTest": "Language test",
+    "fieldScore": "Score",
+    "expired": "Document expired on {{date}}.",
+    "expiringSoon": "Document expiring in {{days}} days ({{date}}).",
+    "categoryMismatch": "Possible category: {{ai}} (instead of {{expected}}).",
+    "lowConfidence": "Low-confidence extraction ({{pct}}%)."
   }
 }

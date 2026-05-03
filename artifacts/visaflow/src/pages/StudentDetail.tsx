@@ -752,6 +752,7 @@ function DocumentExtractionPanel({
   isStaff: boolean;
   onRefetch: () => void;
 }) {
+  const { t } = useTranslation();
   const reExtract = useReExtractDocument();
   const status = doc.extractionStatus ?? "pending";
   const data = doc.extractedData as
@@ -784,22 +785,22 @@ function DocumentExtractionPanel({
   if (expired)
     banners.push({
       tone: "red",
-      text: `Document expiré le ${doc.expiryDate}.`,
+      text: t("extract.expired", { date: doc.expiryDate }),
     });
   else if (expiringSoon)
     banners.push({
       tone: "amber",
-      text: `Document expirant dans ${expDays} jours (${doc.expiryDate}).`,
+      text: t("extract.expiringSoon", { days: expDays, date: doc.expiryDate }),
     });
   if (categoryMismatch)
     banners.push({
       tone: "amber",
-      text: `Catégorie possible : ${doc.aiCategory} (au lieu de ${doc.category}).`,
+      text: t("extract.categoryMismatch", { ai: doc.aiCategory, expected: doc.category }),
     });
   if (lowConfidence)
     banners.push({
       tone: "amber",
-      text: `Extraction peu fiable (confiance ${(conf! * 100).toFixed(0)}%).`,
+      text: t("extract.lowConfidence", { pct: (conf! * 100).toFixed(0) }),
     });
 
   const showFields = status === "done";
@@ -809,19 +810,19 @@ function DocumentExtractionPanel({
       if (v === null || v === undefined || v === "") return;
       fieldEntries.push([label, String(v)]);
     };
-    push("N°", fields.documentNumber);
-    push("Prénom", doc.extractedFirstName);
-    push("Nom", doc.extractedLastName);
-    push("Né(e) le", doc.extractedDob);
-    push("Nationalité", fields.nationality);
-    push("Émission", fields.issueDate);
-    push("Expire", doc.expiryDate);
-    push("Solde EUR", fields.bankBalanceEur);
-    push("Banque", fields.bankName);
-    push("Diplôme", fields.diplomaType);
-    push("Établissement", fields.institution);
-    push("Test langue", fields.languageTest);
-    push("Score", fields.languageScore);
+    push(t("extract.fieldNumber"), fields.documentNumber);
+    push(t("extract.fieldFirstName"), doc.extractedFirstName);
+    push(t("extract.fieldLastName"), doc.extractedLastName);
+    push(t("extract.fieldDob"), doc.extractedDob);
+    push(t("extract.fieldNationality"), fields.nationality);
+    push(t("extract.fieldIssueDate"), fields.issueDate);
+    push(t("extract.fieldExpiry"), doc.expiryDate);
+    push(t("extract.fieldBalance"), fields.bankBalanceEur);
+    push(t("extract.fieldBank"), fields.bankName);
+    push(t("extract.fieldDiploma"), fields.diplomaType);
+    push(t("extract.fieldInstitution"), fields.institution);
+    push(t("extract.fieldLangTest"), fields.languageTest);
+    push(t("extract.fieldScore"), fields.languageScore);
   }
 
   const handleReExtract = async () => {
@@ -847,18 +848,18 @@ function DocumentExtractionPanel({
         >
           IA :{" "}
           {status === "done"
-            ? "extraction terminée"
+            ? t("extract.done")
             : status === "processing"
-              ? "analyse en cours…"
+              ? t("extract.processing")
               : status === "pending"
-                ? "en attente"
+                ? t("extract.pending")
                 : status === "failed"
-                  ? "échec"
-                  : "non traité"}
+                  ? t("extract.failed")
+                  : t("extract.skipped")}
         </span>
         {conf !== null && status === "done" && (
           <span className="text-slate-500">
-            confiance {(conf * 100).toFixed(0)}%
+            {t("extract.confidence", { pct: (conf * 100).toFixed(0) })}
           </span>
         )}
         {(isStaff || status === "failed") && (
@@ -870,7 +871,7 @@ function DocumentExtractionPanel({
             disabled={reExtract.isPending}
             data-testid={`button-reextract-${doc.id}`}
           >
-            {reExtract.isPending ? "Relance…" : "Relancer l'IA"}
+            {reExtract.isPending ? t("extract.retrying") : t("extract.retry")}
           </Button>
         )}
       </div>

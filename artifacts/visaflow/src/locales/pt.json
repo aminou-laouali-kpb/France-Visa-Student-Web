@@ -183,7 +183,9 @@
   "students": {
     "title": "Estudantes",
     "empty": "Nenhum estudante encontrado",
-    "submitted": "Depositado"
+    "submitted": "Depositado",
+    "newDossier": "Novo processo",
+    "searchPlaceholder": "Pesquisar por nome ou email…"
   },
   "dashboard": {
     "welcome": "Bem-vindo ao VisaFlow!",
@@ -313,7 +315,8 @@
     "prepareAppts": "Preparar {{n}} consulta(s)",
     "completed": "concluído",
     "view": "Ver",
-    "todayAppts": "Consultas hoje"
+    "todayAppts": "Consultas hoje",
+    "createDossierHint": "Vamos criar o seu processo de visto estudantil para iniciar a sua jornada em França."
   },
   "stepDetail": {
     "back": "Voltar à lista",
@@ -508,7 +511,7 @@
     "exporting": "A preparar…",
     "deleteTitle": "Eliminar a minha conta",
     "deleteDesc": "A sua conta será anonimizada imediatamente: nome, email e telefone serão apagados, o seu acesso será revogado. Esta ação é irreversível.",
-    "deleteConfirmLabel": "Escreva DELETE para confirmar",
+    "deleteConfirmLabel": "Digite a palavra-chave abaixo para confirmar",
     "deleteBtn": "Eliminar definitivamente a minha conta",
     "deleting": "A eliminar…",
     "confirmDeletion": "Confirma a eliminação definitiva da sua conta?",
@@ -752,5 +755,32 @@
     "wishProgram": "Programa / Formação",
     "wishMotivation": "Motivação",
     "equivTitle": "Equivalências de diplomas (ENIC-NARIC)"
+  },
+  "extract": {
+    "done": "extração concluída",
+    "processing": "a analisar…",
+    "pending": "pendente",
+    "failed": "falhou",
+    "skipped": "não processado",
+    "confidence": "confiança {{pct}}%",
+    "retry": "Executar IA novamente",
+    "retrying": "A executar…",
+    "fieldNumber": "Nº",
+    "fieldFirstName": "Nome próprio",
+    "fieldLastName": "Apelido",
+    "fieldDob": "Data de nascimento",
+    "fieldNationality": "Nacionalidade",
+    "fieldIssueDate": "Data de emissão",
+    "fieldExpiry": "Validade",
+    "fieldBalance": "Saldo (EUR)",
+    "fieldBank": "Banco",
+    "fieldDiploma": "Diploma",
+    "fieldInstitution": "Instituição",
+    "fieldLangTest": "Teste de língua",
+    "fieldScore": "Pontuação",
+    "expired": "Documento expirado em {{date}}.",
+    "expiringSoon": "Documento a expirar em {{days}} dias ({{date}}).",
+    "categoryMismatch": "Categoria possível: {{ai}} (em vez de {{expected}}).",
+    "lowConfidence": "Extração pouco fiável ({{pct}}%)."
   }
 }

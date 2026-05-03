@@ -183,7 +183,9 @@
   "students": {
     "title": "Étudiants",
     "empty": "Aucun étudiant trouvé",
-    "submitted": "Déposé"
+    "submitted": "Déposé",
+    "newDossier": "Nouveau dossier",
+    "searchPlaceholder": "Rechercher par nom ou email…"
   },
   "dashboard": {
     "welcome": "Bienvenue sur VisaFlow !",
@@ -313,7 +315,8 @@
     "prepareAppts": "Préparer {{n}} rendez-vous",
     "completed": "complété",
     "view": "Voir",
-    "todayAppts": "RDV aujourd'hui"
+    "todayAppts": "RDV aujourd'hui",
+    "createDossierHint": "Créons votre dossier visa étudiant pour démarrer votre parcours en France."
   },
   "stepDetail": {
     "back": "Retour à la liste",
@@ -508,7 +511,7 @@
     "exporting": "Préparation…",
     "deleteTitle": "Supprimer mon compte",
     "deleteDesc": "Votre compte sera anonymisé immédiatement: nom, email et téléphone seront effacés, votre accès sera révoqué. Les journaux d'audit (réglementation française) sont conservés sans vos données personnelles. Cette action est irréversible.",
-    "deleteConfirmLabel": "Tapez SUPPRIMER pour confirmer",
+    "deleteConfirmLabel": "Tapez le mot-clé ci-dessous pour confirmer",
     "deleteBtn": "Supprimer définitivement mon compte",
     "deleting": "Suppression…",
     "confirmDeletion": "Confirmez-vous la suppression définitive de votre compte ?",
@@ -752,5 +755,32 @@
     "wishProgram": "Programme / Formation",
     "wishMotivation": "Motivation",
     "equivTitle": "Équivalences de diplômes (ENIC-NARIC)"
+  },
+  "extract": {
+    "done": "extraction terminée",
+    "processing": "analyse en cours…",
+    "pending": "en attente",
+    "failed": "échec",
+    "skipped": "non traité",
+    "confidence": "confiance {{pct}}%",
+    "retry": "Relancer l'IA",
+    "retrying": "Relance…",
+    "fieldNumber": "N°",
+    "fieldFirstName": "Prénom",
+    "fieldLastName": "Nom",
+    "fieldDob": "Né(e) le",
+    "fieldNationality": "Nationalité",
+    "fieldIssueDate": "Émission",
+    "fieldExpiry": "Expire",
+    "fieldBalance": "Solde EUR",
+    "fieldBank": "Banque",
+    "fieldDiploma": "Diplôme",
+    "fieldInstitution": "Établissement",
+    "fieldLangTest": "Test langue",
+    "fieldScore": "Score",
+    "expired": "Document expiré le {{date}}.",
+    "expiringSoon": "Document expirant dans {{days}} jours ({{date}}).",
+    "categoryMismatch": "Catégorie possible : {{ai}} (au lieu de {{expected}}).",
+    "lowConfidence": "Extraction peu fiable (confiance {{pct}}%)."
   }
 }

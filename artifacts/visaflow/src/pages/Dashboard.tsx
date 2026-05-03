@@ -32,7 +32,7 @@ export function Dashboard() {
   const { data: me } = useGetMe();
   const role = me?.role;
 
-  if (!me) return <div className="p-8">Chargement…</div>;
+  if (!me) return <div className="p-8">{tr("common.loading")}</div>;
 
   if (role === "student") return <StudentDashboard />;
   if (["admin", "superadmin"].includes(role!)) return <AdminDashboard />;
@@ -43,7 +43,7 @@ function StudentDashboard() {
   const { t: tr } = useTranslation();
   const { data: raw, isLoading } = useGetStudentDashboard();
   const data = raw as unknown as StudentDashboardData | undefined;
-  if (isLoading) return <div>Chargement…</div>;
+  if (isLoading) return <div>{tr("common.loading")}</div>;
 
   if (!data?.student) {
     return (
@@ -52,11 +52,11 @@ function StudentDashboard() {
           <GraduationCap className="w-16 h-16 mx-auto text-slate-300 mb-4" />
           <h2 className="text-xl font-semibold mb-2">{tr("dashboard.welcome")}</h2>
           <p className="text-slate-600 mb-6">
-            Créons votre dossier visa étudiant pour démarrer votre parcours en France.
+            {tr("dash.createDossierHint")}
           </p>
           <Link href="/app/onboarding">
             <Button size="lg" data-testid="button-create-dossier">
-              Créer mon dossier
+              {tr("dash.createDossier")}
             </Button>
           </Link>
         </CardContent>
@@ -69,7 +69,7 @@ function StudentDashboard() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900">{tr("dashboard.myJourney")}</h1>
         <p className="text-slate-600 mt-1">
-          {data.completedSteps} sur {data.totalSteps} étapes validées
+          {tr("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
         </p>
       </div>
 
