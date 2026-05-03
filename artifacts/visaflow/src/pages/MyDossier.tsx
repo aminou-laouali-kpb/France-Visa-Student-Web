@@ -1,9 +1,11 @@
 import { useGetStudentDashboard } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { StudentDashboardData } from "@/types";
 
 export function MyDossier() {
+  const { t } = useTranslation();
   const { data, isLoading } = useGetStudentDashboard();
   const [, setLocation] = useLocation();
   const d = data as unknown as StudentDashboardData | undefined;
@@ -17,5 +19,5 @@ export function MyDossier() {
     }
   }, [d, isLoading, setLocation]);
 
-  return <div>Chargement…</div>;
+  return <div>{t("common.loading")}</div>;
 }

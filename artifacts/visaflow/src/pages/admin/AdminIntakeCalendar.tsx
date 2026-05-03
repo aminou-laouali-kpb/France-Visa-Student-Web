@@ -18,6 +18,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
 type CalEntry = {
@@ -44,12 +45,7 @@ interface FormState {
   sortOrder: number;
 }
 
-const TYPES = [
-  { value: "campus_france", label: "Campus France" },
-  { value: "visa_appointment", label: "Rendez-vous visa" },
-  { value: "school_application", label: "Candidature école" },
-  { value: "other", label: "Autre" },
-];
+const DEADLINE_TYPE_VALUES = ["campus_france", "visa_appointment", "school_application", "other"];
 
 const EMPTY: FormState = {
   nationalityCode: "",
@@ -63,6 +59,7 @@ const EMPTY: FormState = {
 };
 
 export function AdminIntakeCalendar() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: countriesRaw = [] } = useListCountries();
   const countries = countriesRaw as { code: string; name: string }[];
@@ -105,18 +102,18 @@ export function AdminIntakeCalendar() {
       } else {
         await create.mutateAsync({ data });
       }
-      toast({ title: "Enregistré" });
+      toast({ title: t("common.saved") });
       setEditing(null);
       void refetch();
     } catch (e: unknown) {
-      const msg = e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : "Erreur";
-      toast({ title: "Échec", description: msg, variant: "destructive" });
+      const msg = e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : t("common.error");
+      toast({ title: t("common.error"), description: msg, variant: "destructive" });
     }
   }
   async function onDelete(r: CalEntry) {
-    if (!confirm(`Supprimer "${r.label}" ?`)) return;
+    if (!confirm(t("calendar.confirmDelete", { label: r.label }))) return;
     await remove.mutateAsync({ entryId: r.id });
-    toast({ title: "Supprimé" });
+    toast({ title: t("common.deleted") });
     void refetch();
   }
 
@@ -124,27 +121,27 @@ export function AdminIntakeCalendar() {
     <div className="space-y-6" data-testid="admin-intake-calendar">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Calendrier des admissions</h1>
-          <p className="text-slate-600 mt-1">Échéances Campus France et visa par nationalité.</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t("calendar.adminTitle")}</h1>
+          <p className="text-slate-600 mt-1">{t("calendar.adminSubtitle")}</p>
         </div>
         <Button onClick={openCreate} data-testid="button-new-intake">
-          <Plus className="w-4 h-4 mr-2" /> Nouvelle échéance
+          <Plus className="w-4 h-4 mr-2" /> {t("calendar.newEntryBtn")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{rows.length} échéance(s){isLoading ? " · chargement…" : ""}</CardTitle>
+          <CardTitle className="text-base">{t("calendar.entryCount", { n: rows.length })}{isLoading ? ` · ${t("common.loading")}` : ""}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-600">
               <tr>
-                <th className="p-3">Nationalité</th>
-                <th className="p-3">Échéance</th>
-                <th className="p-3">Type</th>
-                <th className="p-3">Date</th>
-                <th className="p-3">Année</th>
+                <th className="p-3">{t("calendar.colNationality")}</th>
+                <th className="p-3">{t("calendar.colLabel")}</th>
+                <th className="p-3">{t("calendar.colType")}</th>
+                <th className="p-3">{t("calendar.colDeadline")}</th>
+                <th className="p-3">{t("calendar.colYear")}</th>
                 <th className="p-3 w-24"></th>
               </tr>
             </thead>
@@ -153,7 +150,7 @@ export function AdminIntakeCalendar() {
                 <tr key={r.id} className="border-t" data-testid={`row-intake-${r.id}`}>
                   <td className="p-3 font-medium">{r.nationalityCode}</td>
                   <td className="p-3">{r.label}</td>
-                  <td className="p-3">{TYPES.find(t => t.value === r.deadlineType)?.label ?? r.deadlineType}</td>
+                  <td className="p-3">{t(`calendar.deadlineType_${r.deadlineType}`, { defaultValue: r.deadlineType })}</td>
                   <td className="p-3">
                     {r.windowStart ? `${r.windowStart} → ` : ""}{r.windowEnd}
                   </td>
@@ -169,7 +166,7 @@ export function AdminIntakeCalendar() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-500">Aucune échéance.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-500">{t("calendar.noEntries")}</td></tr>
               )}
             </tbody>
           </table>
@@ -179,15 +176,15 @@ export function AdminIntakeCalendar() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editing?.id ? "Modifier l'échéance" : "Nouvelle échéance"}</DialogTitle>
+            <DialogTitle>{editing?.id ? t("calendar.editEntry") : t("calendar.newEntry")}</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Nationalité</Label>
+                  <Label>{t("calendar.colNationality")}</Label>
                   <Select value={editing.nationalityCode} onValueChange={(v) => setEditing({ ...editing, nationalityCode: v })}>
-                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("common.choose")} /></SelectTrigger>
                     <SelectContent>
                       {countries.map((c) => (
                         <SelectItem key={c.code} value={c.code}>{c.name} ({c.code})</SelectItem>
@@ -196,50 +193,54 @@ export function AdminIntakeCalendar() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Type</Label>
+                  <Label>{t("calendar.colType")}</Label>
                   <Select value={editing.deadlineType} onValueChange={(v) => setEditing({ ...editing, deadlineType: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                      {DEADLINE_TYPE_VALUES.map((v) => (
+                        <SelectItem key={v} value={v}>
+                          {t(`calendar.deadlineType_${v}`, { defaultValue: v })}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div>
-                <Label>Libellé</Label>
+                <Label>{t("calendar.colLabel")}</Label>
                 <Input value={editing.label} onChange={(e) => setEditing({ ...editing, label: e.target.value })} />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>Début (optionnel)</Label>
+                  <Label>{t("calendar.colStart")}</Label>
                   <Input type="date" value={editing.windowStart} onChange={(e) => setEditing({ ...editing, windowStart: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Échéance</Label>
+                  <Label>{t("calendar.colDeadline")}</Label>
                   <Input type="date" value={editing.windowEnd} onChange={(e) => setEditing({ ...editing, windowEnd: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Année académique</Label>
+                  <Label>{t("calendar.colYear")}</Label>
                   <Input placeholder="2026-2027" value={editing.academicYear} onChange={(e) => setEditing({ ...editing, academicYear: e.target.value })} />
                 </div>
               </div>
               <div>
-                <Label>Notes</Label>
+                <Label>{t("common.notes")}</Label>
                 <Textarea rows={2} value={editing.notes} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} />
               </div>
               <div>
-                <Label>Ordre d'affichage</Label>
+                <Label>{t("calendar.sortOrder")}</Label>
                 <Input type="number" value={editing.sortOrder} onChange={(e) => setEditing({ ...editing, sortOrder: Number(e.target.value) })} />
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setEditing(null)}>{t("common.cancel")}</Button>
             <Button
               onClick={save}
               disabled={!editing?.nationalityCode || !editing?.label || !editing?.windowEnd}
             >
-              Enregistrer
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

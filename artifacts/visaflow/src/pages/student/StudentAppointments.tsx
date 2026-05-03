@@ -45,24 +45,14 @@ function typeIcon(type: string) {
   }
 }
 
-function typeLabel(type: string) {
-  switch (type) {
-    case "campus_france":
-      return "Campus France";
-    case "tls_vfs":
-      return "TLS / VFS";
-    case "capago":
-      return "Capago";
-    case "prefecture":
-      return "Préfecture";
-    case "ofii":
-      return "OFII";
-    case "biometrics":
-      return "Biométrie";
-    default:
-      return "Autre";
-  }
-}
+const APT_TYPE_KEY: Record<string, string> = {
+  campus_france: "apt.typeCampusFrance",
+  tls_vfs: "apt.typeTlsVfs",
+  capago: "apt.typeCapago",
+  prefecture: "apt.typePrefecture",
+  ofii: "apt.typeOfii",
+  biometrics: "apt.typeBiometrics",
+};
 
 function typeChipColor(type: string) {
   switch (type) {
@@ -83,7 +73,7 @@ function typeChipColor(type: string) {
 }
 
 function Inner() {
-  const { t: tr } = useTranslation();
+  const { t } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data: apts = [] } = useListAppointments(studentId);
@@ -106,26 +96,26 @@ function Inner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">{tr("appointments.title")}</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("appointments.title")}</h1>
         <p className="text-slate-600 mt-1">
-          Vos entretiens Campus France et dépôts consulaires.
+          {t("appointments.subtitle")}
         </p>
       </div>
 
       <Tabs defaultValue="upcoming">
         <TabsList>
           <TabsTrigger value="upcoming" data-testid="tab-upcoming">
-            À venir ({upcoming.length})
+            {t("appointments.upcoming", { n: upcoming.length })}
           </TabsTrigger>
           <TabsTrigger value="past" data-testid="tab-past">
-            Passés ({past.length})
+            {t("appointments.past", { n: past.length })}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming" className="mt-4">
-          <AppointmentList items={upcoming} empty="Aucun rendez-vous à venir" />
+          <AppointmentList items={upcoming} emptyKey="appointments.noUpcoming" />
         </TabsContent>
         <TabsContent value="past" className="mt-4">
-          <AppointmentList items={past} empty="Aucun rendez-vous passé" past />
+          <AppointmentList items={past} emptyKey="appointments.noPast" past />
         </TabsContent>
       </Tabs>
     </div>
@@ -134,19 +124,20 @@ function Inner() {
 
 function AppointmentList({
   items,
-  empty,
+  emptyKey,
   past = false,
 }: {
   items: Appointment[];
-  empty: string;
+  emptyKey: string;
   past?: boolean;
 }) {
+  const { t } = useTranslation();
   if (items.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center text-slate-500">
           <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-          {empty}
+          {t(emptyKey)}
         </CardContent>
       </Card>
     );
@@ -167,7 +158,7 @@ function AppointmentList({
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-slate-900">{a.title}</span>
                   <span className={`text-xs px-2 py-0.5 rounded ${typeChipColor(a.type)}`}>
-                    {typeLabel(a.type)}
+                    {t(APT_TYPE_KEY[a.type] ?? "apt.typeOther")}
                   </span>
                   {a.provider && (
                     <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">

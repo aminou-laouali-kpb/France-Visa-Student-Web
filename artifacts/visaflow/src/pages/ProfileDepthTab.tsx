@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   useGetStudentProfileDepth,
   useUpsertStudentCivilStatus,
@@ -58,9 +59,10 @@ const EQUIV_STATUSES = ["not_requested", "requested", "received", "not_required"
 const MAX_WISHES = 7;
 
 export function ProfileDepthTab({ studentId }: { studentId: number }) {
+  const { t } = useTranslation();
   const { data: depth, refetch } = useGetStudentProfileDepth(studentId);
 
-  if (!depth) return <div className="p-4 text-slate-500">Chargement…</div>;
+  if (!depth) return <div className="p-4 text-slate-500">{t("common.loading")}</div>;
 
   return (
     <div className="space-y-4">
@@ -124,6 +126,7 @@ function CivilStatusCard({
   initial: any;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   const upsert = useUpsertStudentCivilStatus();
   const [form, setForm] = useState<Record<string, any>>(initial ?? {});
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
@@ -146,31 +149,31 @@ function CivilStatusCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">État civil & famille</CardTitle>
+        <CardTitle className="text-base">{t("depth.civilTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="grid md:grid-cols-3 gap-3">
-          <Field label="État civil">
+          <Field label={t("depth.maritalStatus")}>
             <select
               className="w-full border rounded-lg px-3 py-2 bg-white"
               value={form.maritalStatus ?? ""}
               onChange={(e) => set("maritalStatus", e.target.value || undefined)}
             >
               <option value="">—</option>
-              <option value="single">Célibataire</option>
-              <option value="married">Marié(e)</option>
-              <option value="divorced">Divorcé(e)</option>
-              <option value="widowed">Veuf(ve)</option>
-              <option value="other">Autre</option>
+              <option value="single">{t("depth.maritalSingle")}</option>
+              <option value="married">{t("depth.maritalMarried")}</option>
+              <option value="divorced">{t("depth.maritalDivorced")}</option>
+              <option value="widowed">{t("depth.maritalWidowed")}</option>
+              <option value="other">{t("depth.maritalOther")}</option>
             </select>
           </Field>
-          <Field label="Ville de naissance">
+          <Field label={t("depth.birthCity")}>
             <Input
               value={form.birthCity ?? ""}
               onChange={(e) => set("birthCity", e.target.value)}
             />
           </Field>
-          <Field label="Pays de naissance (code ISO)">
+          <Field label={t("depth.birthCountry")}>
             <Input
               value={form.birthCountryCode ?? ""}
               onChange={(e) => set("birthCountryCode", e.target.value)}
@@ -178,16 +181,16 @@ function CivilStatusCard({
           </Field>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
-          <Field label="Adresse">
+          <Field label={t("depth.address")}>
             <Input
               value={form.addressLine ?? ""}
               onChange={(e) => set("addressLine", e.target.value)}
             />
           </Field>
-          <Field label="Ville">
+          <Field label={t("depth.city")}>
             <Input value={form.city ?? ""} onChange={(e) => set("city", e.target.value)} />
           </Field>
-          <Field label="Code postal">
+          <Field label={t("depth.postalCode")}>
             <Input
               value={form.postalCode ?? ""}
               onChange={(e) => set("postalCode", e.target.value)}
@@ -195,19 +198,19 @@ function CivilStatusCard({
           </Field>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
-          <Field label="Prénom du père">
+          <Field label={t("depth.fatherFirstName")}>
             <Input
               value={form.fatherFirstName ?? ""}
               onChange={(e) => set("fatherFirstName", e.target.value)}
             />
           </Field>
-          <Field label="Nom du père">
+          <Field label={t("depth.fatherLastName")}>
             <Input
               value={form.fatherLastName ?? ""}
               onChange={(e) => set("fatherLastName", e.target.value)}
             />
           </Field>
-          <Field label="Profession du père">
+          <Field label={t("depth.fatherProfession")}>
             <Input
               value={form.fatherProfession ?? ""}
               onChange={(e) => set("fatherProfession", e.target.value)}
@@ -215,26 +218,26 @@ function CivilStatusCard({
           </Field>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
-          <Field label="Prénom de la mère">
+          <Field label={t("depth.motherFirstName")}>
             <Input
               value={form.motherFirstName ?? ""}
               onChange={(e) => set("motherFirstName", e.target.value)}
             />
           </Field>
-          <Field label="Nom de la mère">
+          <Field label={t("depth.motherLastName")}>
             <Input
               value={form.motherLastName ?? ""}
               onChange={(e) => set("motherLastName", e.target.value)}
             />
           </Field>
-          <Field label="Profession de la mère">
+          <Field label={t("depth.motherProfession")}>
             <Input
               value={form.motherProfession ?? ""}
               onChange={(e) => set("motherProfession", e.target.value)}
             />
           </Field>
         </div>
-        <Field label="Nombre de frères et sœurs">
+        <Field label={t("depth.siblings")}>
           <Input
             type="number"
             min={0}
@@ -249,7 +252,7 @@ function CivilStatusCard({
           />
         </Field>
         <Button onClick={save} data-testid="button-save-civil-status">
-          Enregistrer
+          {t("common.save")}
         </Button>
       </CardContent>
     </Card>
@@ -263,6 +266,7 @@ function PriorSchoolingCard({
   studentId: number;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   const { data: entries = [], refetch } = useListPriorSchooling(studentId);
   const create = useCreatePriorSchoolingEntry();
   const del = useDeletePriorSchoolingEntry();
@@ -311,16 +315,16 @@ function PriorSchoolingCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Parcours scolaire (5 dernières années)</CardTitle>
+        <CardTitle className="text-base">{t("depth.schoolingTitle")}</CardTitle>
         <Button size="sm" variant="outline" onClick={() => setShow(!show)}>
-          <Plus className="w-4 h-4 mr-1" /> Ajouter
+          <Plus className="w-4 h-4 mr-1" /> {t("depth.addEntry")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {show && (
           <div className="border rounded-lg p-3 space-y-3 bg-slate-50">
             <div className="grid md:grid-cols-2 gap-3">
-              <Field label="Établissement *">
+              <Field label={t("depth.institution")}>
                 <Input
                   value={form.institutionName}
                   onChange={(e) =>
@@ -329,7 +333,7 @@ function PriorSchoolingCard({
                   data-testid="input-school-name"
                 />
               </Field>
-              <Field label="Diplôme / Niveau">
+              <Field label={t("depth.diploma")}>
                 <Input
                   value={form.diplomaOrLevel}
                   onChange={(e) =>
@@ -337,39 +341,39 @@ function PriorSchoolingCard({
                   }
                 />
               </Field>
-              <Field label="Année de début">
+              <Field label={t("depth.startYear")}>
                 <Input
                   type="number"
                   value={form.startYear}
                   onChange={(e) => setForm({ ...form, startYear: e.target.value })}
                 />
               </Field>
-              <Field label="Année de fin">
+              <Field label={t("depth.endYear")}>
                 <Input
                   type="number"
                   value={form.endYear}
                   onChange={(e) => setForm({ ...form, endYear: e.target.value })}
                 />
               </Field>
-              <Field label="Ville">
+              <Field label={t("depth.schoolCity")}>
                 <Input
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
                 />
               </Field>
-              <Field label="Pays (code ISO)">
+              <Field label={t("depth.schoolCountry")}>
                 <Input
                   value={form.countryCode}
                   onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
                 />
               </Field>
-              <Field label="Mention / Note">
+              <Field label={t("depth.schoolGrade")}>
                 <Input
                   value={form.finalGrade}
                   onChange={(e) => setForm({ ...form, finalGrade: e.target.value })}
                 />
               </Field>
-              <Field label="Matières principales">
+              <Field label={t("depth.schoolMajors")}>
                 <Input
                   value={form.mainSubjects}
                   onChange={(e) =>
@@ -388,7 +392,7 @@ function PriorSchoolingCard({
           </div>
         )}
         {entries.length === 0 ? (
-          <div className="text-sm text-slate-500">Aucune entrée.</div>
+          <div className="text-sm text-slate-500">{t("depth.noEntries")}</div>
         ) : (
           <div className="divide-y">
             {(entries as any[]).map((e) => (
@@ -433,6 +437,7 @@ function LanguageTestsCard({
   studentId: number;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   const { data: tests = [], refetch } = useListLanguageTests(studentId);
   const create = useCreateLanguageTest();
   const del = useDeleteLanguageTest();
@@ -473,36 +478,36 @@ function LanguageTestsCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Tests de langue (TCF / TEF / DELF / DALF…)</CardTitle>
+        <CardTitle className="text-base">{t("depth.langTestsTitle")}</CardTitle>
         <Button size="sm" variant="outline" onClick={() => setShow(!show)}>
-          <Plus className="w-4 h-4 mr-1" /> Ajouter
+          <Plus className="w-4 h-4 mr-1" /> {t("depth.addEntry")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {show && (
           <div className="border rounded-lg p-3 space-y-3 bg-slate-50">
             <div className="grid md:grid-cols-3 gap-3">
-              <Field label="Type *">
+              <Field label={t("depth.langType")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.testType}
                   onChange={(e) => setForm({ ...form, testType: e.target.value })}
                   data-testid="select-test-type"
                 >
-                  {TEST_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {TEST_TYPES.map((tp) => (
+                    <option key={tp} value={tp}>
+                      {tp}
                     </option>
                   ))}
                 </select>
               </Field>
-              <Field label="Langue">
+              <Field label={t("depth.langLanguage")}>
                 <Input
                   value={form.language}
                   onChange={(e) => setForm({ ...form, language: e.target.value })}
                 />
               </Field>
-              <Field label="Niveau CECRL">
+              <Field label={t("depth.langLevel")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.level}
@@ -516,7 +521,7 @@ function LanguageTestsCard({
                   ))}
                 </select>
               </Field>
-              <Field label="Score global">
+              <Field label={t("depth.langScore")}>
                 <Input
                   value={form.overallScore}
                   onChange={(e) =>
@@ -525,14 +530,14 @@ function LanguageTestsCard({
                   data-testid="input-test-score"
                 />
               </Field>
-              <Field label="Date du test">
+              <Field label={t("depth.langTestDate")}>
                 <Input
                   type="date"
                   value={form.testDate}
                   onChange={(e) => setForm({ ...form, testDate: e.target.value })}
                 />
               </Field>
-              <Field label="Date d'expiration">
+              <Field label={t("depth.langExpiry")}>
                 <Input
                   type="date"
                   value={form.expiryDate}
@@ -542,12 +547,12 @@ function LanguageTestsCard({
               </Field>
             </div>
             <Button onClick={handleAdd} data-testid="button-add-test">
-              Ajouter
+              {t("depth.addEntry")}
             </Button>
           </div>
         )}
         {tests.length === 0 ? (
-          <div className="text-sm text-slate-500">Aucun test enregistré.</div>
+          <div className="text-sm text-slate-500">{t("depth.noEntries")}</div>
         ) : (
           <div className="divide-y">
             {(tests as any[]).map((t) => {
@@ -612,6 +617,7 @@ function DiplomaEquivalencesCard({
   studentId: number;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   const { data: entries = [], refetch } = useListDiplomaEquivalences(studentId);
   const create = useCreateDiplomaEquivalence();
   const del = useDeleteDiplomaEquivalence();
@@ -653,17 +659,17 @@ function DiplomaEquivalencesCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">
-          Équivalences de diplômes (ENIC-NARIC)
+          {t("depth.equivTitle")}
         </CardTitle>
         <Button size="sm" variant="outline" onClick={() => setShow(!show)}>
-          <Plus className="w-4 h-4 mr-1" /> Ajouter
+          <Plus className="w-4 h-4 mr-1" /> {t("depth.addEntry")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {show && (
           <div className="border rounded-lg p-3 space-y-3 bg-slate-50">
             <div className="grid md:grid-cols-2 gap-3">
-              <Field label="Diplôme d'origine *">
+              <Field label={t("depth.equivDiploma")}>
                 <Input
                   value={form.originalDiploma}
                   onChange={(e) =>
@@ -671,7 +677,7 @@ function DiplomaEquivalencesCard({
                   }
                 />
               </Field>
-              <Field label="Pays d'origine (code ISO)">
+              <Field label={t("depth.equivCountry")}>
                 <Input
                   value={form.originalCountryCode}
                   onChange={(e) =>
@@ -679,7 +685,7 @@ function DiplomaEquivalencesCard({
                   }
                 />
               </Field>
-              <Field label="Niveau équivalent (L1/L2/L3/M1/M2)">
+              <Field label={t("depth.equivLevel")}>
                 <Input
                   value={form.equivalentLevel}
                   onChange={(e) =>
@@ -687,7 +693,7 @@ function DiplomaEquivalencesCard({
                   }
                 />
               </Field>
-              <Field label="N° de référence ENIC-NARIC">
+              <Field label={t("depth.equivRef")}>
                 <Input
                   value={form.enicNaricRef}
                   onChange={(e) =>
@@ -695,7 +701,7 @@ function DiplomaEquivalencesCard({
                   }
                 />
               </Field>
-              <Field label="Statut">
+              <Field label={t("depth.equivStatus")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.status}
@@ -709,7 +715,7 @@ function DiplomaEquivalencesCard({
                 </select>
               </Field>
             </div>
-            <Field label="Notes">
+            <Field label={t("common.notes")}>
               <Textarea
                 rows={2}
                 value={form.notes}
@@ -720,13 +726,13 @@ function DiplomaEquivalencesCard({
               onClick={handleAdd}
               disabled={!form.originalDiploma.trim()}
             >
-              Ajouter
+              {t("depth.addEntry")}
             </Button>
           </div>
         )}
         {entries.length === 0 ? (
           <div className="text-sm text-slate-500">
-            Aucune équivalence enregistrée.
+            {t("depth.noEntries")}
           </div>
         ) : (
           <div className="divide-y">
@@ -763,6 +769,7 @@ function EefWishesCard({
   studentId: number;
   onChange: () => void;
 }) {
+  const { t } = useTranslation();
   const { data: wishes = [], refetch } = useListEefWishes(studentId);
   const { data: schools = [] } = useListSchools();
   const create = useCreateEefWish();
@@ -833,14 +840,14 @@ function EefWishesCard({
           onClick={() => setShow(!show)}
           disabled={wishesArr.length >= MAX_WISHES}
         >
-          <Plus className="w-4 h-4 mr-1" /> Ajouter un vœu
+          <Plus className="w-4 h-4 mr-1" /> {t("depth.addWish")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {show && (
           <div className="border rounded-lg p-3 space-y-3 bg-slate-50">
             <div className="grid md:grid-cols-3 gap-3">
-              <Field label="Rang (1–7) *">
+              <Field label={t("depth.wishRank")}>
                 <Input
                   type="number"
                   min={1}
@@ -852,7 +859,7 @@ function EefWishesCard({
                   data-testid="input-wish-order"
                 />
               </Field>
-              <Field label="École (catalogue)">
+              <Field label={t("depth.wishSchoolCatalog")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.schoolId}
@@ -867,7 +874,7 @@ function EefWishesCard({
                   ))}
                 </select>
               </Field>
-              <Field label="Statut">
+              <Field label={t("depth.wishStatus")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"
                   value={form.status}
@@ -881,7 +888,7 @@ function EefWishesCard({
                 </select>
               </Field>
             </div>
-            <Field label="École (texte libre, si hors catalogue)">
+            <Field label={t("depth.wishSchoolFree")}>
               <Input
                 value={form.schoolNameFreeText}
                 onChange={(e) =>
@@ -889,7 +896,7 @@ function EefWishesCard({
                 }
               />
             </Field>
-            <Field label="Programme / Formation">
+            <Field label={t("depth.wishProgram")}>
               <Input
                 value={form.programNameFreeText}
                 onChange={(e) =>
@@ -897,7 +904,7 @@ function EefWishesCard({
                 }
               />
             </Field>
-            <Field label="Motivation">
+            <Field label={t("depth.wishMotivation")}>
               <Textarea
                 rows={3}
                 value={form.motivationText}
@@ -908,13 +915,13 @@ function EefWishesCard({
               />
             </Field>
             <Button onClick={handleAdd} data-testid="button-add-wish">
-              Ajouter le vœu
+              {t("depth.addWishBtn")}
             </Button>
           </div>
         )}
         {wishesArr.length === 0 ? (
           <div className="text-sm text-slate-500">
-            Aucun vœu enregistré (jusqu'à 7 vœux possibles).
+            {t("depth.noWishes")}
           </div>
         ) : (
           <div className="divide-y">

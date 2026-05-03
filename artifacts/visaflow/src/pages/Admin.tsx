@@ -18,6 +18,7 @@ import { ROLE_LABELS, formatDateTime } from "@/lib/utils";
 import { CountryFlag } from "@/components/CountryFlag";
 import { UserPlus, Search } from "lucide-react";
 import type { UserRow, AuditLog, School, Country } from "@/types";
+import { useTranslation } from "react-i18next";
 
 type UpdateUserBody = { role?: string; isActive?: boolean };
 type CreateSchoolBody = { name: string; city: string; website: string };
@@ -32,6 +33,7 @@ const CLERK_INVITE_URL =
   "https://dashboard.clerk.com/last-active?path=organizations";
 
 export function AdminUsers() {
+  const { t } = useTranslation();
   const { data: users = [], refetch } = useListUsers({});
   const update = useUpdateUser();
   const [q, setQ] = useState("");
@@ -63,11 +65,11 @@ export function AdminUsers() {
   return (
     <div className="space-y-6" data-testid="admin-users">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Utilisateurs</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("admin.usersTitle")}</h1>
         <a href={CLERK_INVITE_URL} target="_blank" rel="noreferrer">
           <Button data-testid="button-invite-user">
             <UserPlus className="w-4 h-4 mr-2" />
-            Inviter un utilisateur
+            {t("admin.inviteUser")}
           </Button>
         </a>
       </div>
@@ -77,7 +79,7 @@ export function AdminUsers() {
           <div className="relative md:col-span-2">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              placeholder="Rechercher (nom, email)…"
+              placeholder={t("admin.searchUsers")}
               className="pl-9"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -90,7 +92,7 @@ export function AdminUsers() {
             onChange={(e) => setRoleFilter(e.target.value)}
             data-testid="select-role-filter"
           >
-            <option value="">Tous rôles</option>
+            <option value="">{t("admin.allRoles")}</option>
             {["student", "advisor", "reviewer", "admin", "superadmin"].map(
               (r) => (
                 <option key={r} value={r}>
@@ -107,10 +109,10 @@ export function AdminUsers() {
           <table className="w-full">
             <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Utilisateur</th>
-                <th className="text-left px-4 py-3 font-medium">Rôle</th>
-                <th className="text-left px-4 py-3 font-medium">Statut</th>
-                <th className="text-left px-4 py-3 font-medium">Inscrit</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colUser")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colRole")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colStatus")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colRegistered")}</th>
               </tr>
             </thead>
             <tbody>
@@ -143,7 +145,7 @@ export function AdminUsers() {
                       onClick={() => toggleActive(u.id, !u.isActive)}
                       data-testid={`button-toggle-active-${u.id}`}
                     >
-                      {u.isActive ? "Actif" : "Désactivé"}
+                      {u.isActive ? t("admin.userActive") : t("admin.userDisabled")}
                     </Button>
                   </td>
                   <td className="px-4 py-3 text-sm text-slate-500">
@@ -154,7 +156,7 @@ export function AdminUsers() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={4} className="p-12 text-center text-slate-500">
-                    Aucun utilisateur ne correspond à ces filtres.
+                    {t("admin.noUsersMatch")}
                   </td>
                 </tr>
               )}
@@ -167,19 +169,20 @@ export function AdminUsers() {
 }
 
 export function AdminAudit() {
+  const { t } = useTranslation();
   const { data: logs = [] } = useListAuditLogs({});
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-slate-900">Journal d'audit</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{t("audit.title")}</h1>
       <Card>
         <CardContent className="p-0">
           <table className="w-full">
             <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Date</th>
-                <th className="text-left px-4 py-3 font-medium">Action</th>
-                <th className="text-left px-4 py-3 font-medium">Entité</th>
-                <th className="text-left px-4 py-3 font-medium">Détails</th>
+                <th className="text-left px-4 py-3 font-medium">{t("table.date")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("table.action")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("table.entity")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("table.details")}</th>
               </tr>
             </thead>
             <tbody>
@@ -225,24 +228,25 @@ export function AdminSchools() {
     refetch();
   };
 
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-slate-900">Écoles</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{t("admin.schoolsTitle")}</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Ajouter une école</CardTitle>
+          <CardTitle className="text-base">{t("admin.addSchool")}</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-4 gap-3">
           <div>
-            <Label>Nom</Label>
+            <Label>{t("admin.colName")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label>Ville</Label>
+            <Label>{t("admin.colCity")}</Label>
             <Input value={city} onChange={(e) => setCity(e.target.value)} />
           </div>
           <div>
-            <Label>Site web</Label>
+            <Label>{t("admin.colSite")}</Label>
             <Input
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
@@ -250,7 +254,7 @@ export function AdminSchools() {
           </div>
           <div className="flex items-end">
             <Button onClick={submit} data-testid="button-create-school">
-              Créer
+              {t("admin.create")}
             </Button>
           </div>
         </CardContent>
@@ -260,9 +264,9 @@ export function AdminSchools() {
           <table className="w-full">
             <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">École</th>
-                <th className="text-left px-4 py-3 font-medium">Ville</th>
-                <th className="text-left px-4 py-3 font-medium">Site</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colSchool")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colCity")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colSite")}</th>
               </tr>
             </thead>
             <tbody>
@@ -320,20 +324,21 @@ export function AdminCountries() {
     refetch();
   };
 
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-slate-900">Pays</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{t("admin.countriesTitle")}</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Ajouter un pays</CardTitle>
+          <CardTitle className="text-base">{t("admin.addCountry")}</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-5 gap-3">
           <div>
-            <Label>Nom</Label>
+            <Label>{t("admin.colName")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label>Code</Label>
+            <Label>{t("admin.colCode")}</Label>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -341,7 +346,7 @@ export function AdminCountries() {
             />
           </div>
           <div>
-            <Label>Centre visa</Label>
+            <Label>{t("admin.colVisaCenter")}</Label>
             <Input
               value={visaCenter}
               onChange={(e) => setVisaCenter(e.target.value)}
@@ -354,11 +359,11 @@ export function AdminCountries() {
               checked={requiresCampusFrance}
               onChange={(e) => setRequiresCampusFrance(e.target.checked)}
             />
-            <Label htmlFor="cf">Campus France</Label>
+            <Label htmlFor="cf">{t("admin.colCampusFrance")}</Label>
           </div>
           <div className="flex items-end">
             <Button onClick={submit} data-testid="button-create-country">
-              Créer
+              {t("admin.create")}
             </Button>
           </div>
         </CardContent>
@@ -368,12 +373,12 @@ export function AdminCountries() {
           <table className="w-full">
             <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Pays</th>
-                <th className="text-left px-4 py-3 font-medium">Code</th>
+                <th className="text-left px-4 py-3 font-medium">{t("table.country")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colCode")}</th>
                 <th className="text-left px-4 py-3 font-medium">
-                  Campus France
+                  {t("admin.colCampusFrance")}
                 </th>
-                <th className="text-left px-4 py-3 font-medium">Centre visa</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.colVisaCenter")}</th>
               </tr>
             </thead>
             <tbody>

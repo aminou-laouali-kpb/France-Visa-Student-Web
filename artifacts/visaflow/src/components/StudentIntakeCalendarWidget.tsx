@@ -2,6 +2,7 @@ import { useGetUpcomingIntakeDeadlines } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarClock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Entry = {
   id: number;
@@ -12,13 +13,6 @@ type Entry = {
   academicYear: string | null;
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  campus_france: "Campus France",
-  visa_appointment: "Visa",
-  school_application: "École",
-  other: "Autre",
-};
-
 function daysFromNow(iso: string): number {
   const d = new Date(iso + "T00:00:00Z").getTime();
   const today = new Date();
@@ -27,6 +21,7 @@ function daysFromNow(iso: string): number {
 }
 
 export function StudentIntakeCalendarWidget() {
+  const { t } = useTranslation();
   const { data, isLoading } = useGetUpcomingIntakeDeadlines({ limit: 3 });
   const rows = (data ?? []) as Entry[];
 
@@ -35,15 +30,15 @@ export function StudentIntakeCalendarWidget() {
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarClock className="w-4 h-4 text-blue-600" />
-          Prochaines échéances pour votre pays
+          {t("calendar.upcomingDeadlines")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {isLoading ? (
-          <div className="text-sm text-slate-500 py-2">Chargement…</div>
+          <div className="text-sm text-slate-500 py-2">{t("common.loading")}</div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-slate-500 py-2">
-            Aucune échéance enregistrée pour votre nationalité.
+            {t("calendar.noDeadlines")}
           </div>
         ) : (
           rows.map((r) => {
@@ -62,12 +57,14 @@ export function StudentIntakeCalendarWidget() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <Badge variant="outline">{TYPE_LABELS[r.deadlineType] ?? r.deadlineType}</Badge>
+                  <Badge variant="outline">
+                    {t(`calendar.deadlineType_${r.deadlineType}`, { defaultValue: r.deadlineType })}
+                  </Badge>
                   <span className={
                     "text-xs " +
                     (days <= 7 ? "text-rose-700 font-medium" : days <= 30 ? "text-amber-700" : "text-slate-500")
                   }>
-                    {days <= 0 ? "Aujourd'hui" : `J−${days}`}
+                    {days <= 0 ? t("calendar.today") : t("calendar.daysLeft", { n: days })}
                   </span>
                 </div>
               </div>

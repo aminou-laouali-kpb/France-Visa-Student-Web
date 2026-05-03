@@ -76,20 +76,20 @@ function StudentDashboard() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between gap-6">
-            <ProgressRing value={data.completionScore} label="complété" />
+            <ProgressRing value={data.completionScore} label={tr("dash.completed")} />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm text-slate-600">Statut du dossier</div>
+                <div className="text-sm text-slate-600">{tr("dash.dossierStatus")}</div>
                 <StatusBadge status={data.student.status} />
               </div>
               <div className="text-lg font-semibold text-slate-900">
-                {data.completedSteps} / {data.totalSteps} étapes validées
+                {tr("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
               </div>
               <Progress value={data.completionScore} className="h-2 mt-2" />
               {data.pendingDocuments > 0 && (
                 <div className="text-sm text-amber-700 mt-3 flex items-center gap-1">
                   <AlertTriangle className="w-4 h-4" />
-                  {data.pendingDocuments} document(s) à corriger
+                  {tr("dash.docsToCorrect", { n: data.pendingDocuments })}
                 </div>
               )}
             </div>
@@ -102,10 +102,10 @@ function StudentDashboard() {
           <CardContent className="p-5">
             <FileText className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.documentsCount}</div>
-            <div className="text-sm text-slate-600">Documents téléversés</div>
+            <div className="text-sm text-slate-600">{tr("dash.uploadsCount")}</div>
             {data.pendingDocuments > 0 && (
               <div className="text-xs text-amber-600 mt-1">
-                {data.pendingDocuments} à corriger
+                {tr("dash.docsToCorrect", { n: data.pendingDocuments })}
               </div>
             )}
           </CardContent>
@@ -114,14 +114,14 @@ function StudentDashboard() {
           <CardContent className="p-5">
             <Calendar className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.upcomingAppointments?.length ?? 0}</div>
-            <div className="text-sm text-slate-600">Rendez-vous à venir</div>
+            <div className="text-sm text-slate-600">{tr("dash.upcomingAppts")}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
             <Bell className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.unreadNotifications}</div>
-            <div className="text-sm text-slate-600">Notifications non lues</div>
+            <div className="text-sm text-slate-600">{tr("dash.unreadNotifs")}</div>
           </CardContent>
         </Card>
       </div>
@@ -129,7 +129,7 @@ function StudentDashboard() {
       {data.currentStep && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Prochaine étape</CardTitle>
+            <CardTitle className="text-base">{tr("dash.nextStep")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-start gap-3">
@@ -142,7 +142,7 @@ function StudentDashboard() {
               </div>
               <Link href="/app/dossier">
                 <Button variant="outline" size="sm" data-testid="button-view-step">
-                  Voir
+                  {tr("dash.view")}
                 </Button>
               </Link>
             </div>
@@ -153,7 +153,7 @@ function StudentDashboard() {
       {data.upcomingAppointments && data.upcomingAppointments.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Rendez-vous à venir</CardTitle>
+            <CardTitle className="text-base">{tr("dash.upcomingAppts")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {data.upcomingAppointments.map((apt: Appointment) => (
@@ -184,41 +184,42 @@ function AdvisorDashboard() {
   const explained = (highRiskStudents as unknown as StudentSummary[])
     .filter((s) => s.riskNarrative && s.riskNarrative.trim().length > 0)
     .slice(0, 5);
-  if (isLoading) return <div>Chargement…</div>;
+  const { t: tr } = useTranslation();
+  if (isLoading) return <div>{tr("common.loading")}</div>;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">
-          Bonjour, {me?.firstName} 👋
+          {tr("dash.hello", { name: me?.firstName })} 👋
         </h1>
         <p className="text-slate-600 mt-1">
-          Vous suivez actuellement {data?.totalStudents ?? 0} étudiant(s)
+          {tr("dash.advisorSubtitle", { n: data?.totalStudents ?? 0 })}
         </p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
-          label="Étudiants à risque"
+          label={tr("dash.highRisk")}
           value={data?.highRiskStudents ?? 0}
           tone="blue"
         />
         <StatCard
           icon={AlertTriangle}
-          label="Dossiers bloqués"
+          label={tr("dash.blocked")}
           value={data?.blockedStudents ?? 0}
           tone="red"
         />
         <StatCard
           icon={Plane}
-          label="RDV aujourd'hui"
+          label={tr("dash.todayAppts")}
           value={data?.todayAppointments ?? 0}
           tone="green"
         />
         <StatCard
           icon={ClipboardList}
-          label="Docs à valider"
+          label={tr("portfolio.docsToValidate")}
           value={data?.documentsAwaitingReview ?? 0}
           tone="amber"
         />
@@ -226,10 +227,10 @@ function AdvisorDashboard() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Étudiants à suivre</CardTitle>
+          <CardTitle>{tr("dash.studentsToFollow")}</CardTitle>
           <Link href="/app/students">
             <Button variant="outline" size="sm" data-testid="link-all-students">
-              Tous les étudiants
+              {tr("dash.allStudents")}
             </Button>
           </Link>
         </CardHeader>
@@ -256,7 +257,7 @@ function AdvisorDashboard() {
             ))}
             {(!data?.urgentStudents || data.urgentStudents.length === 0) && (
               <div className="text-center text-slate-500 py-8">
-                Aucun étudiant à suivre
+                {tr("dash.noStudents")}
               </div>
             )}
           </div>
@@ -268,7 +269,7 @@ function AdvisorDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sparkles className="w-4 h-4 text-purple-600" />
-              Risques expliqués par l'IA
+              {tr("dash.aiRisk")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -281,7 +282,7 @@ function AdvisorDashboard() {
                         {s.firstName} {s.lastName}
                       </div>
                       <span className="text-xs uppercase tracking-wide font-semibold text-red-600">
-                        Risque élevé
+                        {tr("dash.highRisk")}
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed">
@@ -301,49 +302,49 @@ function AdvisorDashboard() {
 function AdminDashboard() {
   const { t: tr } = useTranslation();
   const { data, isLoading } = useGetAdminDashboard();
-  if (isLoading) return <div>Chargement…</div>;
+  if (isLoading) return <div>{tr("common.loading")}</div>;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">{tr("dashboard.controlCenter")}</h1>
-        <p className="text-slate-600 mt-1">Vue globale de la plateforme</p>
+        <p className="text-slate-600 mt-1">{tr("dash.platformView")}</p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Conseillers actifs" value={data?.totalAdvisors ?? 0} tone="blue" />
+        <StatCard icon={Users} label={tr("dash.activeAdvisors")} value={data?.totalAdvisors ?? 0} tone="blue" />
         <StatCard
           icon={GraduationCap}
-          label="Étudiants"
+          label={tr("dash.totalStudents")}
           value={data?.totalStudents ?? 0}
           tone="indigo"
         />
         <StatCard
           icon={FileText}
-          label="Score moyen"
+          label={tr("dash.avgScore")}
           value={data?.avgCompletionScore ?? 0}
           tone="purple"
         />
-        <StatCard icon={Plane} label="Visas obtenus" value={data?.studentsWithVisa ?? 0} tone="green" />
+        <StatCard icon={Plane} label={tr("dash.visasObtained")} value={data?.studentsWithVisa ?? 0} tone="green" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Répartition des dossiers</CardTitle>
+            <CardTitle className="text-base">{tr("dash.dossierBreakdown")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="En cours" value={data?.studentsInProgress ?? 0} />
-            <Row label="Bloqués" value={data?.studentsBlocked ?? 0} />
-            <Row label="Visas obtenus" value={data?.studentsWithVisa ?? 0} />
-            <Row label="Visas refusés" value={data?.visaRefused ?? 0} />
-            <Row label="Risque élevé" value={data?.highRiskCount ?? 0} />
+            <Row label={tr("dash.inProgress")} value={data?.studentsInProgress ?? 0} />
+            <Row label={tr("dash.blocked")} value={data?.studentsBlocked ?? 0} />
+            <Row label={tr("dash.visasObtained")} value={data?.studentsWithVisa ?? 0} />
+            <Row label={tr("dash.visasRefused")} value={data?.visaRefused ?? 0} />
+            <Row label={tr("dash.highRisk")} value={data?.highRiskCount ?? 0} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Étudiants par étape</CardTitle>
+            <CardTitle className="text-base">{tr("dash.studentsByStep")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {(data?.byStep ?? []).slice(0, 6).map((s) => (
@@ -355,7 +356,7 @@ function AdminDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Activité récente</CardTitle>
+          <CardTitle className="text-base">{tr("dash.recentActivity")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {(data?.recentAuditLogs ?? []).slice(0, 10).map((log: AuditLog) => (
@@ -365,7 +366,7 @@ function AdminDashboard() {
             >
               <div>
                 <span className="font-medium">{log.action}</span>{" "}
-                <span className="text-slate-500">sur {log.entityType}</span>
+                <span className="text-slate-500">{tr("dash.on")} {log.entityType}</span>
               </div>
               <div className="text-xs text-slate-500">{formatDateTime(log.createdAt)}</div>
             </div>

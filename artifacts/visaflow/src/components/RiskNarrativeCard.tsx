@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/react";
 import { formatDateTime } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface NarrativePayload {
   narrative: string | null;
@@ -19,6 +20,7 @@ interface NarrativePayload {
  * underlying signals haven't changed (the server returns the cached copy).
  */
 export function RiskNarrativeCard({ studentId }: { studentId: number }) {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const qc = useQueryClient();
   const [data, setData] = useState<NarrativePayload | null>(null);
@@ -116,19 +118,19 @@ export function RiskNarrativeCard({ studentId }: { studentId: number }) {
             disabled={generating}
             data-testid="button-generate-narrative"
           >
-            {data?.narrative ? "Regénérer" : "Générer"}
+            {data?.narrative ? t("narrative.regenerate") : t("narrative.generate")}
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {loading && <div className="text-sm text-slate-500">Chargement…</div>}
+        {loading && <div className="text-sm text-slate-500">{t("common.loading")}</div>}
         {!loading && !data?.narrative && !generating && (
           <div className="text-sm text-slate-500">
-            Aucune explication encore générée. Cliquez sur « Générer » pour obtenir une analyse en 2-3 phrases.
+            {t("narrative.empty")}
           </div>
         )}
         {generating && (
-          <div className="text-sm text-slate-500">Analyse du dossier…</div>
+          <div className="text-sm text-slate-500">{t("narrative.analysing")}</div>
         )}
         {data?.narrative && !generating && (
           <>
@@ -141,7 +143,7 @@ export function RiskNarrativeCard({ studentId }: { studentId: number }) {
             <div className="flex items-center justify-between">
               {data.updatedAt && (
                 <div className="text-xs text-slate-400">
-                  Mis à jour le {formatDateTime(data.updatedAt)}
+                  {t("narrative.updatedAt")} {formatDateTime(data.updatedAt)}
                 </div>
               )}
               <div className="flex gap-1">

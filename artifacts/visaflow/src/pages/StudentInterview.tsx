@@ -19,6 +19,7 @@ import {
 import { formatDateTime } from "@/lib/utils";
 import { StudentGate, useMyStudent } from "./student/StudentLayout";
 import type { InterviewUI, InterviewTurnUI } from "@/types";
+import { useTranslation } from "react-i18next";
 
 /**
  * Campus France interview simulator.
@@ -213,43 +214,44 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────
+  const { t } = useTranslation();
   if (!current) {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Simulateur d'entretien Campus France</h1>
+          <h1 className="text-3xl font-bold text-slate-900">{t("interview.title")}</h1>
           <p className="text-slate-600 mt-1">
-            Entraînez-vous à l'entretien préalable au visa. L'IA joue l'examinateur, vous évalue et vous donne un retour détaillé.
+            {t("interview.subtitle")}
           </p>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Mode texte</CardTitle>
+              <CardTitle className="text-base">{t("interview.modeText")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-slate-600">
-              <p>Lisez la question, répondez par écrit. Idéal pour structurer vos idées.</p>
+              <p>{t("interview.modeTextDesc")}</p>
               <Button
                 onClick={() => start("text")}
                 disabled={busy}
                 data-testid="button-start-interview-text"
               >
-                Commencer en texte
+                {t("interview.startText")}
               </Button>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Mode voix</CardTitle>
+              <CardTitle className="text-base">{t("interview.modeVoice")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-slate-600">
-              <p>Répondez à voix haute, comme en situation. Vos réponses sont transcrites et évaluées.</p>
+              <p>{t("interview.modeVoiceDesc")}</p>
               <Button
                 onClick={() => start("voice")}
                 disabled={busy}
                 data-testid="button-start-interview-voice"
               >
-                Commencer à l'oral
+                {t("interview.startVoice")}
               </Button>
             </CardContent>
           </Card>
@@ -258,7 +260,7 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <ListChecks className="w-4 h-4" /> Mes entretiens
+                <ListChecks className="w-4 h-4" /> {t("interview.myInterviews")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">
@@ -271,15 +273,15 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
                 >
                   <div>
                     <div className="text-sm font-medium">
-                      Entretien du {formatDateTime(h.createdAt)}
+                      {t("interview.interviewOf", { date: formatDateTime(h.createdAt) })}
                     </div>
                     <div className="text-xs text-slate-500">
-                      Mode : {h.mode === "voice" ? "voix" : "texte"} · Statut :{" "}
+                      {t("interview.modeLabel")} : {h.mode === "voice" ? t("interview.modeShortVoice") : t("interview.modeShortText")} · {t("admin.colStatus")} :{" "}
                       {h.status === "completed"
-                        ? "terminé"
+                        ? t("interview.statusCompleted")
                         : h.status === "in_progress"
-                          ? "en cours"
-                          : "abandonné"}
+                          ? t("interview.statusInProgress")
+                          : t("interview.statusAbandoned")}
                     </div>
                   </div>
                   {h.score?.overall !== undefined && (
@@ -306,10 +308,10 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={() => setCurrent(null)} data-testid="button-back-to-list">
-          <ArrowLeft className="w-4 h-4 mr-1" /> Retour
+          <ArrowLeft className="w-4 h-4 mr-1" /> {t("interview.back")}
         </Button>
         <div className="text-sm text-slate-500">
-          {studentTurnCount} / 6 réponses · {current.mode === "voice" ? "voix" : "texte"}
+          {t("interview.responsesOf", { count: studentTurnCount })} · {current.mode === "voice" ? t("interview.modeShortVoice") : t("interview.modeShortText")}
         </div>
       </div>
 
@@ -338,7 +340,7 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
                   rows={4}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="Votre réponse…"
+                  placeholder={t("interview.answerPh")}
                   data-testid="textarea-answer"
                 />
                 <div className="flex justify-end gap-2">
@@ -348,7 +350,7 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
                     data-testid="button-submit-answer"
                   >
                     {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
-                    Envoyer
+                    {t("interview.send")}
                   </Button>
                 </div>
               </>
@@ -360,7 +362,7 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
                     disabled={busy || transcribing}
                     data-testid="button-start-recording"
                   >
-                    <Mic className="w-4 h-4 mr-1" /> Enregistrer ma réponse
+                    <Mic className="w-4 h-4 mr-1" /> {t("interview.record")}
                   </Button>
                 ) : (
                   <Button
@@ -368,12 +370,12 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
                     onClick={stopRecording}
                     data-testid="button-stop-recording"
                   >
-                    <Square className="w-4 h-4 mr-1" /> Arrêter
+                    <Square className="w-4 h-4 mr-1" /> {t("interview.stop")}
                   </Button>
                 )}
                 {transcribing && (
                   <span className="text-sm text-slate-500 flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Transcription…
+                    <Loader2 className="w-3 h-3 animate-spin" /> {t("interview.transcribing")}
                   </span>
                 )}
               </div>
@@ -386,14 +388,14 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
         <div className="flex justify-end">
           <Button onClick={finish} disabled={busy} data-testid="button-finish-interview">
             {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Star className="w-4 h-4 mr-1" />}
-            Terminer et obtenir le bilan
+            {t("interview.finish")}
           </Button>
         </div>
       )}
       {inProgress && studentTurnCount > 0 && studentTurnCount < 6 && (
         <div className="flex justify-end">
           <Button variant="outline" onClick={finish} disabled={busy} data-testid="button-finish-early">
-            Terminer plus tôt
+            {t("interview.finishEarly")}
           </Button>
         </div>
       )}
@@ -406,6 +408,7 @@ export function InterviewWorkbench({ studentId }: { studentId: number }) {
 }
 
 function Turn({ turn }: { turn: InterviewTurnUI }) {
+  const { t } = useTranslation();
   const isInterviewer = turn.role === "interviewer";
   return (
     <div className={`flex ${isInterviewer ? "justify-start" : "justify-end"}`} data-testid={`turn-${turn.id}`}>
@@ -417,7 +420,7 @@ function Turn({ turn }: { turn: InterviewTurnUI }) {
         }`}
       >
         <div className="text-[11px] uppercase tracking-wide font-semibold opacity-70 mb-0.5">
-          {isInterviewer ? "Examinateur" : "Vous"}
+          {isInterviewer ? t("interview.examiner") : t("interview.you")}
         </div>
         {turn.content}
       </div>
@@ -432,13 +435,14 @@ function ReportPanel({
   interview: InterviewUI;
   onRestart: () => void;
 }) {
+  const { t } = useTranslation();
   const score = interview.score ?? {};
   const axes: { key: keyof typeof score; label: string }[] = [
-    { key: "motivation", label: "Motivation" },
-    { key: "coherence", label: "Cohérence" },
-    { key: "french", label: "Français" },
-    { key: "knowledge", label: "Connaissance du programme" },
-    { key: "returnPlan", label: "Plan de retour" },
+    { key: "motivation", label: t("interview.axeMotivation") },
+    { key: "coherence", label: t("interview.axeCoherence") },
+    { key: "french", label: t("interview.axeFrench") },
+    { key: "knowledge", label: t("interview.axeKnowledge") },
+    { key: "returnPlan", label: t("interview.axeReturnPlan") },
   ];
   return (
     <Card>
@@ -446,10 +450,10 @@ function ReportPanel({
         <CardTitle className="text-base flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Star className="w-4 h-4 text-amber-500" />
-            Bilan de l'entretien
+            {t("interview.reportTitle")}
           </span>
           <Button size="sm" variant="outline" onClick={onRestart} data-testid="button-restart-interview">
-            <RotateCcw className="w-4 h-4 mr-1" /> Nouvel entretien
+            <RotateCcw className="w-4 h-4 mr-1" /> {t("interview.newInterview")}
           </Button>
         </CardTitle>
       </CardHeader>
@@ -466,14 +470,14 @@ function ReportPanel({
         </div>
         {typeof score.overall === "number" && (
           <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-3 flex items-center justify-between">
-            <span className="font-semibold text-indigo-900">Note globale</span>
+            <span className="font-semibold text-indigo-900">{t("interview.overallScore")}</span>
             <span className="text-2xl font-bold text-indigo-900">{score.overall}/10</span>
           </div>
         )}
         {interview.feedback && (
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-700 mb-1">
-              Retour de l'examinateur
+              {t("interview.examinerFeedback")}
             </div>
             <p className="text-sm text-slate-800 whitespace-pre-wrap" data-testid="text-interview-feedback">
               {interview.feedback}
@@ -482,13 +486,13 @@ function ReportPanel({
         )}
         <div className="grid md:grid-cols-3 gap-3">
           {interview.strengths && interview.strengths.length > 0 && (
-            <ListBlock title="Points forts" tone="emerald" items={interview.strengths} />
+            <ListBlock title={t("interview.strengths")} tone="emerald" items={interview.strengths} />
           )}
           {interview.weaknesses && interview.weaknesses.length > 0 && (
-            <ListBlock title="Axes de progrès" tone="rose" items={interview.weaknesses} />
+            <ListBlock title={t("interview.weaknesses")} tone="rose" items={interview.weaknesses} />
           )}
           {interview.suggestions && interview.suggestions.length > 0 && (
-            <ListBlock title="Suggestions" tone="blue" items={interview.suggestions} />
+            <ListBlock title={t("interview.suggestions")} tone="blue" items={interview.suggestions} />
           )}
         </div>
       </CardContent>

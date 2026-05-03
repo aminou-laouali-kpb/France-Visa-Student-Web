@@ -195,7 +195,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <button
             className="lg:hidden p-2 -ml-2 rounded-md hover:bg-slate-100"
             onClick={() => setSidebarOpen((v) => !v)}
-            aria-label="Toggle menu"
+            aria-label={t("common.toggleMenu")}
             data-testid="button-sidebar-toggle"
           >
             <Menu className="w-5 h-5" />

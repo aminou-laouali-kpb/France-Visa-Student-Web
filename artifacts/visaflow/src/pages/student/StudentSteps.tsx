@@ -98,7 +98,7 @@ function Inner() {
                           </span>
                           {step.isCampusFranceStep && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                              Campus France
+                              {t("detail.campusFranceStep")}
                             </span>
                           )}
                         </div>

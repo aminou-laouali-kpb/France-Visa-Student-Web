@@ -54,13 +54,13 @@ export function StudentsList() {
             onChange={(e) => setStatusFilter(e.target.value)}
             data-testid="select-status-filter"
           >
-            <option value="">Tous statuts</option>
-            <option value="prospect">Prospect</option>
-            <option value="active">Actif</option>
-            <option value="blocked">Bloqué</option>
-            <option value="submitted">Déposé</option>
-            <option value="visa_obtained">Visa obtenu</option>
-            <option value="visa_refused">Visa refusé</option>
+            <option value="">{tr("filter.allStatuses")}</option>
+            <option value="prospect">{tr("status.prospect")}</option>
+            <option value="active">{tr("status.active")}</option>
+            <option value="blocked">{tr("status.blocked")}</option>
+            <option value="submitted">{tr("students.submitted")}</option>
+            <option value="visa_obtained">{tr("status.visa_obtained")}</option>
+            <option value="visa_refused">{tr("status.visa_refused")}</option>
           </select>
         </CardContent>
       </Card>
@@ -68,17 +68,17 @@ export function StudentsList() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500">Chargement…</div>
+            <div className="p-8 text-center text-slate-500">{tr("common.loading")}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">Aucun étudiant trouvé</div>
+            <div className="p-12 text-center text-slate-500">{tr("students.empty")}</div>
           ) : (
             <table className="w-full">
               <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium">Étudiant</th>
-                  <th className="text-left px-4 py-3 font-medium">Statut</th>
-                  <th className="text-left px-4 py-3 font-medium">Progression</th>
-                  <th className="text-left px-4 py-3 font-medium">Dernière activité</th>
+                  <th className="text-left px-4 py-3 font-medium">{tr("table.student")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{tr("table.status")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{tr("table.progress")}</th>
+                  <th className="text-left px-4 py-3 font-medium">{tr("table.activity")}</th>
                 </tr>
               </thead>
               <tbody>
