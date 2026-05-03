@@ -102,6 +102,8 @@ export function CoachPanel({
   score,
   critique,
   streamingCritique,
+  autoCoach,
+  onToggleAutoCoach,
   onRunCritique,
   testIdPrefix,
 }: {
@@ -110,6 +112,8 @@ export function CoachPanel({
   score?: RubricScore | null;
   critique?: string | null;
   streamingCritique?: string;
+  autoCoach?: boolean;
+  onToggleAutoCoach?: (next: boolean) => void;
   onRunCritique: () => void;
   testIdPrefix: string;
 }) {
@@ -142,6 +146,25 @@ export function CoachPanel({
             </>
           )}
         </Button>
+        {onToggleAutoCoach && (
+          <label
+            className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none"
+            data-testid={`${testIdPrefix}-auto-coach-toggle`}
+          >
+            <input
+              type="checkbox"
+              className="accent-violet-600"
+              checked={!!autoCoach}
+              onChange={(e) => onToggleAutoCoach(e.target.checked)}
+            />
+            <span>
+              Coach automatique pendant la rédaction
+              {autoCoach && (
+                <span className="ml-1 text-violet-600">· se déclenche après une pause</span>
+              )}
+            </span>
+          </label>
+        )}
         <ScorePanel score={score} />
         {showStream && (
           <div
@@ -218,6 +241,8 @@ function ProjetEditor({ studentId }: { studentId: number }) {
   const [latestCritique, setLatestCritique] = useState<string | null>(null);
   const [streamingCritique, setStreamingCritique] = useState<string>("");
   const [isCritiquing, setIsCritiquing] = useState(false);
+  const [autoCoach, setAutoCoach] = useState(true);
+  const [lastCritiquedContent, setLastCritiquedContent] = useState<string>("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [improvePara, setImprovePara] = useState("");
   const [improveResult, setImproveResult] = useState<string | null>(null);
@@ -229,6 +254,7 @@ function ProjetEditor({ studentId }: { studentId: number }) {
       setContent(projet.content ?? "");
       setLatestScore(projet.latestScore ?? null);
       setLatestCritique(projet.lastCritique ?? null);
+      setLastCritiquedContent(projet.content ?? "");
       initRef.current = true;
     } else if (projet === null) {
       // First-time draft: server returned no row. Still mark initialized so
@@ -259,7 +285,9 @@ function ProjetEditor({ studentId }: { studentId: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
-  const runCritique = async () => {
+  const runCritique = async (opts?: { silent?: boolean }) => {
+    if (isCritiquing) return;
+    const snapshot = content;
     setIsCritiquing(true);
     setStreamingCritique("");
     setLatestCritique(null);
@@ -273,21 +301,40 @@ function ProjetEditor({ studentId }: { studentId: number }) {
             setLatestCritique(r.critique);
           },
           onError: (msg) => {
-            alert(msg);
+            if (!opts?.silent) alert(msg);
           },
         },
       );
+      setLastCritiquedContent(snapshot);
       await refetch();
       queryClient.invalidateQueries({
         queryKey: getListProjetEtudesVersionsQueryKey(studentId),
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
-      alert(msg);
+      if (!opts?.silent) {
+        const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
+        alert(msg);
+      }
     } finally {
       setIsCritiquing(false);
     }
   };
+
+  // Auto-coach: after the student stops typing, debounce-trigger a streaming
+  // critique if content is meaningfully different from the last critiqued
+  // version and long enough to be worth analyzing.
+  useEffect(() => {
+    if (!autoCoach) return;
+    if (!initRef.current) return;
+    if (isCritiquing) return;
+    if (content.trim().length < 200) return;
+    if (content === lastCritiquedContent) return;
+    const handle = setTimeout(() => {
+      void runCritique({ silent: true });
+    }, 8000);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, autoCoach, isCritiquing, lastCritiquedContent]);
 
   const runImprove = async () => {
     if (improvePara.trim().length < 20) return;
@@ -439,7 +486,9 @@ function ProjetEditor({ studentId }: { studentId: number }) {
           score={latestScore}
           critique={latestCritique}
           streamingCritique={streamingCritique}
-          onRunCritique={runCritique}
+          autoCoach={autoCoach}
+          onToggleAutoCoach={setAutoCoach}
+          onRunCritique={() => void runCritique()}
           testIdPrefix="projet"
         />
       </div>
@@ -467,6 +516,8 @@ function MotivationLetterEditor({
   const [latestCritique, setLatestCritique] = useState<string | null>(null);
   const [streamingCritique, setStreamingCritique] = useState<string>("");
   const [isCritiquing, setIsCritiquing] = useState(false);
+  const [autoCoach, setAutoCoach] = useState(true);
+  const [lastCritiquedContent, setLastCritiquedContent] = useState<string>("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [improvePara, setImprovePara] = useState("");
   const [improveResult, setImproveResult] = useState<string | null>(null);
@@ -477,6 +528,7 @@ function MotivationLetterEditor({
       setContent(letter.content ?? "");
       setLatestScore(letter.latestScore ?? null);
       setLatestCritique(letter.lastCritique ?? null);
+      setLastCritiquedContent(letter.content ?? "");
       initRef.current = true;
     } else if (!initRef.current && letter === null) {
       // server returned null — mark as initialized so empty state autosaves later
@@ -509,7 +561,9 @@ function MotivationLetterEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
-  const runCritique = async () => {
+  const runCritique = async (opts?: { silent?: boolean }) => {
+    if (isCritiquing) return;
+    const snapshot = content;
     setIsCritiquing(true);
     setStreamingCritique("");
     setLatestCritique(null);
@@ -522,20 +576,40 @@ function MotivationLetterEditor({
             setLatestScore(r.score);
             setLatestCritique(r.critique);
           },
-          onError: (msg) => alert(msg),
+          onError: (msg) => {
+            if (!opts?.silent) alert(msg);
+          },
         },
       );
+      setLastCritiquedContent(snapshot);
       await refetch();
       queryClient.invalidateQueries({
         queryKey: getListMotivationLetterVersionsQueryKey(studentId, wish.id),
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
-      alert(msg);
+      if (!opts?.silent) {
+        const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
+        alert(msg);
+      }
     } finally {
       setIsCritiquing(false);
     }
   };
+
+  // Auto-coach: streaming critique after a typing pause once the letter has
+  // grown enough and content has changed since the last analyzed version.
+  useEffect(() => {
+    if (!autoCoach) return;
+    if (!initRef.current) return;
+    if (isCritiquing) return;
+    if (content.trim().length < 200) return;
+    if (content === lastCritiquedContent) return;
+    const handle = setTimeout(() => {
+      void runCritique({ silent: true });
+    }, 8000);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, autoCoach, isCritiquing, lastCritiquedContent]);
 
   const runImprove = async () => {
     if (improvePara.trim().length < 20) return;
@@ -695,7 +769,9 @@ function MotivationLetterEditor({
           score={latestScore}
           critique={latestCritique}
           streamingCritique={streamingCritique}
-          onRunCritique={runCritique}
+          autoCoach={autoCoach}
+          onToggleAutoCoach={setAutoCoach}
+          onRunCritique={() => void runCritique()}
           testIdPrefix={`letter-${wish.id}`}
         />
       </div>

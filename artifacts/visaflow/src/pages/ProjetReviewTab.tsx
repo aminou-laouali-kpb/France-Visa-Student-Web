@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   useGetProjetEtudes,
   useListProjetEtudesVersions,
@@ -53,6 +53,102 @@ function diffWords(a: string, b: string): { type: "equal" | "add" | "del"; value
   return out;
 }
 
+type AnyVersion = {
+  id: number;
+  createdAt: string;
+  content: string;
+  wordCount: number;
+};
+
+function VersionHistory<V extends AnyVersion>({
+  versions,
+  testId,
+}: {
+  versions: V[];
+  testId: string;
+}) {
+  const [newerId, setNewerId] = useState<number | null>(null);
+  const [olderId, setOlderId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (versions.length === 0) return;
+    if (newerId == null) setNewerId(versions[0].id);
+    if (olderId == null && versions.length >= 2) setOlderId(versions[1].id);
+  }, [versions, newerId, olderId]);
+
+  const newer = versions.find((v) => v.id === newerId) ?? null;
+  const older = versions.find((v) => v.id === olderId) ?? null;
+
+  if (versions.length === 0) {
+    return (
+      <div className="text-sm text-slate-500">Aucune version enregistrée.</div>
+    );
+  }
+
+  return (
+    <div className="space-y-3" data-testid={testId}>
+      <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
+        {versions.map((v, idx) => {
+          const isNewer = v.id === newerId;
+          const isOlder = v.id === olderId;
+          return (
+            <div
+              key={v.id}
+              className="flex items-center justify-between gap-2 px-3 py-2 text-xs"
+              data-testid={`${testId}-row-${v.id}`}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-slate-700">
+                  Version {versions.length - idx} · {v.wordCount} mots
+                </div>
+                <div className="text-slate-500">{formatDateTime(v.createdAt)}</div>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className={`px-2 py-1 rounded text-xs ${
+                    isNewer
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                  onClick={() => setNewerId(v.id)}
+                  data-testid={`${testId}-pick-newer-${v.id}`}
+                >
+                  Nouvelle
+                </button>
+                <button
+                  type="button"
+                  className={`px-2 py-1 rounded text-xs ${
+                    isOlder
+                      ? "bg-rose-600 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                  onClick={() => setOlderId(v.id)}
+                  data-testid={`${testId}-pick-older-${v.id}`}
+                >
+                  Ancienne
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {older && newer && older.id !== newer.id ? (
+        <div>
+          <div className="text-xs text-slate-500 mb-2">
+            {formatDateTime(older.createdAt)} → {formatDateTime(newer.createdAt)}
+          </div>
+          <DiffView older={older.content} newer={newer.content} />
+        </div>
+      ) : (
+        <div className="text-xs text-slate-500">
+          Sélectionnez deux versions pour afficher les différences.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DiffView({ older, newer }: { older: string; newer: string }) {
   const tokens = useMemo(() => diffWords(older, newer), [older, newer]);
   return (
@@ -95,7 +191,6 @@ function ProjetReview({ studentId }: { studentId: number }) {
     );
   }
 
-  const [latest, prev] = versions;
   const score: RubricScore | null = projet.latestScore ?? null;
 
   return (
@@ -120,21 +215,18 @@ function ProjetReview({ studentId }: { studentId: number }) {
           </CardContent>
         </Card>
 
-        {prev && latest && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">
-                Différences avec la version précédente
-              </CardTitle>
-              <div className="text-xs text-slate-500">
-                {formatDateTime(prev.createdAt)} → {formatDateTime(latest.createdAt)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <DiffView older={prev.content} newer={latest.content} />
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Historique des versions</CardTitle>
+            <div className="text-xs text-slate-500">
+              {versions.length} version{versions.length > 1 ? "s" : ""} enregistrée
+              {versions.length > 1 ? "s" : ""}. Sélectionnez deux versions à comparer.
+            </div>
+          </CardHeader>
+          <CardContent>
+            <VersionHistory versions={versions} testId="advisor-projet-history" />
+          </CardContent>
+        </Card>
       </div>
       <div>
         <Card>
@@ -199,7 +291,6 @@ function LetterReview({
     );
   }
 
-  const [latest, prev] = versions;
   const score: RubricScore | null = letter.latestScore ?? null;
 
   return (
@@ -232,14 +323,12 @@ function LetterReview({
             )}
           </div>
         </div>
-        {prev && latest && (
-          <div>
-            <div className="text-xs font-medium text-slate-600 mb-2">
-              Différences avec la version précédente
-            </div>
-            <DiffView older={prev.content} newer={latest.content} />
+        <div>
+          <div className="text-xs font-medium text-slate-600 mb-2">
+            Historique des versions ({versions.length})
           </div>
-        )}
+          <VersionHistory versions={versions} testId={`advisor-letter-history-${wish.id}`} />
+        </div>
       </CardContent>
     </Card>
   );
