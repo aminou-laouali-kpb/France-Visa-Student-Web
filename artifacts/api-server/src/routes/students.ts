@@ -275,11 +275,22 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     return;
   }
   const body = req.body ?? {};
-  // Students cannot change their own assignment fields
+  // Students cannot change their own assignment fields, status, or any
+  // field that feeds into the financial-readiness submission gate. Both
+  // monthlyMinimumEur (per-month minimum) and programEndDate (program
+  // duration) are gate determinants in computeFinancialReadiness — letting
+  // a student tamper with them would let them lower the required amount
+  // and bypass the legal financial-threshold check.
   if (req.currentUser!.role === "student") {
     delete body.advisorId;
     delete body.reviewerId;
     delete body.status;
+    delete body.monthlyMinimumEur;
+    delete body.programEndDate;
+    delete body.riskLevel;
+    delete body.riskScore;
+    delete body.submissionGateOverride;
+    delete body.submissionGateOverrideReason;
   }
   const previousStatus = student.status;
 
