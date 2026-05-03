@@ -4,13 +4,11 @@ import {
   useGetProjetEtudes,
   useUpsertProjetEtudes,
   useListProjetEtudesVersions,
-  useCritiqueProjetEtudes,
   useImproveProjetEtudesParagraph,
   useListEefWishes,
   useGetMotivationLetter,
   useUpsertMotivationLetter,
   useListMotivationLetterVersions,
-  useCritiqueMotivationLetter,
   useImproveMotivationLetterParagraph,
   getGetProjetEtudesQueryKey,
   getListProjetEtudesVersionsQueryKey,
@@ -23,9 +21,11 @@ import type {
   MotivationLetter,
   MotivationLetterVersion,
   CritiqueResult,
+  ImproveParagraphResult,
   RubricScore,
   EefWish,
 } from "@workspace/api-client-react";
+import { streamCritique } from "@/lib/streamCritique";
 import { useMyStudent } from "./StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,6 +101,7 @@ export function CoachPanel({
   hasContent,
   score,
   critique,
+  streamingCritique,
   onRunCritique,
   testIdPrefix,
 }: {
@@ -108,9 +109,11 @@ export function CoachPanel({
   hasContent: boolean;
   score?: RubricScore | null;
   critique?: string | null;
+  streamingCritique?: string;
   onRunCritique: () => void;
   testIdPrefix: string;
 }) {
+  const showStream = isCritiquing && streamingCritique && streamingCritique.length > 0;
   return (
     <Card className="sticky top-4" data-testid={`${testIdPrefix}-coach`}>
       <CardHeader className="pb-3">
@@ -140,7 +143,16 @@ export function CoachPanel({
           )}
         </Button>
         <ScorePanel score={score} />
-        {critique && (
+        {showStream && (
+          <div
+            className="p-3 rounded-lg bg-amber-50 border border-amber-100 text-sm text-slate-700 whitespace-pre-wrap font-mono"
+            data-testid={`${testIdPrefix}-critique-stream`}
+          >
+            {streamingCritique}
+            <span className="inline-block w-2 h-4 bg-amber-400 ml-1 animate-pulse align-text-bottom" />
+          </div>
+        )}
+        {!showStream && critique && (
           <div
             className="p-3 rounded-lg bg-violet-50 border border-violet-100 text-sm text-slate-700 whitespace-pre-wrap"
             data-testid={`${testIdPrefix}-critique-text`}
@@ -199,22 +211,28 @@ function ProjetEditor({ studentId }: { studentId: number }) {
   const { data: versionsRaw } = useListProjetEtudesVersions(studentId);
   const versions = (versionsRaw ?? []) as unknown as ProjetEtudesVersion[];
   const upsert = useUpsertProjetEtudes();
-  const critique = useCritiqueProjetEtudes();
   const improve = useImproveProjetEtudesParagraph();
 
   const [content, setContent] = useState("");
   const [latestScore, setLatestScore] = useState<RubricScore | null>(null);
   const [latestCritique, setLatestCritique] = useState<string | null>(null);
+  const [streamingCritique, setStreamingCritique] = useState<string>("");
+  const [isCritiquing, setIsCritiquing] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [improvePara, setImprovePara] = useState("");
   const [improveResult, setImproveResult] = useState<string | null>(null);
 
   const initRef = useRef(false);
   useEffect(() => {
-    if (!initRef.current && projet) {
+    if (initRef.current) return;
+    if (projet) {
       setContent(projet.content ?? "");
       setLatestScore(projet.latestScore ?? null);
       setLatestCritique(projet.lastCritique ?? null);
+      initRef.current = true;
+    } else if (projet === null) {
+      // First-time draft: server returned no row. Still mark initialized so
+      // autosave fires once the student starts typing.
       initRef.current = true;
     }
   }, [projet]);
@@ -242,29 +260,46 @@ function ProjetEditor({ studentId }: { studentId: number }) {
   }, [content]);
 
   const runCritique = async () => {
+    setIsCritiquing(true);
+    setStreamingCritique("");
+    setLatestCritique(null);
     try {
-      const r = (await critique.mutateAsync({ studentId })) as unknown as CritiqueResult;
-      setLatestScore(r.score);
-      setLatestCritique(r.critique);
+      await streamCritique(
+        `/api/students/${studentId}/projet-etudes/critique/stream`,
+        {
+          onDelta: (d) => setStreamingCritique((acc) => acc + d),
+          onResult: (r) => {
+            setLatestScore(r.score);
+            setLatestCritique(r.critique);
+          },
+          onError: (msg) => {
+            alert(msg);
+          },
+        },
+      );
       await refetch();
       queryClient.invalidateQueries({
         queryKey: getListProjetEtudesVersionsQueryKey(studentId),
       });
-    } catch (e: any) {
-      alert(e?.message ?? "Erreur lors de l'analyse.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
+      alert(msg);
+    } finally {
+      setIsCritiquing(false);
     }
   };
 
   const runImprove = async () => {
     if (improvePara.trim().length < 20) return;
     try {
-      const r = await improve.mutateAsync({
+      const r = (await improve.mutateAsync({
         studentId,
         data: { paragraph: improvePara },
-      });
-      setImproveResult((r as any).improved ?? "");
-    } catch (e: any) {
-      alert(e?.message ?? "Erreur");
+      })) as unknown as ImproveParagraphResult;
+      setImproveResult(r.improved ?? "");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur";
+      alert(msg);
     }
   };
 
@@ -399,10 +434,11 @@ function ProjetEditor({ studentId }: { studentId: number }) {
 
       <div>
         <CoachPanel
-          isCritiquing={critique.isPending}
+          isCritiquing={isCritiquing}
           hasContent={content.trim().length >= 50}
           score={latestScore}
           critique={latestCritique}
+          streamingCritique={streamingCritique}
           onRunCritique={runCritique}
           testIdPrefix="projet"
         />
@@ -424,12 +460,13 @@ function MotivationLetterEditor({
   const { data: versionsRaw } = useListMotivationLetterVersions(studentId, wish.id);
   const versions = (versionsRaw ?? []) as unknown as MotivationLetterVersion[];
   const upsert = useUpsertMotivationLetter();
-  const critique = useCritiqueMotivationLetter();
   const improve = useImproveMotivationLetterParagraph();
 
   const [content, setContent] = useState("");
   const [latestScore, setLatestScore] = useState<RubricScore | null>(null);
   const [latestCritique, setLatestCritique] = useState<string | null>(null);
+  const [streamingCritique, setStreamingCritique] = useState<string>("");
+  const [isCritiquing, setIsCritiquing] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [improvePara, setImprovePara] = useState("");
   const [improveResult, setImproveResult] = useState<string | null>(null);
@@ -473,33 +510,45 @@ function MotivationLetterEditor({
   }, [content]);
 
   const runCritique = async () => {
+    setIsCritiquing(true);
+    setStreamingCritique("");
+    setLatestCritique(null);
     try {
-      const r = (await critique.mutateAsync({
-        studentId,
-        wishId: wish.id,
-      })) as unknown as CritiqueResult;
-      setLatestScore(r.score);
-      setLatestCritique(r.critique);
+      await streamCritique(
+        `/api/students/${studentId}/eef-wishes/${wish.id}/motivation-letter/critique/stream`,
+        {
+          onDelta: (d) => setStreamingCritique((acc) => acc + d),
+          onResult: (r) => {
+            setLatestScore(r.score);
+            setLatestCritique(r.critique);
+          },
+          onError: (msg) => alert(msg),
+        },
+      );
       await refetch();
       queryClient.invalidateQueries({
         queryKey: getListMotivationLetterVersionsQueryKey(studentId, wish.id),
       });
-    } catch (e: any) {
-      alert(e?.message ?? "Erreur lors de l'analyse.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'analyse.";
+      alert(msg);
+    } finally {
+      setIsCritiquing(false);
     }
   };
 
   const runImprove = async () => {
     if (improvePara.trim().length < 20) return;
     try {
-      const r = await improve.mutateAsync({
+      const r = (await improve.mutateAsync({
         studentId,
         wishId: wish.id,
         data: { paragraph: improvePara },
-      });
-      setImproveResult((r as any).improved ?? "");
-    } catch (e: any) {
-      alert(e?.message ?? "Erreur");
+      })) as unknown as ImproveParagraphResult;
+      setImproveResult(r.improved ?? "");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur";
+      alert(msg);
     }
   };
 
@@ -641,10 +690,11 @@ function MotivationLetterEditor({
 
       <div>
         <CoachPanel
-          isCritiquing={critique.isPending}
+          isCritiquing={isCritiquing}
           hasContent={content.trim().length >= 50}
           score={latestScore}
           critique={latestCritique}
+          streamingCritique={streamingCritique}
           onRunCritique={runCritique}
           testIdPrefix={`letter-${wish.id}`}
         />

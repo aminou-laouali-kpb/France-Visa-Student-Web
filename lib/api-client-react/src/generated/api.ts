@@ -9542,6 +9542,90 @@ export const useCritiqueProjetEtudes = <
 };
 
 /**
+ * @summary Run AI critique with SSE streaming
+ */
+export const getCritiqueProjetEtudesStreamUrl = (studentId: number) => {
+  return `/api/students/${studentId}/projet-etudes/critique/stream`;
+};
+
+export const critiqueProjetEtudesStream = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<string> => {
+  return customFetch<string>(getCritiqueProjetEtudesStreamUrl(studentId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCritiqueProjetEtudesStreamMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueProjetEtudesStream>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof critiqueProjetEtudesStream>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["critiqueProjetEtudesStream"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof critiqueProjetEtudesStream>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return critiqueProjetEtudesStream(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CritiqueProjetEtudesStreamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof critiqueProjetEtudesStream>>
+>;
+
+export type CritiqueProjetEtudesStreamMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Run AI critique with SSE streaming
+ */
+export const useCritiqueProjetEtudesStream = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueProjetEtudesStream>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof critiqueProjetEtudesStream>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getCritiqueProjetEtudesStreamMutationOptions(options));
+};
+
+/**
  * @summary Suggest an improved version of a paragraph
  */
 export const getImproveProjetEtudesParagraphUrl = (studentId: number) => {
@@ -10145,6 +10229,97 @@ export const useCritiqueMotivationLetter = <
   TContext
 > => {
   return useMutation(getCritiqueMotivationLetterMutationOptions(options));
+};
+
+/**
+ * @summary Run AI critique with SSE streaming
+ */
+export const getCritiqueMotivationLetterStreamUrl = (
+  studentId: number,
+  wishId: number,
+) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}/motivation-letter/critique/stream`;
+};
+
+export const critiqueMotivationLetterStream = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<string> => {
+  return customFetch<string>(
+    getCritiqueMotivationLetterStreamUrl(studentId, wishId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getCritiqueMotivationLetterStreamMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueMotivationLetterStream>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof critiqueMotivationLetterStream>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  const mutationKey = ["critiqueMotivationLetterStream"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof critiqueMotivationLetterStream>>,
+    { studentId: number; wishId: number }
+  > = (props) => {
+    const { studentId, wishId } = props ?? {};
+
+    return critiqueMotivationLetterStream(studentId, wishId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CritiqueMotivationLetterStreamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof critiqueMotivationLetterStream>>
+>;
+
+export type CritiqueMotivationLetterStreamMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Run AI critique with SSE streaming
+ */
+export const useCritiqueMotivationLetterStream = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof critiqueMotivationLetterStream>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof critiqueMotivationLetterStream>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  return useMutation(getCritiqueMotivationLetterStreamMutationOptions(options));
 };
 
 /**

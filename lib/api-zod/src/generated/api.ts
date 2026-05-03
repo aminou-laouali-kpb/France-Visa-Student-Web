@@ -3212,6 +3212,13 @@ export const CritiqueProjetEtudesResponse = zod.object({
 });
 
 /**
+ * @summary Run AI critique with SSE streaming
+ */
+export const CritiqueProjetEtudesStreamParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+/**
  * @summary Suggest an improved version of a paragraph
  */
 export const ImproveProjetEtudesParagraphParams = zod.object({
@@ -3361,6 +3368,14 @@ export const CritiqueMotivationLetterResponse = zod.object({
   strengths: zod.array(zod.string()).optional(),
   weaknesses: zod.array(zod.string()).optional(),
   suggestions: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Run AI critique with SSE streaming
+ */
+export const CritiqueMotivationLetterStreamParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
 });
 
 /**

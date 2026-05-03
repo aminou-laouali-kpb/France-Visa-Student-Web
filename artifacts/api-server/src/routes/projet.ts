@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import {
   db,
   studentsTable,
@@ -9,10 +9,13 @@ import {
   motivationLetterVersionsTable,
   schoolsTable,
   programsTable,
+  type RubricScore,
 } from "@workspace/db";
+
+type ProjetSections = Record<string, string> | null;
 import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
-import { chat, isGroqConfigured } from "@workspace/ai";
+import { chat, chatStream, isGroqConfigured } from "@workspace/ai";
 import { requireAuth, canAccessStudent } from "../middlewares/auth";
 import { validateBody } from "../middlewares/validate";
 import {
@@ -22,6 +25,7 @@ import {
   ImproveMotivationLetterParagraphBody,
 } from "@workspace/api-zod";
 import { logAudit } from "../lib/audit";
+import { requireAiPlan } from "../lib/planGuard";
 
 const router: IRouter = Router();
 
@@ -29,7 +33,7 @@ function countWords(s: string): number {
   return s.trim() ? s.trim().split(/\s+/).length : 0;
 }
 
-async function loadStudentOr403(req: any, res: any) {
+async function loadStudentOr403(req: Request, res: Response) {
   const id = Number(req.params.studentId);
   if (!Number.isInteger(id) || id <= 0) {
     res.status(400).json({ error: "Invalid studentId" });
@@ -50,21 +54,23 @@ async function loadStudentOr403(req: any, res: any) {
   return student;
 }
 
-const RubricScoreSchema = z.object({
-  coherence: z.number().min(0).max(10).optional().nullable(),
-  french: z.number().min(0).max(10).optional().nullable(),
-  specificity: z.number().min(0).max(10).optional().nullable(),
-  returnPlan: z.number().min(0).max(10).optional().nullable(),
-  overall: z.number().min(0).max(10).optional().nullable(),
+const RubricScoreSchema: z.ZodType<RubricScore> = z.object({
+  coherence: z.number().min(0).max(10).optional(),
+  french: z.number().min(0).max(10).optional(),
+  specificity: z.number().min(0).max(10).optional(),
+  returnPlan: z.number().min(0).max(10).optional(),
+  overall: z.number().min(0).max(10).optional(),
 });
 
 const CritiqueAiSchema = z.object({
   score: RubricScoreSchema,
   critique: z.string(),
-  strengths: z.array(z.string()).default([]),
-  weaknesses: z.array(z.string()).default([]),
-  suggestions: z.array(z.string()).default([]),
+  strengths: z.array(z.string()).optional(),
+  weaknesses: z.array(z.string()).optional(),
+  suggestions: z.array(z.string()).optional(),
 });
+
+type CritiqueAi = z.infer<typeof CritiqueAiSchema>;
 
 const ImproveAiSchema = z.object({
   improved: z.string(),
@@ -88,14 +94,16 @@ const LETTER_RUBRIC = `Tu es un expert Campus France qui évalue la lettre de mo
 - overall: note globale
 Réponds STRICTEMENT en JSON valide : { "score": {...}, "critique": "...", "strengths": [...], "weaknesses": [...], "suggestions": [...] }. Tout en français.`;
 
-async function runCritique(opts: {
+interface CritiqueOpts {
   text: string;
   rubric: string;
   feature: string;
   studentId: number;
   userId: number;
   meta?: Record<string, unknown>;
-}) {
+}
+
+async function runCritique(opts: CritiqueOpts): Promise<CritiqueAi> {
   if (!isGroqConfigured()) {
     throw new Error("AI not configured");
   }
@@ -115,9 +123,139 @@ async function runCritique(opts: {
     jsonSchema: CritiqueAiSchema,
     temperature: 0.2,
     maxTokens: 1500,
-    metadata: (opts.meta ?? undefined) as any,
+    metadata: opts.meta,
   });
   return result.content;
+}
+
+/**
+ * Streams the AI critique to the client over SSE. Emits incremental `delta`
+ * events while the model is generating, then a final `result` event with the
+ * parsed rubric+critique. Persists score/critique on the row and snapshots a
+ * version on completion.
+ */
+async function streamCritiqueSse(opts: {
+  res: Response;
+  text: string;
+  rubric: string;
+  feature: string;
+  studentId: number;
+  userId: number;
+  meta?: Record<string, unknown>;
+  onComplete: (parsed: CritiqueAi) => Promise<void>;
+}): Promise<void> {
+  const { res } = opts;
+  res.status(200);
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders?.();
+
+  const send = (event: string, data: unknown) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  let accumulated = "";
+  try {
+    const gen = chatStream({
+      ctx: {
+        feature: opts.feature,
+        userId: opts.userId,
+        studentId: opts.studentId,
+      },
+      messages: [
+        { role: "system", content: opts.rubric },
+        {
+          role: "user",
+          content: `Voici le texte à évaluer (entre triples backticks) :\n\`\`\`\n${opts.text}\n\`\`\``,
+        },
+      ],
+      temperature: 0.2,
+      maxTokens: 1500,
+      metadata: opts.meta,
+    });
+
+    while (true) {
+      const next = await gen.next();
+      if (next.done) break;
+      accumulated += next.value.delta;
+      send("delta", { delta: next.value.delta });
+    }
+
+    // Strip code fences if the model wrapped its JSON
+    let cleaned = accumulated.trim();
+    const fence = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+    if (fence) cleaned = fence[1];
+    let parsed: CritiqueAi;
+    try {
+      parsed = CritiqueAiSchema.parse(JSON.parse(cleaned));
+    } catch (parseErr) {
+      send("error", {
+        message:
+          "L'IA a renvoyé une réponse invalide. Réessayez ou simplifiez votre texte.",
+        detail: (parseErr as Error).message,
+      });
+      res.end();
+      return;
+    }
+
+    await opts.onComplete(parsed);
+    send("result", parsed);
+    res.end();
+  } catch (err) {
+    send("error", {
+      message: err instanceof Error ? err.message : "AI error",
+    });
+    res.end();
+  }
+}
+
+async function maybeSnapshotProjetVersion(
+  projet: typeof projetEtudesTable.$inferSelect,
+  userId: number,
+): Promise<void> {
+  // Only snapshot when content has changed since the most recent version
+  const [latest] = await db
+    .select({ content: projetEtudesVersionsTable.content })
+    .from(projetEtudesVersionsTable)
+    .where(eq(projetEtudesVersionsTable.projetId, projet.id))
+    .orderBy(desc(projetEtudesVersionsTable.createdAt))
+    .limit(1);
+  if (latest?.content === projet.content) return;
+  await db.insert(projetEtudesVersionsTable).values({
+    projetId: projet.id,
+    studentId: projet.studentId,
+    content: projet.content,
+    sections: projet.sections,
+    score: projet.latestScore,
+    critique: projet.lastCritique,
+    wordCount: projet.wordCount,
+    createdByUserId: userId,
+  });
+}
+
+async function maybeSnapshotLetterVersion(
+  letter: typeof motivationLettersTable.$inferSelect,
+  userId: number,
+): Promise<void> {
+  const [latest] = await db
+    .select({ content: motivationLetterVersionsTable.content })
+    .from(motivationLetterVersionsTable)
+    .where(eq(motivationLetterVersionsTable.letterId, letter.id))
+    .orderBy(desc(motivationLetterVersionsTable.createdAt))
+    .limit(1);
+  if (latest?.content === letter.content) return;
+  await db.insert(motivationLetterVersionsTable).values({
+    letterId: letter.id,
+    studentId: letter.studentId,
+    content: letter.content,
+    score: letter.latestScore,
+    critique: letter.lastCritique,
+    wordCount: letter.wordCount,
+    createdByUserId: userId,
+  });
 }
 
 // ─── PROJET D'ÉTUDES ────────────────────────────────────────────────────────
@@ -138,19 +276,19 @@ router.put(
   async (req, res) => {
     const student = await loadStudentOr403(req, res);
     if (!student) return;
-    const body = req.body as { content: string; sections?: unknown };
+    const body = req.body as { content: string; sections?: ProjetSections };
     const wordCount = countWords(body.content ?? "");
     const [existing] = await db
       .select()
       .from(projetEtudesTable)
       .where(eq(projetEtudesTable.studentId, student.id));
-    let saved;
+    let saved: typeof projetEtudesTable.$inferSelect;
     if (existing) {
       [saved] = await db
         .update(projetEtudesTable)
         .set({
           content: body.content ?? "",
-          sections: (body.sections ?? null) as any,
+          sections: body.sections ?? null,
           wordCount,
           updatedAt: new Date(),
         })
@@ -162,11 +300,14 @@ router.put(
         .values({
           studentId: student.id,
           content: body.content ?? "",
-          sections: (body.sections ?? null) as any,
+          sections: body.sections ?? null,
           wordCount,
         })
         .returning();
     }
+    // Auto-snapshot a version when content changed (preserves history without
+    // forcing the student to manually click "save version")
+    await maybeSnapshotProjetVersion(saved, req.currentUser!.id);
     res.json(saved);
   },
 );
@@ -207,8 +348,8 @@ router.post(
         projetId: projet.id,
         studentId: student.id,
         content: projet.content,
-        sections: projet.sections as any,
-        score: projet.latestScore as any,
+        sections: projet.sections,
+        score: projet.latestScore,
         critique: projet.lastCritique,
         wordCount: projet.wordCount,
         createdByUserId: req.currentUser!.id,
@@ -236,6 +377,7 @@ router.post(
       res.status(503).json({ error: "AI non configuré." });
       return;
     }
+    if (!(await requireAiPlan(res, "Coach IA — projet d'études"))) return;
     try {
       const result = await runCritique({
         text: projet.content,
@@ -249,7 +391,7 @@ router.post(
       await db
         .update(projetEtudesTable)
         .set({
-          latestScore: result.score as any,
+          latestScore: result.score,
           lastCritique: result.critique,
           lastCritiqueAt: now,
           updatedAt: now,
@@ -259,8 +401,8 @@ router.post(
         projetId: projet.id,
         studentId: student.id,
         content: projet.content,
-        sections: projet.sections as any,
-        score: result.score as any,
+        sections: projet.sections,
+        score: result.score,
         critique: result.critique,
         wordCount: projet.wordCount,
         createdByUserId: req.currentUser!.id,
@@ -273,9 +415,72 @@ router.post(
         entityId: projet.id,
       });
       res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message ?? "AI error" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "AI error";
+      res.status(500).json({ error: message });
     }
+  },
+);
+
+// ─── Streaming SSE critique (live coach feedback) ───────────────────────────
+router.post(
+  "/students/:studentId/projet-etudes/critique/stream",
+  requireAuth,
+  async (req, res) => {
+    const student = await loadStudentOr403(req, res);
+    if (!student) return;
+    const [projet] = await db
+      .select()
+      .from(projetEtudesTable)
+      .where(eq(projetEtudesTable.studentId, student.id));
+    if (!projet || !projet.content || projet.content.trim().length < 50) {
+      res.status(400).json({ error: "Le projet d'études doit faire au moins 50 caractères." });
+      return;
+    }
+    if (!isGroqConfigured()) {
+      res.status(503).json({ error: "AI non configuré." });
+      return;
+    }
+    if (!(await requireAiPlan(res, "Coach IA streaming — projet d'études"))) return;
+
+    await streamCritiqueSse({
+      res,
+      text: projet.content,
+      rubric: PROJET_RUBRIC,
+      feature: "projet_etudes.critique.stream",
+      studentId: student.id,
+      userId: req.currentUser!.id,
+      meta: { projetId: projet.id },
+      onComplete: async (parsed) => {
+        const now = new Date();
+        await db
+          .update(projetEtudesTable)
+          .set({
+            latestScore: parsed.score,
+            lastCritique: parsed.critique,
+            lastCritiqueAt: now,
+            updatedAt: now,
+          })
+          .where(eq(projetEtudesTable.id, projet.id));
+        await db.insert(projetEtudesVersionsTable).values({
+          projetId: projet.id,
+          studentId: student.id,
+          content: projet.content,
+          sections: projet.sections,
+          score: parsed.score,
+          critique: parsed.critique,
+          wordCount: projet.wordCount,
+          createdByUserId: req.currentUser!.id,
+        });
+        await logAudit({
+          userId: req.currentUser!.id,
+          studentId: student.id,
+          action: "projet_etudes.critique.stream",
+          entityType: "projet_etudes",
+          entityId: projet.id,
+        });
+      },
+    });
   },
 );
 
@@ -295,6 +500,7 @@ router.post(
       res.status(503).json({ error: "AI non configuré." });
       return;
     }
+    if (!(await requireAiPlan(res, "Améliorer un paragraphe"))) return;
     try {
       const result = await chat({
         ctx: {
@@ -318,14 +524,15 @@ router.post(
         maxTokens: 800,
       });
       res.json(result.content);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message ?? "AI error" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "AI error";
+      res.status(500).json({ error: message });
     }
   },
 );
 
 // ─── MOTIVATION LETTERS ─────────────────────────────────────────────────────
-async function loadWishOr404(studentId: number, wishId: number, res: any) {
+async function loadWishOr404(studentId: number, wishId: number, res: Response) {
   if (!Number.isInteger(wishId) || wishId <= 0) {
     res.status(400).json({ error: "Invalid wishId" });
     return null;
@@ -374,7 +581,7 @@ router.put(
       .select()
       .from(motivationLettersTable)
       .where(eq(motivationLettersTable.eefWishId, wish.id));
-    let saved;
+    let saved: typeof motivationLettersTable.$inferSelect;
     if (existing) {
       [saved] = await db
         .update(motivationLettersTable)
@@ -396,6 +603,7 @@ router.put(
         })
         .returning();
     }
+    await maybeSnapshotLetterVersion(saved, req.currentUser!.id);
     res.json(saved);
   },
 );
@@ -448,7 +656,7 @@ router.post(
         letterId: letter.id,
         studentId: student.id,
         content: letter.content,
-        score: letter.latestScore as any,
+        score: letter.latestScore,
         critique: letter.lastCritique,
         wordCount: letter.wordCount,
         createdByUserId: req.currentUser!.id,
@@ -457,6 +665,36 @@ router.post(
     res.status(201).json(snap);
   },
 );
+
+async function buildLetterCritiquePayload(opts: {
+  studentId: number;
+  userId: number;
+  letter: typeof motivationLettersTable.$inferSelect;
+  wish: typeof eefWishesTable.$inferSelect;
+}): Promise<{ contextPrefix: string; meta: Record<string, unknown> }> {
+  const { wish, letter } = opts;
+  let schoolName: string | null = wish.schoolNameFreeText ?? null;
+  let programName: string | null = wish.programNameFreeText ?? null;
+  if (wish.schoolId) {
+    const [s] = await db
+      .select({ name: schoolsTable.name })
+      .from(schoolsTable)
+      .where(eq(schoolsTable.id, wish.schoolId));
+    if (s?.name) schoolName = s.name;
+  }
+  if (wish.programId) {
+    const [p] = await db
+      .select({ name: programsTable.name })
+      .from(programsTable)
+      .where(eq(programsTable.id, wish.programId));
+    if (p?.name) programName = p.name;
+  }
+  const contextPrefix = `Contexte du voeu : école = ${schoolName ?? "(non précisée)"}, programme = ${programName ?? "(non précisé)"}.\n\n`;
+  return {
+    contextPrefix,
+    meta: { letterId: letter.id, wishId: wish.id },
+  };
+}
 
 router.post(
   "/students/:studentId/eef-wishes/:wishId/motivation-letter/critique",
@@ -480,38 +718,27 @@ router.post(
       res.status(503).json({ error: "AI non configuré." });
       return;
     }
-    // Add wish context (school + program) so the AI checks specificity correctly
-    let schoolName: string | null = wish.schoolNameFreeText ?? null;
-    let programName: string | null = wish.programNameFreeText ?? null;
-    if (wish.schoolId) {
-      const [s] = await db
-        .select({ name: schoolsTable.name })
-        .from(schoolsTable)
-        .where(eq(schoolsTable.id, wish.schoolId));
-      if (s?.name) schoolName = s.name;
-    }
-    if (wish.programId) {
-      const [p] = await db
-        .select({ name: programsTable.name })
-        .from(programsTable)
-        .where(eq(programsTable.id, wish.programId));
-      if (p?.name) programName = p.name;
-    }
-    const contextPrefix = `Contexte du voeu : école = ${schoolName ?? "(non précisée)"}, programme = ${programName ?? "(non précisé)"}.\n\n`;
+    if (!(await requireAiPlan(res, "Coach IA — lettre de motivation"))) return;
     try {
+      const { contextPrefix, meta } = await buildLetterCritiquePayload({
+        studentId: student.id,
+        userId: req.currentUser!.id,
+        letter,
+        wish,
+      });
       const result = await runCritique({
         text: contextPrefix + letter.content,
         rubric: LETTER_RUBRIC,
         feature: "motivation_letter.critique",
         studentId: student.id,
         userId: req.currentUser!.id,
-        meta: { letterId: letter.id, wishId: wish.id },
+        meta,
       });
       const now = new Date();
       await db
         .update(motivationLettersTable)
         .set({
-          latestScore: result.score as any,
+          latestScore: result.score,
           lastCritique: result.critique,
           lastCritiqueAt: now,
           updatedAt: now,
@@ -521,7 +748,7 @@ router.post(
         letterId: letter.id,
         studentId: student.id,
         content: letter.content,
-        score: result.score as any,
+        score: result.score,
         critique: result.critique,
         wordCount: letter.wordCount,
         createdByUserId: req.currentUser!.id,
@@ -534,9 +761,81 @@ router.post(
         entityId: letter.id,
       });
       res.json(result);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message ?? "AI error" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "AI error";
+      res.status(500).json({ error: message });
     }
+  },
+);
+
+router.post(
+  "/students/:studentId/eef-wishes/:wishId/motivation-letter/critique/stream",
+  requireAuth,
+  async (req, res) => {
+    const student = await loadStudentOr403(req, res);
+    if (!student) return;
+    const wish = await loadWishOr404(student.id, Number(req.params.wishId), res);
+    if (!wish) return;
+    const [letter] = await db
+      .select()
+      .from(motivationLettersTable)
+      .where(eq(motivationLettersTable.eefWishId, wish.id));
+    if (!letter || !letter.content || letter.content.trim().length < 50) {
+      res
+        .status(400)
+        .json({ error: "La lettre de motivation doit faire au moins 50 caractères." });
+      return;
+    }
+    if (!isGroqConfigured()) {
+      res.status(503).json({ error: "AI non configuré." });
+      return;
+    }
+    if (!(await requireAiPlan(res, "Coach IA streaming — lettre"))) return;
+
+    const { contextPrefix, meta } = await buildLetterCritiquePayload({
+      studentId: student.id,
+      userId: req.currentUser!.id,
+      letter,
+      wish,
+    });
+
+    await streamCritiqueSse({
+      res,
+      text: contextPrefix + letter.content,
+      rubric: LETTER_RUBRIC,
+      feature: "motivation_letter.critique.stream",
+      studentId: student.id,
+      userId: req.currentUser!.id,
+      meta,
+      onComplete: async (parsed) => {
+        const now = new Date();
+        await db
+          .update(motivationLettersTable)
+          .set({
+            latestScore: parsed.score,
+            lastCritique: parsed.critique,
+            lastCritiqueAt: now,
+            updatedAt: now,
+          })
+          .where(eq(motivationLettersTable.id, letter.id));
+        await db.insert(motivationLetterVersionsTable).values({
+          letterId: letter.id,
+          studentId: student.id,
+          content: letter.content,
+          score: parsed.score,
+          critique: parsed.critique,
+          wordCount: letter.wordCount,
+          createdByUserId: req.currentUser!.id,
+        });
+        await logAudit({
+          userId: req.currentUser!.id,
+          studentId: student.id,
+          action: "motivation_letter.critique.stream",
+          entityType: "motivation_letter",
+          entityId: letter.id,
+        });
+      },
+    });
   },
 );
 
@@ -558,6 +857,7 @@ router.post(
       res.status(503).json({ error: "AI non configuré." });
       return;
     }
+    if (!(await requireAiPlan(res, "Améliorer un paragraphe"))) return;
     try {
       const result = await chat({
         ctx: {
@@ -581,8 +881,9 @@ router.post(
         maxTokens: 800,
       });
       res.json(result.content);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message ?? "AI error" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "AI error";
+      res.status(500).json({ error: message });
     }
   },
 );

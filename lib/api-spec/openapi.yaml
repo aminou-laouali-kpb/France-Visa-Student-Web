@@ -2092,6 +2092,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/CritiqueResult"
 
+  /students/{studentId}/projet-etudes/critique/stream:
+    post:
+      operationId: critiqueProjetEtudesStream
+      tags: [projet-etudes]
+      summary: Run AI critique with SSE streaming
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: "Server-sent events stream emitting delta chunks then a final result event."
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
   /students/{studentId}/projet-etudes/improve:
     post:
       operationId: improveProjetEtudesParagraph
@@ -2198,6 +2213,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CritiqueResult"
+
+  /students/{studentId}/eef-wishes/{wishId}/motivation-letter/critique/stream:
+    post:
+      operationId: critiqueMotivationLetterStream
+      tags: [projet-etudes]
+      summary: Run AI critique with SSE streaming
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: "Server-sent events stream emitting delta chunks then a final result event."
+          content:
+            text/event-stream:
+              schema:
+                type: string
 
   /students/{studentId}/eef-wishes/{wishId}/motivation-letter/improve:
     post:

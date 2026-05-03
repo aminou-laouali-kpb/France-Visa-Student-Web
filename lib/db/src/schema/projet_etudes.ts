@@ -14,6 +14,16 @@ import { studentsTable } from "./students";
 import { usersTable } from "./users";
 import { eefWishesTable } from "./profile";
 
+export interface RubricScore {
+  coherence?: number;
+  french?: number;
+  specificity?: number;
+  returnPlan?: number;
+  overall?: number;
+}
+
+export type ProjetSections = Record<string, string> | null;
+
 // ── Projet d'études (one per student) ──────────────────────────────────────
 export const projetEtudesTable = pgTable(
   "projet_etudes",
@@ -23,8 +33,8 @@ export const projetEtudesTable = pgTable(
       .notNull()
       .references(() => studentsTable.id, { onDelete: "cascade" }),
     content: text("content").notNull().default(""),
-    sections: jsonb("sections"),
-    latestScore: jsonb("latest_score"),
+    sections: jsonb("sections").$type<ProjetSections>(),
+    latestScore: jsonb("latest_score").$type<RubricScore | null>(),
     lastCritique: text("last_critique"),
     wordCount: integer("word_count").notNull().default(0),
     lastCritiqueAt: timestamp("last_critique_at"),
@@ -47,8 +57,8 @@ export const projetEtudesVersionsTable = pgTable(
       .notNull()
       .references(() => studentsTable.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
-    sections: jsonb("sections"),
-    score: jsonb("score"),
+    sections: jsonb("sections").$type<ProjetSections>(),
+    score: jsonb("score").$type<RubricScore | null>(),
     critique: text("critique"),
     wordCount: integer("word_count").notNull().default(0),
     createdByUserId: integer("created_by_user_id").references(() => usersTable.id),
@@ -71,7 +81,7 @@ export const motivationLettersTable = pgTable(
       .notNull()
       .references(() => eefWishesTable.id, { onDelete: "cascade" }),
     content: text("content").notNull().default(""),
-    latestScore: jsonb("latest_score"),
+    latestScore: jsonb("latest_score").$type<RubricScore | null>(),
     lastCritique: text("last_critique"),
     wordCount: integer("word_count").notNull().default(0),
     lastCritiqueAt: timestamp("last_critique_at"),
@@ -95,7 +105,7 @@ export const motivationLetterVersionsTable = pgTable(
       .notNull()
       .references(() => studentsTable.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
-    score: jsonb("score"),
+    score: jsonb("score").$type<RubricScore | null>(),
     critique: text("critique"),
     wordCount: integer("word_count").notNull().default(0),
     createdByUserId: integer("created_by_user_id").references(() => usersTable.id),
@@ -124,11 +134,3 @@ export const insertMotivationLetterSchema = createInsertSchema(
 export type InsertMotivationLetter = z.infer<typeof insertMotivationLetterSchema>;
 export type MotivationLetter = typeof motivationLettersTable.$inferSelect;
 export type MotivationLetterVersion = typeof motivationLetterVersionsTable.$inferSelect;
-
-export interface RubricScore {
-  coherence?: number;
-  french?: number;
-  specificity?: number;
-  returnPlan?: number;
-  overall?: number;
-}
