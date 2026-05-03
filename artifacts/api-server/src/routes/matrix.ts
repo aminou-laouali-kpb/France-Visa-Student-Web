@@ -59,6 +59,8 @@ export const MATRIX_PROGRAM_LEVELS = [
   { value: "mba", label: "MBA" },
   { value: "ingenieur", label: "Cycle ingénieur" },
   { value: "doctorat", label: "Doctorat" },
+  { value: "language_stay", label: "Séjour linguistique" },
+  { value: "bts_dut", label: "BTS / DUT" },
 ];
 
 export const MATRIX_VISA_CENTERS = [
@@ -816,7 +818,9 @@ export async function ensureMatrixSeed(): Promise<void> {
       "SN", "CI", "CM", "BJ", "BF", "ML", "TG", "GA", "CG", "MG",
       "MA", "DZ", "TN", "CD", "GN", "NE", "TD",
     ];
-    const LEVELS = ["licence", "bachelor", "master", "mba", "ingenieur"];
+    const LEVELS = [
+      "licence", "bachelor", "master", "mba", "ingenieur", "language_stay",
+    ];
     for (const nat of FRANCOPHONE) {
       for (const lvl of LEVELS) {
         const cats = [...baseDocs];
