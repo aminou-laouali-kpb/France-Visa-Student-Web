@@ -14,7 +14,7 @@ import {
   countriesTable,
   schoolsTable,
 } from "@workspace/db";
-import { eq, and, desc, sql, gte, lt } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lt, inArray } from "drizzle-orm";
 import {
   GetAdvisorDashboardResponse,
   GetAdminDashboardResponse,
@@ -195,16 +195,16 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
   const [tasks, risks, docs, apts] = await Promise.all([
     db.select().from(tasksTable).where(eq(tasksTable.assignedToId, u.id)),
     studentIds.length
-      ? db.select().from(riskScoresTable).where(sql`${riskScoresTable.studentId} = ANY(${studentIds})`)
+      ? db.select().from(riskScoresTable).where(inArray(riskScoresTable.studentId, studentIds))
       : Promise.resolve([] as Array<typeof riskScoresTable.$inferSelect>),
     studentIds.length
-      ? db.select().from(documentsTable).where(sql`${documentsTable.studentId} = ANY(${studentIds})`)
+      ? db.select().from(documentsTable).where(inArray(documentsTable.studentId, studentIds))
       : Promise.resolve([] as Array<typeof documentsTable.$inferSelect>),
     studentIds.length
       ? db
           .select()
           .from(appointmentsTable)
-          .where(sql`${appointmentsTable.studentId} = ANY(${studentIds})`)
+          .where(inArray(appointmentsTable.studentId, studentIds))
       : Promise.resolve([] as Array<typeof appointmentsTable.$inferSelect>),
   ]);
   const now = new Date();

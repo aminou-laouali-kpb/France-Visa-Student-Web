@@ -40,21 +40,11 @@ test.describe("Role landing + forbidden routes", () => {
     await expect(page.getByTestId("admin-students")).toHaveCount(0);
   });
 
-  // TODO(visaflow#admin-dashboard-500): re-enable once the pre-existing API bug
-  // in artifacts/api-server/src/routes/admin.ts:190 is fixed.
-  // The route builds `sql\`${col} = ANY(${studentIds})\`` which drizzle expands
-  // to invalid `ANY($1, $2, ...)`; `GET /api/dashboard/advisor` 500s and the
-  // admin landing page renders blank. Replace with `inArray(col, studentIds)`
-  // (or `sql.array(studentIds, 'int4')`) on the riskScores / documents /
-  // appointments queries to unblock this assertion.
-  test.fixme(
-    "admin lands on /admin (admin-global-dashboard)",
-    async ({ page }) => {
-      await signInAs(page, "admin");
-      await page.goto("/admin");
-      await expect(page.getByTestId("admin-global-dashboard")).toBeVisible();
-    },
-  );
+  test("admin lands on /admin (admin-global-dashboard)", async ({ page }) => {
+    await signInAs(page, "admin");
+    await page.goto("/admin");
+    await expect(page.getByTestId("admin-global-dashboard")).toBeVisible();
+  });
 
   test("admin can reach /admin/students and /admin/workflow", async ({
     page,
