@@ -593,9 +593,12 @@ router.patch(
     // Completion is computed over required steps only so that matrix-driven
     // pruning of non-applicable requirements doesn't penalise a student.
     const requiredSteps = allSteps.filter((s) => s.isRequired);
-    const denom = requiredSteps.length > 0 ? requiredSteps.length : allSteps.length;
-    const validated = requiredSteps.filter((s) => s.status === "validated").length;
-    const score = denom > 0 ? Math.round((validated / denom) * 100) : 0;
+    const useRequired = requiredSteps.length > 0;
+    const denomList = useRequired ? requiredSteps : allSteps;
+    const validated = denomList.filter((s) => s.status === "validated").length;
+    const score = denomList.length > 0
+      ? Math.round((validated / denomList.length) * 100)
+      : 0;
     await db
       .update(studentsTable)
       .set({ completionScore: score, lastActivityAt: new Date() })
