@@ -12,6 +12,10 @@ import { Onboarding } from "@/pages/Onboarding";
 import { StudentsList } from "@/pages/StudentsList";
 import { StudentDetail } from "@/pages/StudentDetail";
 import { MyDossier } from "@/pages/MyDossier";
+import { StudentSteps } from "@/pages/student/StudentSteps";
+import { StudentDocuments } from "@/pages/student/StudentDocuments";
+import { StudentAppointments } from "@/pages/student/StudentAppointments";
+import { StudentMessages } from "@/pages/student/StudentMessages";
 import { MyTasks } from "@/pages/MyTasks";
 import { Notifications } from "@/pages/Notifications";
 import { Profile } from "@/pages/Profile";
@@ -73,6 +77,29 @@ function AppRouter() {
       <Route path="/app/dossier">
         <Protected>
           <MyDossier />
+        </Protected>
+      </Route>
+      <Route path="/student">
+        <Redirect to="/student/steps" />
+      </Route>
+      <Route path="/student/steps">
+        <Protected>
+          <StudentSteps />
+        </Protected>
+      </Route>
+      <Route path="/student/documents">
+        <Protected>
+          <StudentDocuments />
+        </Protected>
+      </Route>
+      <Route path="/student/appointments">
+        <Protected>
+          <StudentAppointments />
+        </Protected>
+      </Route>
+      <Route path="/student/messages">
+        <Protected>
+          <StudentMessages />
         </Protected>
       </Route>
       <Route path="/app/students">

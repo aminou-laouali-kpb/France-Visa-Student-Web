@@ -13,9 +13,14 @@ import {
   ScrollText,
   Building2,
   Globe,
+  ListChecks,
+  FileText,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface NavItem {
   href: string;
@@ -41,7 +46,12 @@ export function Layout({ children }: { children: ReactNode }) {
   const navItems: NavItem[] = [
     { href: "/app", icon: LayoutDashboard, label: "Tableau de bord" },
     ...(isStudent
-      ? [{ href: "/app/dossier", icon: GraduationCap, label: "Mon dossier" }]
+      ? [
+          { href: "/student/steps", icon: ListChecks, label: "Mon parcours" },
+          { href: "/student/documents", icon: FileText, label: "Documents" },
+          { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
+          { href: "/student/messages", icon: MessageSquare, label: "Messages" },
+        ]
       : []),
     ...(isStaff
       ? [
@@ -133,6 +143,9 @@ export function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="flex-1 overflow-auto">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200 px-6 lg:px-8 h-14 flex items-center justify-end gap-2">
+          <NotificationBell />
+        </header>
         <div className="max-w-7xl mx-auto p-6 lg:p-8">{children}</div>
       </main>
     </div>
