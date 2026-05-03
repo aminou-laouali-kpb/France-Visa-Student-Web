@@ -17,6 +17,7 @@ import {
   FileText,
   Calendar,
   MessageSquare,
+  Wallet,
   BarChart3,
   Workflow,
 } from "lucide-react";
@@ -51,6 +52,7 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/student", icon: LayoutDashboard, label: "Accueil" },
           { href: "/student/steps", icon: ListChecks, label: "Mon parcours" },
           { href: "/student/documents", icon: FileText, label: "Documents" },
+          { href: "/student/finance", icon: Wallet, label: "Finances & logement" },
           { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
           { href: "/student/messages", icon: MessageSquare, label: "Messages" },
         ]

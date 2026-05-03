@@ -48,17 +48,14 @@ type WithStatus = { status?: string | null };
 function sanitizeProofStatus<T extends WithStatus>(
   body: T,
   req: Request,
-  existingStatus?: string,
+  _existingStatus?: string,
 ): T {
   if (isStaff(req.currentUser!)) return body;
-  const out: T = { ...body };
-  // Force pending on student-driven writes; never let students promote.
-  if (existingStatus && existingStatus !== "pending") {
-    delete out.status;
-  } else {
-    out.status = "pending";
-  }
-  return out;
+  // Force "pending" on every student-driven write — including edits to a
+  // record that was previously approved by staff. Any change to the
+  // underlying evidence MUST trigger a fresh staff review; students must
+  // never be able to keep or assert privileged states.
+  return { ...body, status: "pending" } as T;
 }
 
 async function loadStudentOr403(req: Request, res: Response) {

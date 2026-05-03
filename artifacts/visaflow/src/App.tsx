@@ -16,6 +16,7 @@ import { MyDossier } from "@/pages/MyDossier";
 import { StudentDashboard } from "@/pages/student/StudentDashboard";
 import { StudentSteps } from "@/pages/student/StudentSteps";
 import { StudentDocuments } from "@/pages/student/StudentDocuments";
+import { StudentFinance } from "@/pages/student/StudentFinance";
 import { StudentAppointments } from "@/pages/student/StudentAppointments";
 import { StudentMessages } from "@/pages/student/StudentMessages";
 import { MyTasks } from "@/pages/MyTasks";
@@ -139,6 +140,11 @@ function AppRouter() {
       <Route path="/student/documents">
         <Protected>
           <StudentDocuments />
+        </Protected>
+      </Route>
+      <Route path="/student/finance">
+        <Protected>
+          <StudentFinance />
         </Protected>
       </Route>
       <Route path="/student/appointments">
