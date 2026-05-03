@@ -6,6 +6,7 @@ import {
   appointmentsTable,
   notificationsTable,
   studentsTable,
+  usersTable,
 } from "@workspace/db";
 import { eq, and, desc, asc } from "drizzle-orm";
 import {
@@ -15,6 +16,7 @@ import {
   canAccessStudent,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
+import { sendMail } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateCommentBody,
@@ -162,6 +164,25 @@ router.post(
         message: title,
         type: "info",
       });
+      try {
+        const [assignee] = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.id, assignedToId));
+        if (assignee?.email) {
+          await sendMail({
+            to: assignee.email,
+            subject: `Nouvelle tâche: ${title}`,
+            text: `Bonjour ${assignee.firstName ?? ""},\n\nUne nouvelle tâche vous a été assignée: ${title}${
+              description ? "\n\n" + description : ""
+            }${priority ? "\n\nPriorité: " + priority : ""}`,
+            event: "task.assigned",
+            meta: { studentId, taskId: created.id },
+          });
+        }
+      } catch {
+        /* best-effort */
+      }
     }
     await logAudit({
       userId: req.currentUser!.id,

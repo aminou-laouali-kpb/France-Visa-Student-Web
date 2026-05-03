@@ -9,6 +9,7 @@ import {
   countriesTable,
   notificationsTable,
   tasksTable,
+  usersTable,
   type Student,
   type User,
 } from "@workspace/db";
@@ -21,6 +22,7 @@ import {
   requireStudentAccess,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
+import { sendMail } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateStudentBody,
@@ -246,6 +248,23 @@ router.post(
         message: `Vous avez été assigné(e) au dossier de ${updated.firstName} ${updated.lastName}.`,
         type: "info",
       });
+      try {
+        const [advisor] = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.id, advisorId));
+        if (advisor?.email) {
+          await sendMail({
+            to: advisor.email,
+            subject: `Nouveau dossier assigné: ${updated.firstName} ${updated.lastName}`,
+            text: `Bonjour ${advisor.firstName ?? ""},\n\nLe dossier de ${updated.firstName} ${updated.lastName} vous a été assigné. Connectez-vous à VisaFlow pour le consulter.`,
+            event: "student.assigned",
+            meta: { studentId: id },
+          });
+        }
+      } catch {
+        /* best-effort */
+      }
     }
     await logAudit({
       userId: req.currentUser!.id,

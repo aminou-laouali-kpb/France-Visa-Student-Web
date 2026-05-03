@@ -9,6 +9,16 @@ import {
 } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
+import { validateBody } from "../middlewares/validate";
+import {
+  CreateCountryBody,
+  UpdateCountryBody,
+  CreateSchoolBody,
+  CreateProgramBody,
+  CreateWorkflowTemplateBody,
+  CreateWorkflowStepBody,
+  UpdateWorkflowStepBody,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -21,6 +31,7 @@ router.post(
   "/countries",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(CreateCountryBody),
   async (req, res) => {
     const [created] = await db.insert(countriesTable).values(req.body).returning();
     res.status(201).json(created);
@@ -31,6 +42,7 @@ router.patch(
   "/countries/:countryId",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(UpdateCountryBody),
   async (req, res) => {
     const id = Number(req.params.countryId);
     const [updated] = await db
@@ -55,6 +67,7 @@ router.post(
   "/schools",
   requireAuth,
   requireRole("admin", "superadmin", "advisor"),
+  validateBody(CreateSchoolBody),
   async (req, res) => {
     const [created] = await db.insert(schoolsTable).values(req.body).returning();
     res.status(201).json(created);
@@ -76,6 +89,7 @@ router.post(
   "/schools/:schoolId/programs",
   requireAuth,
   requireRole("admin", "superadmin", "advisor"),
+  validateBody(CreateProgramBody),
   async (req, res) => {
     const schoolId = Number(req.params.schoolId);
     const [created] = await db
@@ -101,6 +115,7 @@ router.post(
   "/workflow-templates",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(CreateWorkflowTemplateBody),
   async (req, res) => {
     const [created] = await db.insert(workflowTemplatesTable).values(req.body).returning();
     res.status(201).json(created);
@@ -125,6 +140,7 @@ router.post(
   "/workflow-templates/:templateId/steps",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(CreateWorkflowStepBody),
   async (req, res) => {
     const templateId = Number(req.params.templateId);
     const [created] = await db
@@ -139,6 +155,7 @@ router.patch(
   "/workflow-steps/:stepId",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(UpdateWorkflowStepBody),
   async (req, res) => {
     const id = Number(req.params.stepId);
     const [updated] = await db

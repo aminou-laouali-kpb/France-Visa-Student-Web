@@ -5,6 +5,7 @@ import {
   documentReviewsTable,
   studentsTable,
   notificationsTable,
+  usersTable,
 } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import {
@@ -16,6 +17,7 @@ import {
 import { ObjectStorageService } from "../lib/objectStorage";
 import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { sendMail } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateDocumentBody,
@@ -312,6 +314,32 @@ router.post(
             : `Votre document "${updated.name}" a été rejeté. ${comment ?? ""}`,
         type: decision === "rejected" ? "warning" : "success",
       });
+      // Best-effort email notification (Resend-backed; logs in dev)
+      try {
+        const [studentUser] = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.id, student.userId));
+        if (studentUser?.email) {
+          const subject =
+            decision === "validated"
+              ? `Votre document "${updated.name}" a été validé`
+              : `Votre document "${updated.name}" a été rejeté`;
+          const text =
+            decision === "validated"
+              ? `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été validé par votre conseiller.`
+              : `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été rejeté.\n\nMotif: ${comment ?? "(non précisé)"}`;
+          await sendMail({
+            to: studentUser.email,
+            subject,
+            text,
+            event: decision === "validated" ? "document.validated" : "document.rejected",
+            meta: { studentId, documentId },
+          });
+        }
+      } catch (err) {
+        // never block the request on mail
+      }
     }
     await logAudit({
       userId: req.currentUser!.id,

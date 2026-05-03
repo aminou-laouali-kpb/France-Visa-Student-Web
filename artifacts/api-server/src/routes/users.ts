@@ -3,6 +3,8 @@ import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole, isAdmin } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
+import { validateBody } from "../middlewares/validate";
+import { UpdateMeBody, UpdateUserBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -10,7 +12,7 @@ router.get("/users/me", requireAuth, async (req, res) => {
   res.json(req.currentUser);
 });
 
-router.patch("/users/me", requireAuth, async (req, res) => {
+router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, res) => {
   const { firstName, lastName, phone, avatarUrl } = req.body ?? {};
   const [updated] = await db
     .update(usersTable)
@@ -70,6 +72,7 @@ router.patch(
   "/users/:userId",
   requireAuth,
   requireRole("admin", "superadmin"),
+  validateBody(UpdateUserBody),
   async (req, res) => {
     const id = Number(req.params.userId);
     const { role, isActive, firstName, lastName, phone } = req.body ?? {};
