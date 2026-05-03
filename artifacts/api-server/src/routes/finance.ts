@@ -78,10 +78,32 @@ async function loadStudentOr403(req: Request, res: Response) {
 }
 
 function addMonthsIso(dateStr: string, months: number): string | null {
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString().slice(0, 10);
+  // Calendar-safe month arithmetic that clamps to end-of-month so we
+  // never silently roll forward across a month boundary. Using raw
+  // Date#setMonth would turn 2026-01-31 + 3 months into 2026-05-01
+  // (Jan 31 → "May 31" → overflow to May 1), effectively granting an
+  // extra day of validity. Compute year/month/day directly and pin
+  // day to the last valid day of the target month instead.
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo0 = Number(m[2]) - 1;
+  const day = Number(m[3]);
+  if (
+    !Number.isFinite(y) ||
+    !Number.isFinite(mo0) ||
+    !Number.isFinite(day)
+  ) {
+    return null;
+  }
+  const total = y * 12 + mo0 + months;
+  const ty = Math.floor(total / 12);
+  const tm0 = ((total % 12) + 12) % 12;
+  // Last day of target month: day 0 of next month.
+  const lastDay = new Date(Date.UTC(ty, tm0 + 1, 0)).getUTCDate();
+  const td = Math.min(day, lastDay);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${ty}-${pad(tm0 + 1)}-${pad(td)}`;
 }
 
 function computeProofExpiry(
