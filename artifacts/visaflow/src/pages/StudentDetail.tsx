@@ -1165,8 +1165,36 @@ function ProfileTab({
   );
 
   const handleSave = async () => {
-    await update.mutateAsync({ studentId, data: form as unknown as UpdateStudentBody });
-    onUpdate();
+    try {
+      await update.mutateAsync({
+        studentId,
+        data: form as unknown as UpdateStudentBody,
+      });
+      onUpdate();
+    } catch (err: unknown) {
+      // Surface server-side submission-gate block (409) with the
+      // explicit blocking reasons so the staff/student understands why
+      // the transition to "submitted" was refused. computeFinancialReadiness
+      // returns these in the 409 body.
+      const e = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; blockingReasons?: string[] };
+        };
+      };
+      if (e?.response?.status === 409 && e.response.data) {
+        const reasons = e.response.data.blockingReasons ?? [];
+        alert(
+          [
+            e.response.data.message ??
+              "Le dossier ne peut pas être soumis.",
+            ...reasons.map((r) => `• ${r}`),
+          ].join("\n"),
+        );
+        return;
+      }
+      throw err;
+    }
   };
 
   const handleAssign = async (advisorId: number | null, reviewerId: number | null) => {
