@@ -46,6 +46,8 @@ import type {
   CvecPayment,
   DiplomaEquivalence,
   Document,
+  DocumentMatrixEntry,
+  DocumentMatrixReference,
   DocumentReview,
   DownloadUrlResponse,
   EefWish,
@@ -53,11 +55,15 @@ import type {
   FinancialProof,
   FinancialReadiness,
   ForbiddenResponse,
+  GetUpcomingIntakeDeadlinesParams,
   HealthStatus,
+  IntakeCalendarEntry,
   LanguageTest,
   ListAuditLogsParams,
   ListCommentsParams,
+  ListDocumentMatrixEntriesParams,
   ListDocumentsParams,
+  ListIntakeCalendarEntriesParams,
   ListMyTasksParams,
   ListNotificationsParams,
   ListStudentTasksParams,
@@ -67,7 +73,10 @@ import type {
   PortfolioStats,
   PriorSchoolingEntry,
   Program,
+  RefreshChecklistResponse,
   RequestUploadUrlBody,
+  ResolveDocumentMatrixParams,
+  ResolvedDocumentMatrix,
   ReviewDocumentBody,
   RiskScore,
   Scholarship,
@@ -101,6 +110,8 @@ import type {
   UpdateWorkflowStepBody,
   UploadUrlResponse,
   UpsertCvecPaymentBody,
+  UpsertDocumentMatrixEntryBody,
+  UpsertIntakeCalendarEntryBody,
   UpsertStudentCivilStatusBody,
   UserProfile,
   WorkflowStep,
@@ -7986,3 +7997,1117 @@ export const useDeleteEefWish = <
 > => {
   return useMutation(getDeleteEefWishMutationOptions(options));
 };
+
+/**
+ * @summary List all matrix rows (admin/staff)
+ */
+export const getListDocumentMatrixEntriesUrl = (
+  params?: ListDocumentMatrixEntriesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/document-matrix?${stringifiedParams}`
+    : `/api/document-matrix`;
+};
+
+export const listDocumentMatrixEntries = async (
+  params?: ListDocumentMatrixEntriesParams,
+  options?: RequestInit,
+): Promise<DocumentMatrixEntry[]> => {
+  return customFetch<DocumentMatrixEntry[]>(
+    getListDocumentMatrixEntriesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListDocumentMatrixEntriesQueryKey = (
+  params?: ListDocumentMatrixEntriesParams,
+) => {
+  return [`/api/document-matrix`, ...(params ? [params] : [])] as const;
+};
+
+export const getListDocumentMatrixEntriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDocumentMatrixEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListDocumentMatrixEntriesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDocumentMatrixEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListDocumentMatrixEntriesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDocumentMatrixEntries>>
+  > = ({ signal }) =>
+    listDocumentMatrixEntries(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDocumentMatrixEntries>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDocumentMatrixEntriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDocumentMatrixEntries>>
+>;
+export type ListDocumentMatrixEntriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all matrix rows (admin/staff)
+ */
+
+export function useListDocumentMatrixEntries<
+  TData = Awaited<ReturnType<typeof listDocumentMatrixEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListDocumentMatrixEntriesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDocumentMatrixEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDocumentMatrixEntriesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a matrix entry (admin)
+ */
+export const getCreateDocumentMatrixEntryUrl = () => {
+  return `/api/document-matrix`;
+};
+
+export const createDocumentMatrixEntry = async (
+  upsertDocumentMatrixEntryBody: UpsertDocumentMatrixEntryBody,
+  options?: RequestInit,
+): Promise<DocumentMatrixEntry> => {
+  return customFetch<DocumentMatrixEntry>(getCreateDocumentMatrixEntryUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(upsertDocumentMatrixEntryBody),
+  });
+};
+
+export const getCreateDocumentMatrixEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDocumentMatrixEntry>>,
+    TError,
+    { data: BodyType<UpsertDocumentMatrixEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDocumentMatrixEntry>>,
+  TError,
+  { data: BodyType<UpsertDocumentMatrixEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["createDocumentMatrixEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDocumentMatrixEntry>>,
+    { data: BodyType<UpsertDocumentMatrixEntryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createDocumentMatrixEntry(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDocumentMatrixEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDocumentMatrixEntry>>
+>;
+export type CreateDocumentMatrixEntryMutationBody =
+  BodyType<UpsertDocumentMatrixEntryBody>;
+export type CreateDocumentMatrixEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a matrix entry (admin)
+ */
+export const useCreateDocumentMatrixEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDocumentMatrixEntry>>,
+    TError,
+    { data: BodyType<UpsertDocumentMatrixEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createDocumentMatrixEntry>>,
+  TError,
+  { data: BodyType<UpsertDocumentMatrixEntryBody> },
+  TContext
+> => {
+  return useMutation(getCreateDocumentMatrixEntryMutationOptions(options));
+};
+
+/**
+ * @summary Update a matrix entry (admin)
+ */
+export const getUpdateDocumentMatrixEntryUrl = (entryId: number) => {
+  return `/api/document-matrix/${entryId}`;
+};
+
+export const updateDocumentMatrixEntry = async (
+  entryId: number,
+  upsertDocumentMatrixEntryBody: UpsertDocumentMatrixEntryBody,
+  options?: RequestInit,
+): Promise<DocumentMatrixEntry> => {
+  return customFetch<DocumentMatrixEntry>(
+    getUpdateDocumentMatrixEntryUrl(entryId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(upsertDocumentMatrixEntryBody),
+    },
+  );
+};
+
+export const getUpdateDocumentMatrixEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDocumentMatrixEntry>>,
+    TError,
+    { entryId: number; data: BodyType<UpsertDocumentMatrixEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDocumentMatrixEntry>>,
+  TError,
+  { entryId: number; data: BodyType<UpsertDocumentMatrixEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateDocumentMatrixEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDocumentMatrixEntry>>,
+    { entryId: number; data: BodyType<UpsertDocumentMatrixEntryBody> }
+  > = (props) => {
+    const { entryId, data } = props ?? {};
+
+    return updateDocumentMatrixEntry(entryId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDocumentMatrixEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDocumentMatrixEntry>>
+>;
+export type UpdateDocumentMatrixEntryMutationBody =
+  BodyType<UpsertDocumentMatrixEntryBody>;
+export type UpdateDocumentMatrixEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a matrix entry (admin)
+ */
+export const useUpdateDocumentMatrixEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDocumentMatrixEntry>>,
+    TError,
+    { entryId: number; data: BodyType<UpsertDocumentMatrixEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDocumentMatrixEntry>>,
+  TError,
+  { entryId: number; data: BodyType<UpsertDocumentMatrixEntryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateDocumentMatrixEntryMutationOptions(options));
+};
+
+/**
+ * @summary Delete a matrix entry (admin)
+ */
+export const getDeleteDocumentMatrixEntryUrl = (entryId: number) => {
+  return `/api/document-matrix/${entryId}`;
+};
+
+export const deleteDocumentMatrixEntry = async (
+  entryId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDocumentMatrixEntryUrl(entryId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDocumentMatrixEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>,
+    TError,
+    { entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>,
+  TError,
+  { entryId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDocumentMatrixEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>,
+    { entryId: number }
+  > = (props) => {
+    const { entryId } = props ?? {};
+
+    return deleteDocumentMatrixEntry(entryId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDocumentMatrixEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>
+>;
+
+export type DeleteDocumentMatrixEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a matrix entry (admin)
+ */
+export const useDeleteDocumentMatrixEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>,
+    TError,
+    { entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDocumentMatrixEntry>>,
+  TError,
+  { entryId: number },
+  TContext
+> => {
+  return useMutation(getDeleteDocumentMatrixEntryMutationOptions(options));
+};
+
+/**
+ * @summary Resolve the matrix entry for a nationality + program level
+ */
+export const getResolveDocumentMatrixUrl = (
+  params: ResolveDocumentMatrixParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/document-matrix/resolve?${stringifiedParams}`
+    : `/api/document-matrix/resolve`;
+};
+
+export const resolveDocumentMatrix = async (
+  params: ResolveDocumentMatrixParams,
+  options?: RequestInit,
+): Promise<ResolvedDocumentMatrix> => {
+  return customFetch<ResolvedDocumentMatrix>(
+    getResolveDocumentMatrixUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getResolveDocumentMatrixQueryKey = (
+  params?: ResolveDocumentMatrixParams,
+) => {
+  return [`/api/document-matrix/resolve`, ...(params ? [params] : [])] as const;
+};
+
+export const getResolveDocumentMatrixQueryOptions = <
+  TData = Awaited<ReturnType<typeof resolveDocumentMatrix>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ResolveDocumentMatrixParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof resolveDocumentMatrix>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getResolveDocumentMatrixQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof resolveDocumentMatrix>>
+  > = ({ signal }) =>
+    resolveDocumentMatrix(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof resolveDocumentMatrix>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ResolveDocumentMatrixQueryResult = NonNullable<
+  Awaited<ReturnType<typeof resolveDocumentMatrix>>
+>;
+export type ResolveDocumentMatrixQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Resolve the matrix entry for a nationality + program level
+ */
+
+export function useResolveDocumentMatrix<
+  TData = Awaited<ReturnType<typeof resolveDocumentMatrix>>,
+  TError = ErrorType<unknown>,
+>(
+  params: ResolveDocumentMatrixParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof resolveDocumentMatrix>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getResolveDocumentMatrixQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Static reference (categories, levels, visa centres) for the matrix editor
+ */
+export const getGetDocumentMatrixReferenceUrl = () => {
+  return `/api/document-matrix/reference`;
+};
+
+export const getDocumentMatrixReference = async (
+  options?: RequestInit,
+): Promise<DocumentMatrixReference> => {
+  return customFetch<DocumentMatrixReference>(
+    getGetDocumentMatrixReferenceUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetDocumentMatrixReferenceQueryKey = () => {
+  return [`/api/document-matrix/reference`] as const;
+};
+
+export const getGetDocumentMatrixReferenceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDocumentMatrixReference>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDocumentMatrixReference>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetDocumentMatrixReferenceQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getDocumentMatrixReference>>
+  > = ({ signal }) => getDocumentMatrixReference({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDocumentMatrixReference>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDocumentMatrixReferenceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDocumentMatrixReference>>
+>;
+export type GetDocumentMatrixReferenceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Static reference (categories, levels, visa centres) for the matrix editor
+ */
+
+export function useGetDocumentMatrixReference<
+  TData = Awaited<ReturnType<typeof getDocumentMatrixReference>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDocumentMatrixReference>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDocumentMatrixReferenceQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Re-run the matrix-driven checklist generator for a student (advisor/admin)
+ */
+export const getRefreshStudentChecklistUrl = (studentId: number) => {
+  return `/api/students/${studentId}/refresh-checklist`;
+};
+
+export const refreshStudentChecklist = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<RefreshChecklistResponse> => {
+  return customFetch<RefreshChecklistResponse>(
+    getRefreshStudentChecklistUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getRefreshStudentChecklistMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof refreshStudentChecklist>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof refreshStudentChecklist>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["refreshStudentChecklist"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof refreshStudentChecklist>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return refreshStudentChecklist(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RefreshStudentChecklistMutationResult = NonNullable<
+  Awaited<ReturnType<typeof refreshStudentChecklist>>
+>;
+
+export type RefreshStudentChecklistMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Re-run the matrix-driven checklist generator for a student (advisor/admin)
+ */
+export const useRefreshStudentChecklist = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof refreshStudentChecklist>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof refreshStudentChecklist>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getRefreshStudentChecklistMutationOptions(options));
+};
+
+/**
+ * @summary List intake calendar entries (optionally filtered)
+ */
+export const getListIntakeCalendarEntriesUrl = (
+  params?: ListIntakeCalendarEntriesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/intake-calendar?${stringifiedParams}`
+    : `/api/intake-calendar`;
+};
+
+export const listIntakeCalendarEntries = async (
+  params?: ListIntakeCalendarEntriesParams,
+  options?: RequestInit,
+): Promise<IntakeCalendarEntry[]> => {
+  return customFetch<IntakeCalendarEntry[]>(
+    getListIntakeCalendarEntriesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListIntakeCalendarEntriesQueryKey = (
+  params?: ListIntakeCalendarEntriesParams,
+) => {
+  return [`/api/intake-calendar`, ...(params ? [params] : [])] as const;
+};
+
+export const getListIntakeCalendarEntriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listIntakeCalendarEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListIntakeCalendarEntriesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listIntakeCalendarEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListIntakeCalendarEntriesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listIntakeCalendarEntries>>
+  > = ({ signal }) =>
+    listIntakeCalendarEntries(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listIntakeCalendarEntries>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListIntakeCalendarEntriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listIntakeCalendarEntries>>
+>;
+export type ListIntakeCalendarEntriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List intake calendar entries (optionally filtered)
+ */
+
+export function useListIntakeCalendarEntries<
+  TData = Awaited<ReturnType<typeof listIntakeCalendarEntries>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListIntakeCalendarEntriesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listIntakeCalendarEntries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListIntakeCalendarEntriesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create calendar entry (admin)
+ */
+export const getCreateIntakeCalendarEntryUrl = () => {
+  return `/api/intake-calendar`;
+};
+
+export const createIntakeCalendarEntry = async (
+  upsertIntakeCalendarEntryBody: UpsertIntakeCalendarEntryBody,
+  options?: RequestInit,
+): Promise<IntakeCalendarEntry> => {
+  return customFetch<IntakeCalendarEntry>(getCreateIntakeCalendarEntryUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(upsertIntakeCalendarEntryBody),
+  });
+};
+
+export const getCreateIntakeCalendarEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createIntakeCalendarEntry>>,
+    TError,
+    { data: BodyType<UpsertIntakeCalendarEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createIntakeCalendarEntry>>,
+  TError,
+  { data: BodyType<UpsertIntakeCalendarEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["createIntakeCalendarEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createIntakeCalendarEntry>>,
+    { data: BodyType<UpsertIntakeCalendarEntryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createIntakeCalendarEntry(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateIntakeCalendarEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createIntakeCalendarEntry>>
+>;
+export type CreateIntakeCalendarEntryMutationBody =
+  BodyType<UpsertIntakeCalendarEntryBody>;
+export type CreateIntakeCalendarEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create calendar entry (admin)
+ */
+export const useCreateIntakeCalendarEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createIntakeCalendarEntry>>,
+    TError,
+    { data: BodyType<UpsertIntakeCalendarEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createIntakeCalendarEntry>>,
+  TError,
+  { data: BodyType<UpsertIntakeCalendarEntryBody> },
+  TContext
+> => {
+  return useMutation(getCreateIntakeCalendarEntryMutationOptions(options));
+};
+
+/**
+ * @summary Update calendar entry (admin)
+ */
+export const getUpdateIntakeCalendarEntryUrl = (entryId: number) => {
+  return `/api/intake-calendar/${entryId}`;
+};
+
+export const updateIntakeCalendarEntry = async (
+  entryId: number,
+  upsertIntakeCalendarEntryBody: UpsertIntakeCalendarEntryBody,
+  options?: RequestInit,
+): Promise<IntakeCalendarEntry> => {
+  return customFetch<IntakeCalendarEntry>(
+    getUpdateIntakeCalendarEntryUrl(entryId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(upsertIntakeCalendarEntryBody),
+    },
+  );
+};
+
+export const getUpdateIntakeCalendarEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateIntakeCalendarEntry>>,
+    TError,
+    { entryId: number; data: BodyType<UpsertIntakeCalendarEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateIntakeCalendarEntry>>,
+  TError,
+  { entryId: number; data: BodyType<UpsertIntakeCalendarEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateIntakeCalendarEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateIntakeCalendarEntry>>,
+    { entryId: number; data: BodyType<UpsertIntakeCalendarEntryBody> }
+  > = (props) => {
+    const { entryId, data } = props ?? {};
+
+    return updateIntakeCalendarEntry(entryId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateIntakeCalendarEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateIntakeCalendarEntry>>
+>;
+export type UpdateIntakeCalendarEntryMutationBody =
+  BodyType<UpsertIntakeCalendarEntryBody>;
+export type UpdateIntakeCalendarEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update calendar entry (admin)
+ */
+export const useUpdateIntakeCalendarEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateIntakeCalendarEntry>>,
+    TError,
+    { entryId: number; data: BodyType<UpsertIntakeCalendarEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateIntakeCalendarEntry>>,
+  TError,
+  { entryId: number; data: BodyType<UpsertIntakeCalendarEntryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateIntakeCalendarEntryMutationOptions(options));
+};
+
+/**
+ * @summary Delete calendar entry (admin)
+ */
+export const getDeleteIntakeCalendarEntryUrl = (entryId: number) => {
+  return `/api/intake-calendar/${entryId}`;
+};
+
+export const deleteIntakeCalendarEntry = async (
+  entryId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteIntakeCalendarEntryUrl(entryId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteIntakeCalendarEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>,
+    TError,
+    { entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>,
+  TError,
+  { entryId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteIntakeCalendarEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>,
+    { entryId: number }
+  > = (props) => {
+    const { entryId } = props ?? {};
+
+    return deleteIntakeCalendarEntry(entryId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteIntakeCalendarEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>
+>;
+
+export type DeleteIntakeCalendarEntryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete calendar entry (admin)
+ */
+export const useDeleteIntakeCalendarEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>,
+    TError,
+    { entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteIntakeCalendarEntry>>,
+  TError,
+  { entryId: number },
+  TContext
+> => {
+  return useMutation(getDeleteIntakeCalendarEntryMutationOptions(options));
+};
+
+/**
+ * @summary Upcoming deadlines for a nationality (defaults to caller's student)
+ */
+export const getGetUpcomingIntakeDeadlinesUrl = (
+  params?: GetUpcomingIntakeDeadlinesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/intake-calendar/upcoming?${stringifiedParams}`
+    : `/api/intake-calendar/upcoming`;
+};
+
+export const getUpcomingIntakeDeadlines = async (
+  params?: GetUpcomingIntakeDeadlinesParams,
+  options?: RequestInit,
+): Promise<IntakeCalendarEntry[]> => {
+  return customFetch<IntakeCalendarEntry[]>(
+    getGetUpcomingIntakeDeadlinesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetUpcomingIntakeDeadlinesQueryKey = (
+  params?: GetUpcomingIntakeDeadlinesParams,
+) => {
+  return [
+    `/api/intake-calendar/upcoming`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetUpcomingIntakeDeadlinesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetUpcomingIntakeDeadlinesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetUpcomingIntakeDeadlinesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>
+  > = ({ signal }) =>
+    getUpcomingIntakeDeadlines(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetUpcomingIntakeDeadlinesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>
+>;
+export type GetUpcomingIntakeDeadlinesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Upcoming deadlines for a nationality (defaults to caller's student)
+ */
+
+export function useGetUpcomingIntakeDeadlines<
+  TData = Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetUpcomingIntakeDeadlinesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getUpcomingIntakeDeadlines>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetUpcomingIntakeDeadlinesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

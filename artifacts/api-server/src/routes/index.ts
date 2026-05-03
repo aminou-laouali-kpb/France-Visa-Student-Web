@@ -9,6 +9,7 @@ import adminRouter from "./admin";
 import aiRouter from "./ai";
 import profileRouter from "./profile";
 import financeRouter from "./finance";
+import matrixRouter from "./matrix";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(adminRouter);
 router.use(aiRouter);
 router.use(profileRouter);
 router.use(financeRouter);
+router.use(matrixRouter);
 
 export default router;

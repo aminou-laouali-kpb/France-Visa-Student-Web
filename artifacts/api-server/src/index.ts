@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { seedReferenceData, seedDemoPersonas } from "./lib/seed";
+import { ensureMatrixSeed } from "./routes/matrix";
 
 const rawPort = process.env["PORT"];
 
@@ -25,4 +26,5 @@ app.listen(port, async (err) => {
   logger.info({ port }, "Server listening");
   await seedReferenceData();
   await seedDemoPersonas();
+  await ensureMatrixSeed();
 });

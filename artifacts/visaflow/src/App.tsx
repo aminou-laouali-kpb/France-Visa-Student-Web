@@ -31,6 +31,8 @@ import { AdminStudents } from "@/pages/admin/AdminStudents";
 import { AdminWorkflow } from "@/pages/admin/AdminWorkflow";
 import { AdminAuditLogs } from "@/pages/admin/AdminAuditLogs";
 import { AdminSchoolsManager } from "@/pages/admin/AdminSchoolsManager";
+import { AdminMatrix } from "@/pages/admin/AdminMatrix";
+import { AdminIntakeCalendar } from "@/pages/admin/AdminIntakeCalendar";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -231,6 +233,16 @@ function AppRouter() {
       <Route path="/admin/workflow">
         <AdminOnly>
           <AdminWorkflow />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/matrix">
+        <AdminOnly>
+          <AdminMatrix />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/intake-calendar">
+        <AdminOnly>
+          <AdminIntakeCalendar />
         </AdminOnly>
       </Route>
       <Route path="/admin/audit">

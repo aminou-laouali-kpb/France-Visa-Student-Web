@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ProgressRing";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime, ROLE_LABELS } from "@/lib/utils";
+import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
 import {
   AlertTriangle,
   ArrowRight,
@@ -272,6 +273,8 @@ export function StudentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <StudentIntakeCalendarWidget />
 
       <Card data-testid="card-upcoming-appointments">
         <CardHeader>

@@ -44,6 +44,10 @@ tags:
     description: File storage
   - name: finance
     description: Financial proofs, accommodation, CVEC and submission readiness
+  - name: matrix
+    description: Per-nationality × program-level document matrix
+  - name: intake-calendar
+    description: Campus France & visa intake deadlines per nationality
 
 paths:
   /healthz:
@@ -1806,6 +1810,196 @@ paths:
       responses:
         "204":
           description: Deleted
+
+  # ─── DOCUMENT MATRIX ─────────────────────────────────────────────────────
+  /document-matrix:
+    get:
+      operationId: listDocumentMatrixEntries
+      tags: [matrix]
+      summary: List all matrix rows (admin/staff)
+      parameters:
+        - { name: nationalityCode, in: query, schema: { type: string } }
+        - { name: programLevel, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Matrix entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DocumentMatrixEntry" }
+    post:
+      operationId: createDocumentMatrixEntry
+      tags: [matrix]
+      summary: Create a matrix entry (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertDocumentMatrixEntryBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentMatrixEntry"
+
+  /document-matrix/{entryId}:
+    patch:
+      operationId: updateDocumentMatrixEntry
+      tags: [matrix]
+      summary: Update a matrix entry (admin)
+      parameters:
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertDocumentMatrixEntryBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentMatrixEntry"
+    delete:
+      operationId: deleteDocumentMatrixEntry
+      tags: [matrix]
+      summary: Delete a matrix entry (admin)
+      parameters:
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /document-matrix/resolve:
+    get:
+      operationId: resolveDocumentMatrix
+      tags: [matrix]
+      summary: Resolve the matrix entry for a nationality + program level
+      parameters:
+        - { name: nationalityCode, in: query, required: true, schema: { type: string } }
+        - { name: programLevel, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Resolved matrix payload (entry may be null when no row exists)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolvedDocumentMatrix"
+
+  /document-matrix/reference:
+    get:
+      operationId: getDocumentMatrixReference
+      tags: [matrix]
+      summary: Static reference (categories, levels, visa centres) for the matrix editor
+      responses:
+        "200":
+          description: Matrix reference data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentMatrixReference"
+
+  /students/{studentId}/refresh-checklist:
+    post:
+      operationId: refreshStudentChecklist
+      tags: [matrix]
+      summary: Re-run the matrix-driven checklist generator for a student (advisor/admin)
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Refresh result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshChecklistResponse"
+
+  # ─── INTAKE CALENDAR ─────────────────────────────────────────────────────
+  /intake-calendar:
+    get:
+      operationId: listIntakeCalendarEntries
+      tags: [intake-calendar]
+      summary: List intake calendar entries (optionally filtered)
+      parameters:
+        - { name: nationalityCode, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Calendar entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/IntakeCalendarEntry" }
+    post:
+      operationId: createIntakeCalendarEntry
+      tags: [intake-calendar]
+      summary: Create calendar entry (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertIntakeCalendarEntryBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntakeCalendarEntry"
+
+  /intake-calendar/{entryId}:
+    patch:
+      operationId: updateIntakeCalendarEntry
+      tags: [intake-calendar]
+      summary: Update calendar entry (admin)
+      parameters:
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertIntakeCalendarEntryBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntakeCalendarEntry"
+    delete:
+      operationId: deleteIntakeCalendarEntry
+      tags: [intake-calendar]
+      summary: Delete calendar entry (admin)
+      parameters:
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /intake-calendar/upcoming:
+    get:
+      operationId: getUpcomingIntakeDeadlines
+      tags: [intake-calendar]
+      summary: Upcoming deadlines for a nationality (defaults to caller's student)
+      parameters:
+        - { name: nationalityCode, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 3 } }
+      responses:
+        "200":
+          description: Upcoming deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/IntakeCalendarEntry" }
 
 components:
   responses:
@@ -3935,3 +4129,152 @@ components:
         - currentAcademicYear
         - cvecAmountEur
         - cvecAmountByYear
+
+    # ── Document Matrix & Intake Calendar ────────────────────────────────────
+    DocumentMatrixEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        nationalityCode: { type: string }
+        programLevel: { type: string }
+        documentCategories:
+          type: array
+          items: { type: string }
+        visaCenter: { type: ["string", "null"] }
+        campusFranceRequired: { type: boolean }
+        notes: { type: ["string", "null"] }
+        version: { type: integer }
+        updatedBy: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required:
+        - id
+        - nationalityCode
+        - programLevel
+        - documentCategories
+        - campusFranceRequired
+        - version
+        - createdAt
+        - updatedAt
+
+    UpsertDocumentMatrixEntryBody:
+      type: object
+      properties:
+        nationalityCode: { type: string }
+        programLevel: { type: string }
+        documentCategories:
+          type: array
+          items: { type: string }
+        visaCenter: { type: ["string", "null"] }
+        campusFranceRequired: { type: boolean }
+        notes: { type: ["string", "null"] }
+      required: [nationalityCode, programLevel, documentCategories]
+
+    ResolvedDocumentMatrix:
+      type: object
+      properties:
+        nationalityCode: { type: string }
+        programLevel: { type: string }
+        entry:
+          oneOf:
+            - { type: "null" }
+            - $ref: "#/components/schemas/DocumentMatrixEntry"
+        fallbackUsed: { type: boolean }
+        documentCategories:
+          type: array
+          items: { type: string }
+        visaCenter: { type: ["string", "null"] }
+        campusFranceRequired: { type: boolean }
+      required:
+        - nationalityCode
+        - programLevel
+        - fallbackUsed
+        - documentCategories
+        - campusFranceRequired
+
+    DocumentMatrixReference:
+      type: object
+      properties:
+        documentCategories:
+          type: array
+          items:
+            type: object
+            properties:
+              value: { type: string }
+              label: { type: string }
+            required: [value, label]
+        programLevels:
+          type: array
+          items:
+            type: object
+            properties:
+              value: { type: string }
+              label: { type: string }
+            required: [value, label]
+        visaCenters:
+          type: array
+          items:
+            type: object
+            properties:
+              value: { type: string }
+              label: { type: string }
+            required: [value, label]
+      required: [documentCategories, programLevels, visaCenters]
+
+    RefreshChecklistResponse:
+      type: object
+      properties:
+        studentId: { type: integer }
+        refreshedAt: { type: string, format: date-time }
+        stepsAdded: { type: integer }
+        checklistItemsAdded: { type: integer }
+        checklistItemsRemoved: { type: integer }
+        appliedMatrixEntryId: { type: ["integer", "null"] }
+        documentCategories:
+          type: array
+          items: { type: string }
+      required:
+        - studentId
+        - refreshedAt
+        - stepsAdded
+        - checklistItemsAdded
+        - checklistItemsRemoved
+        - documentCategories
+
+    IntakeCalendarEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        nationalityCode: { type: string }
+        label: { type: string }
+        deadlineType: { type: string }
+        windowStart: { type: ["string", "null"] }
+        windowEnd: { type: string }
+        academicYear: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        sortOrder: { type: integer }
+        updatedBy: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required:
+        - id
+        - nationalityCode
+        - label
+        - deadlineType
+        - windowEnd
+        - sortOrder
+        - createdAt
+        - updatedAt
+
+    UpsertIntakeCalendarEntryBody:
+      type: object
+      properties:
+        nationalityCode: { type: string }
+        label: { type: string }
+        deadlineType: { type: string }
+        windowStart: { type: ["string", "null"] }
+        windowEnd: { type: string }
+        academicYear: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        sortOrder: { type: ["integer", "null"] }
+      required: [nationalityCode, label, deadlineType, windowEnd]

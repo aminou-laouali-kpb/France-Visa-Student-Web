@@ -239,6 +239,18 @@ router.post("/students", requireAuth, validateBody(CreateStudentBody), async (re
   };
   const [created] = await db.insert(studentsTable).values(data).returning();
   await provisionWorkflowForStudent(created.id, created.countryId ?? null);
+  // Apply per-nationality × program-level document matrix on top of the
+  // template-driven workflow so the freshly-created dossier has the right
+  // checklist for the student's country & program from day one.
+  try {
+    const { applyMatrixToStudent, loadProgramLevel } = await import("./matrix");
+    await applyMatrixToStudent(created.id, {
+      nationalityCode: created.nationalityCode,
+      programLevel: await loadProgramLevel(created.programId ?? null),
+    });
+  } catch (e) {
+    // Matrix application must never block dossier creation
+  }
   await logAudit({
     userId: u.id,
     studentId: created.id,

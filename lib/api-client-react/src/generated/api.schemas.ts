@@ -1657,6 +1657,111 @@ export interface FinanceReference {
   cvecAmountByYear: FinanceReferenceCvecAmountByYear;
 }
 
+export interface DocumentMatrixEntry {
+  id: number;
+  nationalityCode: string;
+  programLevel: string;
+  documentCategories: string[];
+  /** @nullable */
+  visaCenter?: string | null;
+  campusFranceRequired: boolean;
+  /** @nullable */
+  notes?: string | null;
+  version: number;
+  /** @nullable */
+  updatedBy?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertDocumentMatrixEntryBody {
+  nationalityCode: string;
+  programLevel: string;
+  documentCategories: string[];
+  /** @nullable */
+  visaCenter?: string | null;
+  campusFranceRequired?: boolean;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface ResolvedDocumentMatrix {
+  nationalityCode: string;
+  programLevel: string;
+  entry?: null | DocumentMatrixEntry;
+  fallbackUsed: boolean;
+  documentCategories: string[];
+  /** @nullable */
+  visaCenter?: string | null;
+  campusFranceRequired: boolean;
+}
+
+export type DocumentMatrixReferenceDocumentCategoriesItem = {
+  value: string;
+  label: string;
+};
+
+export type DocumentMatrixReferenceProgramLevelsItem = {
+  value: string;
+  label: string;
+};
+
+export type DocumentMatrixReferenceVisaCentersItem = {
+  value: string;
+  label: string;
+};
+
+export interface DocumentMatrixReference {
+  documentCategories: DocumentMatrixReferenceDocumentCategoriesItem[];
+  programLevels: DocumentMatrixReferenceProgramLevelsItem[];
+  visaCenters: DocumentMatrixReferenceVisaCentersItem[];
+}
+
+export interface RefreshChecklistResponse {
+  studentId: number;
+  refreshedAt: string;
+  stepsAdded: number;
+  checklistItemsAdded: number;
+  checklistItemsRemoved: number;
+  /** @nullable */
+  appliedMatrixEntryId?: number | null;
+  documentCategories: string[];
+}
+
+export interface IntakeCalendarEntry {
+  id: number;
+  nationalityCode: string;
+  label: string;
+  deadlineType: string;
+  /** @nullable */
+  windowStart?: string | null;
+  windowEnd: string;
+  /** @nullable */
+  academicYear?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  sortOrder: number;
+  /** @nullable */
+  updatedBy?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertIntakeCalendarEntryBody {
+  nationalityCode: string;
+  label: string;
+  deadlineType: string;
+  /** @nullable */
+  windowStart?: string | null;
+  windowEnd: string;
+  /** @nullable */
+  academicYear?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  sortOrder?: number | null;
+}
+
 /**
  * Unauthorized
  */
@@ -1736,4 +1841,23 @@ export type SetSubmissionGateOverride200 = {
   submissionGateOverride: boolean;
   /** @nullable */
   reason?: string | null;
+};
+
+export type ListDocumentMatrixEntriesParams = {
+  nationalityCode?: string;
+  programLevel?: string;
+};
+
+export type ResolveDocumentMatrixParams = {
+  nationalityCode: string;
+  programLevel: string;
+};
+
+export type ListIntakeCalendarEntriesParams = {
+  nationalityCode?: string;
+};
+
+export type GetUpcomingIntakeDeadlinesParams = {
+  nationalityCode?: string;
+  limit?: number;
 };

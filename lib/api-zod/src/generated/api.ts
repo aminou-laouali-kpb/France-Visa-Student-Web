@@ -2685,3 +2685,262 @@ export const DeleteEefWishParams = zod.object({
   studentId: zod.coerce.number(),
   wishId: zod.coerce.number(),
 });
+
+/**
+ * @summary List all matrix rows (admin/staff)
+ */
+export const ListDocumentMatrixEntriesQueryParams = zod.object({
+  nationalityCode: zod.coerce.string().optional(),
+  programLevel: zod.coerce.string().optional(),
+});
+
+export const ListDocumentMatrixEntriesResponseItem = zod.object({
+  id: zod.number(),
+  nationalityCode: zod.string(),
+  programLevel: zod.string(),
+  documentCategories: zod.array(zod.string()),
+  visaCenter: zod.string().nullish(),
+  campusFranceRequired: zod.boolean(),
+  notes: zod.string().nullish(),
+  version: zod.number(),
+  updatedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListDocumentMatrixEntriesResponse = zod.array(
+  ListDocumentMatrixEntriesResponseItem,
+);
+
+/**
+ * @summary Create a matrix entry (admin)
+ */
+export const CreateDocumentMatrixEntryBody = zod.object({
+  nationalityCode: zod.string(),
+  programLevel: zod.string(),
+  documentCategories: zod.array(zod.string()),
+  visaCenter: zod.string().nullish(),
+  campusFranceRequired: zod.boolean().optional(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Update a matrix entry (admin)
+ */
+export const UpdateDocumentMatrixEntryParams = zod.object({
+  entryId: zod.coerce.number(),
+});
+
+export const UpdateDocumentMatrixEntryBody = zod.object({
+  nationalityCode: zod.string(),
+  programLevel: zod.string(),
+  documentCategories: zod.array(zod.string()),
+  visaCenter: zod.string().nullish(),
+  campusFranceRequired: zod.boolean().optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateDocumentMatrixEntryResponse = zod.object({
+  id: zod.number(),
+  nationalityCode: zod.string(),
+  programLevel: zod.string(),
+  documentCategories: zod.array(zod.string()),
+  visaCenter: zod.string().nullish(),
+  campusFranceRequired: zod.boolean(),
+  notes: zod.string().nullish(),
+  version: zod.number(),
+  updatedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a matrix entry (admin)
+ */
+export const DeleteDocumentMatrixEntryParams = zod.object({
+  entryId: zod.coerce.number(),
+});
+
+/**
+ * @summary Resolve the matrix entry for a nationality + program level
+ */
+export const ResolveDocumentMatrixQueryParams = zod.object({
+  nationalityCode: zod.coerce.string(),
+  programLevel: zod.coerce.string(),
+});
+
+export const ResolveDocumentMatrixResponse = zod.object({
+  nationalityCode: zod.string(),
+  programLevel: zod.string(),
+  entry: zod
+    .union([
+      zod.null(),
+      zod.object({
+        id: zod.number(),
+        nationalityCode: zod.string(),
+        programLevel: zod.string(),
+        documentCategories: zod.array(zod.string()),
+        visaCenter: zod.string().nullish(),
+        campusFranceRequired: zod.boolean(),
+        notes: zod.string().nullish(),
+        version: zod.number(),
+        updatedBy: zod.number().nullish(),
+        createdAt: zod.coerce.date(),
+        updatedAt: zod.coerce.date(),
+      }),
+    ])
+    .optional(),
+  fallbackUsed: zod.boolean(),
+  documentCategories: zod.array(zod.string()),
+  visaCenter: zod.string().nullish(),
+  campusFranceRequired: zod.boolean(),
+});
+
+/**
+ * @summary Static reference (categories, levels, visa centres) for the matrix editor
+ */
+export const GetDocumentMatrixReferenceResponse = zod.object({
+  documentCategories: zod.array(
+    zod.object({
+      value: zod.string(),
+      label: zod.string(),
+    }),
+  ),
+  programLevels: zod.array(
+    zod.object({
+      value: zod.string(),
+      label: zod.string(),
+    }),
+  ),
+  visaCenters: zod.array(
+    zod.object({
+      value: zod.string(),
+      label: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Re-run the matrix-driven checklist generator for a student (advisor/admin)
+ */
+export const RefreshStudentChecklistParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const RefreshStudentChecklistResponse = zod.object({
+  studentId: zod.number(),
+  refreshedAt: zod.coerce.date(),
+  stepsAdded: zod.number(),
+  checklistItemsAdded: zod.number(),
+  checklistItemsRemoved: zod.number(),
+  appliedMatrixEntryId: zod.number().nullish(),
+  documentCategories: zod.array(zod.string()),
+});
+
+/**
+ * @summary List intake calendar entries (optionally filtered)
+ */
+export const ListIntakeCalendarEntriesQueryParams = zod.object({
+  nationalityCode: zod.coerce.string().optional(),
+});
+
+export const ListIntakeCalendarEntriesResponseItem = zod.object({
+  id: zod.number(),
+  nationalityCode: zod.string(),
+  label: zod.string(),
+  deadlineType: zod.string(),
+  windowStart: zod.string().nullish(),
+  windowEnd: zod.string(),
+  academicYear: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number(),
+  updatedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListIntakeCalendarEntriesResponse = zod.array(
+  ListIntakeCalendarEntriesResponseItem,
+);
+
+/**
+ * @summary Create calendar entry (admin)
+ */
+export const CreateIntakeCalendarEntryBody = zod.object({
+  nationalityCode: zod.string(),
+  label: zod.string(),
+  deadlineType: zod.string(),
+  windowStart: zod.string().nullish(),
+  windowEnd: zod.string(),
+  academicYear: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number().nullish(),
+});
+
+/**
+ * @summary Update calendar entry (admin)
+ */
+export const UpdateIntakeCalendarEntryParams = zod.object({
+  entryId: zod.coerce.number(),
+});
+
+export const UpdateIntakeCalendarEntryBody = zod.object({
+  nationalityCode: zod.string(),
+  label: zod.string(),
+  deadlineType: zod.string(),
+  windowStart: zod.string().nullish(),
+  windowEnd: zod.string(),
+  academicYear: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number().nullish(),
+});
+
+export const UpdateIntakeCalendarEntryResponse = zod.object({
+  id: zod.number(),
+  nationalityCode: zod.string(),
+  label: zod.string(),
+  deadlineType: zod.string(),
+  windowStart: zod.string().nullish(),
+  windowEnd: zod.string(),
+  academicYear: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number(),
+  updatedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete calendar entry (admin)
+ */
+export const DeleteIntakeCalendarEntryParams = zod.object({
+  entryId: zod.coerce.number(),
+});
+
+/**
+ * @summary Upcoming deadlines for a nationality (defaults to caller's student)
+ */
+export const getUpcomingIntakeDeadlinesQueryLimitDefault = 3;
+
+export const GetUpcomingIntakeDeadlinesQueryParams = zod.object({
+  nationalityCode: zod.coerce.string().optional(),
+  limit: zod.coerce
+    .number()
+    .default(getUpcomingIntakeDeadlinesQueryLimitDefault),
+});
+
+export const GetUpcomingIntakeDeadlinesResponseItem = zod.object({
+  id: zod.number(),
+  nationalityCode: zod.string(),
+  label: zod.string(),
+  deadlineType: zod.string(),
+  windowStart: zod.string().nullish(),
+  windowEnd: zod.string(),
+  academicYear: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number(),
+  updatedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const GetUpcomingIntakeDeadlinesResponse = zod.array(
+  GetUpcomingIntakeDeadlinesResponseItem,
+);

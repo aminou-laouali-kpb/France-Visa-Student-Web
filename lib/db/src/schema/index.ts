@@ -14,3 +14,4 @@ export * from "./tenants";
 export * from "./ai";
 export * from "./profile";
 export * from "./finance";
+export * from "./matrix";

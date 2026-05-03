@@ -85,6 +85,8 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/admin/schools", icon: Building2, label: "Écoles" },
           { href: "/admin/countries", icon: Globe, label: "Pays" },
           { href: "/admin/workflow", icon: Workflow, label: "Parcours" },
+          { href: "/admin/matrix", icon: Workflow, label: "Matrice nationalité" },
+          { href: "/admin/intake-calendar", icon: Workflow, label: "Calendrier admissions" },
           { href: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
         ]
       : []),
