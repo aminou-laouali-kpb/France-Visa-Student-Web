@@ -96,6 +96,17 @@ router.post("/billing/checkout", requireAuth, async (req, res) => {
     res.status(400).json({ error: "missing_price_id" });
     return;
   }
+  // Server-side allowlist: the only acceptable priceIds are the ones
+  // configured for our known tiers. This prevents a client from creating a
+  // checkout session against an unrelated/legacy Stripe price (which the
+  // webhook would then refuse to map, leaving billing state inconsistent).
+  const allowedPrices = [process.env.STRIPE_PRICE_PRO, process.env.STRIPE_PRICE_AGENCY].filter(
+    (p): p is string => !!p,
+  );
+  if (allowedPrices.length === 0 || !allowedPrices.includes(priceId)) {
+    res.status(400).json({ error: "invalid_price_id" });
+    return;
+  }
   const tenant = await getTenant(user.tenantId);
   if (!tenant) {
     res.status(404).json({ error: "tenant_not_found" });

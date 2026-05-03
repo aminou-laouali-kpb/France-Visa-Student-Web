@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, type User } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole, isAdmin } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
@@ -8,8 +8,17 @@ import { UpdateMeBody, UpdateUserBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+// Server-side redaction. Strip every field that must never leave the server,
+// regardless of who is asking — TOTP shared secret in particular. Always
+// route a user row through this before serialising it.
+function publicUser(u: User): Omit<User, "totpSecret"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { totpSecret, ...rest } = u;
+  return rest;
+}
+
 router.get("/users/me", requireAuth, async (req, res) => {
-  res.json(req.currentUser);
+  res.json(publicUser(req.currentUser!));
 });
 
 router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, res) => {
@@ -30,7 +39,7 @@ router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, r
     })
     .where(eq(usersTable.id, req.currentUser!.id))
     .returning();
-  res.json(updated);
+  res.json(publicUser(updated));
 });
 
 router.get("/users", requireAuth, async (req, res) => {
@@ -56,7 +65,7 @@ router.get("/users", requireAuth, async (req, res) => {
           .where(eq(usersTable.tenantId, me.tenantId ?? 1));
   const filtered = role ? all.filter((u) => u.role === role) : all;
   if (isAdmin(me)) {
-    res.json(filtered);
+    res.json(filtered.map(publicUser));
     return;
   }
   res.json(
@@ -107,7 +116,7 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
     });
     return;
   }
-  res.json(u);
+  res.json(publicUser(u));
 });
 
 router.patch(
@@ -151,6 +160,7 @@ router.patch(
       res.status(404).json({ error: "User not found" });
       return;
     }
+    const safeUpdated = publicUser(updated);
     await logAudit({
       userId: req.currentUser!.id,
       action: "user.update",
@@ -158,7 +168,7 @@ router.patch(
       entityId: id,
       details: JSON.stringify({ role, isActive }),
     });
-    res.json(updated);
+    res.json(safeUpdated);
   },
 );
 
