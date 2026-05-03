@@ -565,12 +565,19 @@ export async function resolveMatrixEntry(
 }
 
 const MATRIX_CHECKLIST_ANCHOR_STEP = "Constitution du dossier consulaire";
+const MATRIX_SKIP_REASON = "Non requis pour cette nationalité (matrice)";
 
-// Apply matrix-derived document categories to a student. We add one
-// checklist item per matrix doc category that isn't already covered by an
-// existing workflow step's `requiredDocumentCategories`. Existing
-// student steps & checklists are preserved (frozen plan); only matrix
-// items are reconciled.
+// Apply the per-nationality × program-level matrix authoritatively to a
+// student's checklist. Behaviour:
+//  • For every workflow step that has `requiredDocumentCategories`, if NONE
+//    of its categories are in the matrix, the step is reconciled to
+//    `skipped` (only when currently `pending`, never overrides progress)
+//    and its unchecked required checklist items are pruned.
+//  • Previously-skipped steps whose categories are re-included by the
+//    matrix are restored to `pending`.
+//  • Matrix categories not covered by any active step are anchored as
+//    "Matrice nationalité : …" items on the consulate-dossier step.
+//  • User-checked checklist items are NEVER deleted, regardless of state.
 export async function applyMatrixToStudent(
   studentId: number,
   ctx: {
@@ -580,9 +587,11 @@ export async function applyMatrixToStudent(
 ) {
   const resolved = await resolveMatrixEntry(ctx.nationalityCode, ctx.programLevel);
   const matrixCats = new Set(resolved.documentCategories);
+  // When no matrix entry resolves, leave the generic template untouched so
+  // we never silently strip requirements for nationalities admins haven't
+  // configured yet.
+  const matrixApplies = matrixCats.size > 0;
 
-  // Collect categories already covered by template steps so we don't
-  // duplicate an item the student already has via the standard workflow.
   const existingSteps = await db
     .select()
     .from(studentStepsTable)
@@ -590,13 +599,76 @@ export async function applyMatrixToStudent(
     .orderBy(asc(studentStepsTable.stepOrder));
   const wfStepIds = existingSteps.map((s) => s.workflowStepId);
   const wfSteps = wfStepIds.length
-    ? await db
-        .select()
-        .from(workflowStepsTable)
+    ? await db.select().from(workflowStepsTable)
     : [];
+  const wfById = new Map(wfSteps.map((s) => [s.id, s]));
+
+  let stepsSkipped = 0;
+  let stepsRestored = 0;
+  let removed = 0;
+  if (matrixApplies) {
+    for (const ss of existingSteps) {
+      const ws = wfById.get(ss.workflowStepId);
+      if (!ws) continue;
+      const reqCats = ws.requiredDocumentCategories ?? [];
+      if (reqCats.length === 0) continue; // non-document step → leave alone
+      const overlaps = reqCats.some((c) => matrixCats.has(c));
+      if (!overlaps) {
+        // Only reconcile steps that are still untouched. Anything in
+        // progress, submitted, validated, etc. stays as-is so we never
+        // erase work the student or staff has already done.
+        if (ss.status === "not_started") {
+          await db
+            .update(studentStepsTable)
+            .set({
+              status: "blocked",
+              blockedReason: MATRIX_SKIP_REASON,
+            })
+            .where(eq(studentStepsTable.id, ss.id));
+          stepsSkipped++;
+          const items = await db
+            .select()
+            .from(checklistItemsTable)
+            .where(
+              and(
+                eq(checklistItemsTable.studentId, studentId),
+                eq(checklistItemsTable.workflowStepId, ws.id),
+                eq(checklistItemsTable.isRequired, true),
+              ),
+            );
+          for (const it of items) {
+            if (it.isChecked) continue;
+            await db
+              .delete(checklistItemsTable)
+              .where(eq(checklistItemsTable.id, it.id));
+            removed++;
+          }
+        }
+      } else if (
+        ss.status === "blocked" &&
+        ss.blockedReason === MATRIX_SKIP_REASON
+      ) {
+        await db
+          .update(studentStepsTable)
+          .set({ status: "not_started", blockedReason: null })
+          .where(eq(studentStepsTable.id, ss.id));
+        stepsRestored++;
+      }
+    }
+  }
+
+  const activeStepIds = new Set(
+    existingSteps
+      .filter(
+        (s) =>
+          !matrixApplies ||
+          !(s.status === "blocked" && s.blockedReason === MATRIX_SKIP_REASON),
+      )
+      .map((s) => s.workflowStepId),
+  );
   const coveredCats = new Set<string>();
   for (const s of wfSteps) {
-    if (!wfStepIds.includes(s.id)) continue;
+    if (!activeStepIds.has(s.id)) continue;
     for (const c of s.requiredDocumentCategories ?? []) coveredCats.add(c);
   }
 
@@ -648,7 +720,6 @@ export async function applyMatrixToStudent(
       it.label.startsWith("Matrice nationalité : ") &&
       !matrixLabels.has(it.label),
   );
-  let removed = 0;
   for (const it of stale) {
     if (it.isChecked) continue; // never delete user-checked items
     await db
@@ -677,7 +748,8 @@ export async function applyMatrixToStudent(
   }
 
   return {
-    stepsAdded: 0,
+    stepsAdded: stepsRestored,
+    stepsSkipped,
     checklistItemsAdded: added,
     checklistItemsRemoved: removed,
     appliedMatrixEntryId: resolved.entry?.id ?? null,
@@ -715,7 +787,10 @@ export async function ensureMatrixSeed(): Promise<void> {
       campusFranceRequired: boolean;
       notes: string;
     }[] = [];
-    const FRANCOPHONE = ["SN", "CI", "CM", "BJ", "BF", "ML", "TG", "GA", "CG", "MG"];
+    const FRANCOPHONE = [
+      "SN", "CI", "CM", "BJ", "BF", "ML", "TG", "GA", "CG", "MG",
+      "MA", "DZ", "TN", "CD", "GN", "NE", "TD",
+    ];
     const LEVELS = ["licence", "bachelor", "master", "mba", "ingenieur"];
     for (const nat of FRANCOPHONE) {
       for (const lvl of LEVELS) {
@@ -776,7 +851,10 @@ export async function ensureMatrixSeed(): Promise<void> {
         sort: 3,
       },
     ];
-    const COUNTRIES_WITH_CAL = ["SN", "CI", "CM", "BJ", "BF", "ML", "TG"];
+    const COUNTRIES_WITH_CAL = [
+      "SN", "CI", "CM", "BJ", "BF", "ML", "TG",
+      "MA", "DZ", "TN", "CD", "GN",
+    ];
     const rowsToInsert = COUNTRIES_WITH_CAL.flatMap((nat) =>
       baseRows.map((r) => {
         const d = new Date(
