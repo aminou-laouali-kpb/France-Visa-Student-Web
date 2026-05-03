@@ -1,5 +1,7 @@
 import { Router, type IRouter } from "express";
 import PDFDocument from "pdfkit";
+import { PDFDocument as PdfLibDocument } from "pdf-lib";
+import { PassThrough } from "stream";
 import {
   db,
   studentsTable,
@@ -16,8 +18,27 @@ import {
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, canAccessStudent } from "../middlewares/auth";
 import { logger } from "../lib/logger";
+import { ObjectStorageService } from "../lib/objectStorage";
 
 const router: IRouter = Router();
+
+async function fetchObjectBuffer(objectPath: string): Promise<Buffer | null> {
+  try {
+    const storage = new ObjectStorageService();
+    const file = await storage.getObjectEntityFile(objectPath);
+    return await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      file
+        .createReadStream()
+        .on("data", (c: Buffer) => chunks.push(c))
+        .on("end", () => resolve(Buffer.concat(chunks)))
+        .on("error", reject);
+    });
+  } catch (err) {
+    logger.warn({ err, objectPath }, "dossier: failed to fetch object");
+    return null;
+  }
+}
 
 router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => {
   const id = Number(req.params.studentId);
@@ -70,13 +91,14 @@ router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => 
     .orderBy(desc(riskScoresTable.calculatedAt))
     .limit(1);
 
+  // Render the cover/summary PDF into a buffer first; we then merge in any
+  // attached document PDFs (in deterministic category order) and stream the
+  // single bundled dossier to the client.
   const doc = new PDFDocument({ size: "A4", margin: 50 });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="dossier-${student.lastName}-${student.firstName}-${id}.pdf"`,
-  );
-  doc.pipe(res);
+  const summaryStream = new PassThrough();
+  const summaryChunks: Buffer[] = [];
+  summaryStream.on("data", (c: Buffer) => summaryChunks.push(c));
+  doc.pipe(summaryStream);
   doc.on("error", (err) => logger.warn({ err, studentId: id }, "pdf stream error"));
 
   // Header
@@ -240,6 +262,60 @@ router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => 
   );
 
   doc.end();
+
+  // Wait for the summary buffer to finalize, then merge in attached PDFs
+  // (deterministic order: by category, then by id). Non-PDF attachments are
+  // skipped — they remain referenced in the documents section.
+  await new Promise<void>((resolve, reject) => {
+    summaryStream.on("end", () => resolve());
+    summaryStream.on("error", reject);
+  });
+  const summaryBuf = Buffer.concat(summaryChunks);
+
+  let merged: PdfLibDocument;
+  try {
+    merged = await PdfLibDocument.load(summaryBuf);
+  } catch (err) {
+    logger.warn({ err, studentId: id }, "dossier: failed to load summary buffer");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="dossier-${student.lastName}-${student.firstName}-${id}.pdf"`,
+    );
+    res.send(summaryBuf);
+    return;
+  }
+
+  const sortedDocs = [...docs].sort((a, b) => {
+    const ca = a.category ?? "";
+    const cb = b.category ?? "";
+    if (ca !== cb) return ca.localeCompare(cb);
+    return a.id - b.id;
+  });
+  for (const d of sortedDocs) {
+    if (!d.objectPath) continue;
+    const isPdf =
+      (d.mimeType ?? "").toLowerCase() === "application/pdf" ||
+      (d.fileName ?? "").toLowerCase().endsWith(".pdf");
+    if (!isPdf) continue;
+    const buf = await fetchObjectBuffer(d.objectPath);
+    if (!buf) continue;
+    try {
+      const src = await PdfLibDocument.load(buf, { ignoreEncryption: true });
+      const pages = await merged.copyPages(src, src.getPageIndices());
+      for (const p of pages) merged.addPage(p);
+    } catch (err) {
+      logger.warn({ err, documentId: d.id, studentId: id }, "dossier: failed to merge document PDF");
+    }
+  }
+
+  const finalBytes = await merged.save();
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="dossier-${student.lastName}-${student.firstName}-${id}.pdf"`,
+  );
+  res.end(Buffer.from(finalBytes));
 });
 
 export default router;

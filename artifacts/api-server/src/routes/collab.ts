@@ -263,7 +263,7 @@ router.post(
           .select()
           .from(usersTable)
           .where(eq(usersTable.id, assignedToId));
-        if (assignee?.email) {
+        if (assignee?.email && assignee.notifyEmail) {
           const isStudent = assignee.role === "student";
           const link = isStudent ? studentSelfLink() : staffStudentLink(studentId);
           await sendMail({
@@ -428,7 +428,7 @@ router.post(
           timeStyle: "short",
         });
         for (const r of recipients) {
-          if (!r.email) continue;
+          if (!r.email || !r.notifyEmail) continue;
           const isStudent = r.id === student.userId;
           const link = isStudent
             ? studentSelfLink("appointments")

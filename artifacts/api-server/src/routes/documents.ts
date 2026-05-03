@@ -360,7 +360,7 @@ router.post(
           .select()
           .from(usersTable)
           .where(eq(usersTable.id, student.userId));
-        if (studentUser?.email) {
+        if (studentUser?.email && studentUser.notifyEmail) {
           const subject =
             decision === "validated"
               ? `Votre document "${updated.name}" a été validé`

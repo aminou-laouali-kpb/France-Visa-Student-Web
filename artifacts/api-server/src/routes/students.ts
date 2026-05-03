@@ -403,7 +403,7 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
           ? `Visa obtenu — ${updated.firstName} ${updated.lastName}`
           : `Visa refusé — ${updated.firstName} ${updated.lastName}`;
         for (const r of recipients) {
-          if (!r.email) continue;
+          if (!r.email || !r.notifyEmail) continue;
           const isStudent = r.id === updated.userId;
           const link = isStudent ? studentSelfLink() : staffStudentLink(id);
           const text = obtained
@@ -483,7 +483,7 @@ router.patch(
           .select()
           .from(usersTable)
           .where(eq(usersTable.id, advisorId));
-        if (advisor?.email) {
+        if (advisor?.email && advisor.notifyEmail) {
           const link = staffStudentLink(id);
           await sendMail({
             to: advisor.email,
