@@ -22,6 +22,7 @@ import {
   CreateAccommodationRecordBody,
   UpdateAccommodationRecordBody,
   UpsertCvecPaymentBody,
+  SetSubmissionGateOverrideBody,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -581,6 +582,7 @@ router.get(
 router.post(
   "/students/:studentId/submission-gate-override",
   requireAuth,
+  validateBody(SetSubmissionGateOverrideBody),
   async (req, res) => {
     if (!isAdmin(req.currentUser!)) {
       res.status(403).json({ error: "Admin only" });
