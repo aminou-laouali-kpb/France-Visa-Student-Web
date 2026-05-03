@@ -1,10 +1,12 @@
+import { useEffect, useRef } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Show } from "@clerk/react";
+import { Show, useAuth } from "@clerk/react";
 import { useGetMe } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useApiAuthSetup } from "@/lib/api";
+import { activateUserCache, purgeUserCache } from "@/lib/registerSW";
 import { Layout } from "@/components/Layout";
 import { Landing } from "@/pages/Landing";
 import { SignInPage, SignUpPage } from "@/pages/AuthPages";
@@ -46,6 +48,35 @@ import NotFound from "@/pages/not-found";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
+
+// Watches the Clerk userId and keeps the SW cache scoped per user.
+// - When a user signs in, tells the SW to activate that user's cache.
+// - When the userId changes or becomes null (sign-out / account switch),
+//   instructs the SW to purge the previous user's cache before the new
+//   session can render any cached data.
+function CacheGuard() {
+  const { userId } = useAuth();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const prev = prevUserIdRef.current;
+
+    if (userId && userId !== prev) {
+      // Signed in (or switched to a different account).
+      if (prev) {
+        purgeUserCache(prev);
+      }
+      activateUserCache(userId);
+    } else if (!userId && prev) {
+      // Signed out — purge the outgoing user's cache immediately.
+      purgeUserCache(prev);
+    }
+
+    prevUserIdRef.current = userId ?? null;
+  }, [userId]);
+
+  return null;
+}
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -308,6 +339,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <CacheGuard />
         <WouterRouter base={basePath}>
           <BrandingTheme>
             <AppRouter />
