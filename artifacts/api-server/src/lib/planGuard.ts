@@ -3,9 +3,12 @@ import { db, tenantsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 
-export type PlanTier = "free" | "pro" | "enterprise";
+// Aligned with PLAN_TIERS in lib/tenant.ts. The `agency` tier was added in
+// task #22 (Stripe billing); without listing it here, paying agency tenants
+// would unexpectedly fail AI gating despite their plan including AI quota.
+export type PlanTier = "free" | "pro" | "agency" | "enterprise";
 
-const AI_FEATURE_ALLOWED_PLANS: PlanTier[] = ["pro", "enterprise"];
+const AI_FEATURE_ALLOWED_PLANS: PlanTier[] = ["pro", "agency", "enterprise"];
 
 let cachedTenantId: number | null = null;
 
