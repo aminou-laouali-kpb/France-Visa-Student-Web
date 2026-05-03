@@ -29,13 +29,31 @@ router.patch("/users/me", requireAuth, validateBody(UpdateMeBody), async (req, r
 });
 
 router.get("/users", requireAuth, async (req, res) => {
-  if (!isAdmin(req.currentUser!) && req.currentUser!.role !== "advisor") {
+  const me = req.currentUser!;
+  // Admins/superadmins see the full directory. Advisors and reviewers may
+  // need to look up colleagues (e.g. when reassigning a task) but should
+  // not get sensitive user fields — return a limited public projection.
+  // Students cannot list users at all.
+  if (!isAdmin(me) && me.role !== "advisor" && me.role !== "reviewer") {
     res.status(403).json({ error: "Forbidden" });
     return;
   }
   const role = req.query.role as string | undefined;
   const all = await db.select().from(usersTable);
-  res.json(role ? all.filter((u) => u.role === role) : all);
+  const filtered = role ? all.filter((u) => u.role === role) : all;
+  if (isAdmin(me)) {
+    res.json(filtered);
+    return;
+  }
+  res.json(
+    filtered.map((u) => ({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      avatarUrl: u.avatarUrl,
+      role: u.role,
+    })),
+  );
 });
 
 router.get("/users/:userId", requireAuth, async (req, res) => {

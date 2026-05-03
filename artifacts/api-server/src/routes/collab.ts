@@ -365,7 +365,10 @@ router.delete("/appointments/:appointmentId", requireAuth, async (req, res) => {
 
 // NOTIFICATIONS
 router.get("/notifications", requireAuth, async (req, res) => {
-  const unread = req.query.unread === "true";
+  // Accept both `unreadOnly` (OpenAPI / generated client contract) and the
+  // legacy `unread` alias so existing callers keep working.
+  const unread =
+    req.query.unreadOnly === "true" || req.query.unread === "true";
   let rows = await db
     .select()
     .from(notificationsTable)
