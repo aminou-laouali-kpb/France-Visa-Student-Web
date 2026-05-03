@@ -38,6 +38,7 @@ import { AdminMatrix } from "@/pages/admin/AdminMatrix";
 import { AdminIntakeCalendar } from "@/pages/admin/AdminIntakeCalendar";
 import { AdminBilling } from "@/pages/admin/AdminBilling";
 import { AdminBranding } from "@/pages/admin/AdminBranding";
+import { AdminBulkImport } from "@/pages/admin/AdminBulkImport";
 import { PrivacySettings } from "@/pages/PrivacySettings";
 import { BrandingTheme } from "@/lib/branding";
 import NotFound from "@/pages/not-found";
@@ -285,6 +286,11 @@ function AppRouter() {
       <Route path="/admin/branding">
         <AdminOnly>
           <AdminBranding />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/import">
+        <AdminOnly>
+          <AdminBulkImport />
         </AdminOnly>
       </Route>
       <Route path="/app/privacy">

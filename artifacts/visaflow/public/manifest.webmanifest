@@ -1,0 +1,19 @@
+{
+  "name": "VisaFlow France",
+  "short_name": "VisaFlow",
+  "description": "Suivi de dossier visa étudiant pour la France",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e40af",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

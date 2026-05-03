@@ -1,0 +1,90 @@
+{
+  "app": { "name": "VisaFlow", "tagline": "France" },
+  "nav": {
+    "home": "Home",
+    "myJourney": "My journey",
+    "documents": "Documents",
+    "projet": "Project & motivation",
+    "finance": "Finances & housing",
+    "appointments": "Appointments",
+    "postArrival": "After arrival",
+    "messages": "Messages",
+    "interview": "Interview simulator",
+    "portfolio": "My portfolio",
+    "tasks": "My tasks",
+    "stats": "Statistics",
+    "controlCenter": "Control center",
+    "users": "Users",
+    "allStudents": "All students",
+    "schools": "Schools",
+    "countries": "Countries",
+    "workflow": "Workflow",
+    "matrix": "Nationality matrix",
+    "intakeCalendar": "Intake calendar",
+    "auditLog": "Audit log",
+    "billing": "Billing",
+    "branding": "Branding",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "privacy": "Privacy",
+    "bulkImport": "Bulk import"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "error": "Error",
+    "success": "Success",
+    "language": "Language",
+    "download": "Download",
+    "import": "Import",
+    "preview": "Preview",
+    "commit": "Confirm",
+    "search": "Search",
+    "saved": "Saved"
+  },
+  "language": {
+    "fr": "French",
+    "en": "English",
+    "ar": "Arabic",
+    "pt": "Portuguese"
+  },
+  "notifications": {
+    "title": "Notification preferences",
+    "subtitle": "Choose how you receive dossier alerts.",
+    "email": "Email",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp",
+    "phone": "Phone number",
+    "whatsappNumber": "WhatsApp number",
+    "phoneHelp": "International format, e.g. +33612345678."
+  },
+  "dossier": {
+    "downloadPdf": "Download PDF",
+    "downloadIcs": "Calendar (.ics)",
+    "addToGoogle": "Add to Google Calendar",
+    "addToOutlook": "Add to Outlook"
+  },
+  "import": {
+    "title": "Bulk student import",
+    "subtitle": "Upload a CSV or XLSX file to create a cohort.",
+    "fileLabel": "File (CSV or XLSX)",
+    "previewBtn": "Preview",
+    "commitBtn": "Import cohort",
+    "skipDuplicates": "Skip duplicates (email already exists)",
+    "totals": {
+      "total": "Rows",
+      "valid": "Valid",
+      "errors": "With errors",
+      "duplicates": "Duplicates"
+    },
+    "noFile": "Select a file first.",
+    "rowIndex": "Row",
+    "createdN": "{{n}} students created",
+    "skippedN": "{{n}} skipped"
+  },
+  "pwa": {
+    "installable": "Install VisaFlow as an app",
+    "install": "Install"
+  }
+}

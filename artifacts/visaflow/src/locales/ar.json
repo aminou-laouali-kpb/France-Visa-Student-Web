@@ -1,0 +1,90 @@
+{
+  "app": { "name": "VisaFlow", "tagline": "فرنسا" },
+  "nav": {
+    "home": "الرئيسية",
+    "myJourney": "مساري",
+    "documents": "الوثائق",
+    "projet": "المشروع والدافع",
+    "finance": "التمويل والسكن",
+    "appointments": "المواعيد",
+    "postArrival": "بعد الوصول",
+    "messages": "الرسائل",
+    "interview": "محاكاة المقابلة",
+    "portfolio": "محفظتي",
+    "tasks": "مهامي",
+    "stats": "الإحصاءات",
+    "controlCenter": "مركز التحكم",
+    "users": "المستخدمون",
+    "allStudents": "جميع الطلاب",
+    "schools": "المدارس",
+    "countries": "الدول",
+    "workflow": "المسار",
+    "matrix": "مصفوفة الجنسية",
+    "intakeCalendar": "تقويم القبول",
+    "auditLog": "سجل التدقيق",
+    "billing": "الفوترة",
+    "branding": "العلامة التجارية",
+    "notifications": "الإشعارات",
+    "profile": "الملف الشخصي",
+    "privacy": "الخصوصية",
+    "bulkImport": "استيراد جماعي"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "loading": "جارٍ التحميل…",
+    "error": "خطأ",
+    "success": "نجاح",
+    "language": "اللغة",
+    "download": "تنزيل",
+    "import": "استيراد",
+    "preview": "معاينة",
+    "commit": "تأكيد",
+    "search": "بحث",
+    "saved": "تم الحفظ"
+  },
+  "language": {
+    "fr": "الفرنسية",
+    "en": "الإنجليزية",
+    "ar": "العربية",
+    "pt": "البرتغالية"
+  },
+  "notifications": {
+    "title": "تفضيلات الإشعارات",
+    "subtitle": "اختر طريقة استلام تنبيهات الملف.",
+    "email": "البريد الإلكتروني",
+    "sms": "رسالة قصيرة",
+    "whatsapp": "واتساب",
+    "phone": "رقم الهاتف",
+    "whatsappNumber": "رقم واتساب",
+    "phoneHelp": "صيغة دولية، مثال: ‎+33612345678."
+  },
+  "dossier": {
+    "downloadPdf": "تنزيل PDF",
+    "downloadIcs": "تقويم (.ics)",
+    "addToGoogle": "إضافة إلى تقويم Google",
+    "addToOutlook": "إضافة إلى Outlook"
+  },
+  "import": {
+    "title": "استيراد جماعي للطلاب",
+    "subtitle": "ارفع ملف CSV أو XLSX لإنشاء دفعة.",
+    "fileLabel": "الملف (CSV أو XLSX)",
+    "previewBtn": "معاينة",
+    "commitBtn": "استيراد الدفعة",
+    "skipDuplicates": "تجاهل المكررات (بريد موجود بالفعل)",
+    "totals": {
+      "total": "الصفوف",
+      "valid": "صالحة",
+      "errors": "أخطاء",
+      "duplicates": "مكررات"
+    },
+    "noFile": "اختر ملفًا أولًا.",
+    "rowIndex": "صف",
+    "createdN": "{{n}} طلاب أُنشئوا",
+    "skippedN": "{{n}} متجاهلون"
+  },
+  "pwa": {
+    "installable": "تثبيت VisaFlow كتطبيق",
+    "install": "تثبيت"
+  }
+}

@@ -58,4 +58,14 @@ All three workflows run via `pnpm --filter <pkg> run dev`. Workflows are managed
 
 - Frontend casts dashboard / student responses to `any` in places — the backend returns richer shapes than the OpenAPI spec describes; spec was not regenerated.
 - Document upload uses raw `fetch` (window.Clerk session token) to call `/storage/upload-url` because the spec's upload-url body shape diverged from what the route expects.
+
+## Task #23 — Ops polish wave (May 2026)
+
+- **Multi-channel notifications**: `lib/notify.ts` fans out to in-app + email + SMS + WhatsApp. SMS/WhatsApp via Twilio HTTP API gated on `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`. Per-user prefs (`notifyEmail/notifySms/notifyWhatsapp/whatsappNumber`) on `users` table. Migrated call sites: `routes/{collab,documents,students}.ts`. Prefs UI: Profile page.
+- **PDF dossier export**: `/api/students/:id/dossier.pdf` (pdfkit, A4). Required `@swc/helpers` peer dep for fontkit.
+- **Calendar export**: `/api/me/calendar.ics` and `/api/students/:id/calendar.ics` (RFC 5545, with appointments + post-arrival steps).
+- **Bulk import**: `/api/admin/import/preview` + `/commit`. CSV (inline parser) and base64-encoded XLSX (SheetJS). Tenant-scoped duplicate check. Admin UI at `/admin/import`.
+- **PWA**: `public/manifest.webmanifest`, `public/sw.js` (cache-first shell, network-first /api with cache write+fallback), `lib/registerSW.ts` (prod-only, base-path scoped). Mobile sidebar drawer in Layout.
+- **i18n**: react-i18next + browser-language-detector. Locales `fr/en/ar/pt` in `src/locales/`. RTL applied via `document.dir` on `ar`. `LanguageSwitcher` in header.
+
 - `useGetMe` triggers user provisioning on first call (the GET /api/users/me handler creates the row).

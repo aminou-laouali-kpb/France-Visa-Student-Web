@@ -29,6 +29,9 @@ import {
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Upload, Menu } from "lucide-react";
+import { useState } from "react";
 
 interface NavItem {
   href: string;
@@ -98,15 +101,29 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
           { href: "/admin/billing", icon: CreditCard, label: "Facturation" },
           { href: "/admin/branding", icon: Palette, label: "Personnalisation" },
+          { href: "/admin/import", icon: Upload, label: "Import en masse" },
         ]
       : []),
     { href: "/app/profile", icon: Settings, label: "Profil" },
     { href: "/app/privacy", icon: Lock, label: "Confidentialité" },
   ];
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <aside
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
         <div className="p-5 border-b border-slate-200">
           <Link href={isStudent ? "/student" : isAdmin ? "/admin" : "/advisor"}>
             <a className="flex items-center gap-2">
@@ -170,11 +187,21 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200 px-6 lg:px-8 h-14 flex items-center justify-end gap-2">
+      <main className="flex-1 overflow-auto w-full">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200 px-4 lg:px-8 h-14 flex items-center gap-2">
+          <button
+            className="lg:hidden p-2 -ml-2 rounded-md hover:bg-slate-100"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label="Toggle menu"
+            data-testid="button-sidebar-toggle"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex-1" />
+          <LanguageSwitcher />
           <NotificationBell />
         </header>
-        <div className="max-w-7xl mx-auto p-6 lg:p-8">{children}</div>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

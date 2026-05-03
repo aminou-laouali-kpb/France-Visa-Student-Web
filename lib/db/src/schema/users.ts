@@ -28,6 +28,16 @@ export const usersTable = pgTable("users", {
   totpVerifiedAt: timestamp("totp_verified_at"),
   // GDPR erasure: account is anonymized in place, audit logs are kept.
   deletedAt: timestamp("deleted_at"),
+  // Per-user notification channel matrix. The dispatcher in
+  // artifacts/api-server/src/lib/notify.ts fans out a notification to every
+  // channel where the corresponding flag is true and the user has the
+  // contact info to deliver it (e.g. SMS needs phone). In-app is always
+  // on — channels are additive, not exclusive.
+  notifyEmail: boolean("notify_email").notNull().default(true),
+  notifySms: boolean("notify_sms").notNull().default(false),
+  notifyWhatsapp: boolean("notify_whatsapp").notNull().default(false),
+  // Optional dedicated WhatsApp number; falls back to `phone` when unset.
+  whatsappNumber: text("whatsapp_number"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

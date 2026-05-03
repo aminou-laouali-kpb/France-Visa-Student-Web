@@ -30,6 +30,7 @@ import {
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
 import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
+import { notify } from "../lib/notify";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateStudentBody,
@@ -470,7 +471,7 @@ router.patch(
     }
     // Notify assigned users
     if (advisorId) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId: advisorId,
         studentId: id,
         title: "Nouveau dossier assigné",

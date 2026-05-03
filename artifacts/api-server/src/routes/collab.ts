@@ -17,6 +17,7 @@ import {
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
 import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
+import { notify } from "../lib/notify";
 import { detectLanguage, translateText, isGroqConfigured } from "@workspace/ai";
 import { requireAiPlan, resolveDefaultTenantId } from "../lib/planGuard";
 import { validateBody } from "../middlewares/validate";
@@ -165,7 +166,7 @@ router.post(
       .returning();
     const student = req.targetStudent!;
     if (student.userId && isStaff(req.currentUser!) && !internalFlag) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId: student.userId,
         studentId,
         title: isCorrectionRequest ? "Demande de correction" : "Nouveau commentaire",
@@ -250,7 +251,7 @@ router.post(
       })
       .returning();
     if (assignedToId) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId: assignedToId,
         studentId,
         title: "Nouvelle tâche assignée",
@@ -400,7 +401,7 @@ router.post(
       .returning();
     const student = req.targetStudent!;
     if (student.userId && student.userId !== req.currentUser!.id) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId: student.userId,
         studentId,
         title: "Nouveau rendez-vous",

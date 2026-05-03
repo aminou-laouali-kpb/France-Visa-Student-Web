@@ -3,6 +3,8 @@ import { ClerkProvider } from "@clerk/react";
 import { dark } from "@clerk/themes";
 import App from "./App";
 import "./index.css";
+import "./lib/i18n";
+import { registerSW } from "./lib/registerSW";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
@@ -31,3 +33,5 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </ClerkProvider>,
 );
+
+registerSW();

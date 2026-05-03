@@ -1,0 +1,90 @@
+{
+  "app": { "name": "VisaFlow", "tagline": "França" },
+  "nav": {
+    "home": "Início",
+    "myJourney": "Meu percurso",
+    "documents": "Documentos",
+    "projet": "Projeto e motivação",
+    "finance": "Finanças e alojamento",
+    "appointments": "Compromissos",
+    "postArrival": "Após a chegada",
+    "messages": "Mensagens",
+    "interview": "Simulador de entrevista",
+    "portfolio": "Meu portefólio",
+    "tasks": "Minhas tarefas",
+    "stats": "Estatísticas",
+    "controlCenter": "Centro de controlo",
+    "users": "Utilizadores",
+    "allStudents": "Todos os estudantes",
+    "schools": "Escolas",
+    "countries": "Países",
+    "workflow": "Percurso",
+    "matrix": "Matriz de nacionalidade",
+    "intakeCalendar": "Calendário de admissões",
+    "auditLog": "Registo de auditoria",
+    "billing": "Faturação",
+    "branding": "Personalização",
+    "notifications": "Notificações",
+    "profile": "Perfil",
+    "privacy": "Privacidade",
+    "bulkImport": "Importação em massa"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loading": "A carregar…",
+    "error": "Erro",
+    "success": "Sucesso",
+    "language": "Idioma",
+    "download": "Transferir",
+    "import": "Importar",
+    "preview": "Pré-visualizar",
+    "commit": "Confirmar",
+    "search": "Pesquisar",
+    "saved": "Guardado"
+  },
+  "language": {
+    "fr": "Francês",
+    "en": "Inglês",
+    "ar": "Árabe",
+    "pt": "Português"
+  },
+  "notifications": {
+    "title": "Preferências de notificação",
+    "subtitle": "Escolha como receber alertas do dossier.",
+    "email": "E-mail",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp",
+    "phone": "Número de telefone",
+    "whatsappNumber": "Número de WhatsApp",
+    "phoneHelp": "Formato internacional, p. ex. +33612345678."
+  },
+  "dossier": {
+    "downloadPdf": "Transferir PDF",
+    "downloadIcs": "Calendário (.ics)",
+    "addToGoogle": "Adicionar ao Google Agenda",
+    "addToOutlook": "Adicionar ao Outlook"
+  },
+  "import": {
+    "title": "Importação em massa de estudantes",
+    "subtitle": "Carregue um ficheiro CSV ou XLSX para criar uma coorte.",
+    "fileLabel": "Ficheiro (CSV ou XLSX)",
+    "previewBtn": "Pré-visualizar",
+    "commitBtn": "Importar coorte",
+    "skipDuplicates": "Ignorar duplicados (e-mail já existente)",
+    "totals": {
+      "total": "Linhas",
+      "valid": "Válidas",
+      "errors": "Com erros",
+      "duplicates": "Duplicados"
+    },
+    "noFile": "Selecione primeiro um ficheiro.",
+    "rowIndex": "Linha",
+    "createdN": "{{n}} estudantes criados",
+    "skippedN": "{{n}} ignorados"
+  },
+  "pwa": {
+    "installable": "Instalar VisaFlow como aplicação",
+    "install": "Instalar"
+  }
+}

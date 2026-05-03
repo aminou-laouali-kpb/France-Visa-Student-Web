@@ -18,6 +18,10 @@ import twofaRouter from "./twofa";
 import brandingRouter from "./branding";
 import billingRouter from "./billing";
 import gdprRouter from "./gdpr";
+import calendarRouter from "./calendar";
+import dossierPdfRouter from "./dossierPdf";
+import bulkImportRouter from "./bulkImport";
+import notifyPrefsRouter from "./notifyPrefs";
 
 const router: IRouter = Router();
 
@@ -44,5 +48,9 @@ router.use(twofaRouter);
 router.use(brandingRouter);
 router.use(billingRouter);
 router.use(gdprRouter);
+router.use(calendarRouter);
+router.use(dossierPdfRouter);
+router.use(bulkImportRouter);
+router.use(notifyPrefsRouter);
 
 export default router;

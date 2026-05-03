@@ -276,6 +276,123 @@ export function Profile() {
       </Card>
 
       <TwoFactorSection />
+      <NotificationPrefsSection />
     </div>
+  );
+}
+
+interface NotifyPrefs {
+  notifyEmail: boolean;
+  notifySms: boolean;
+  notifyWhatsapp: boolean;
+  phone: string | null;
+  whatsappNumber: string | null;
+  preferredLanguage: string;
+}
+
+function NotificationPrefsSection() {
+  const qc = useQueryClient();
+  const { data: prefs, refetch } = useQuery({
+    queryKey: ["me", "notify-prefs"],
+    queryFn: async (): Promise<NotifyPrefs> => {
+      const r = await fetch("/api/me/notification-prefs", { credentials: "include" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    },
+  });
+  const [form, setForm] = useState<NotifyPrefs | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (prefs && !form) setForm(prefs);
+  }, [prefs, form]);
+
+  if (!form) return null;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const r = await fetch("/api/me/notification-prefs", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setSavedAt(Date.now());
+      await refetch();
+      qc.invalidateQueries({ queryKey: ["me"] });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Préférences de notification</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-slate-600">
+          Choisissez comment recevoir les alertes du dossier. Les notifications dans
+          l'application restent toujours actives.
+        </p>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={form.notifyEmail}
+            onChange={(e) => setForm({ ...form, notifyEmail: e.target.checked })}
+            data-testid="checkbox-notify-email"
+          />
+          <span>Courriel</span>
+        </label>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={form.notifySms}
+            onChange={(e) => setForm({ ...form, notifySms: e.target.checked })}
+            data-testid="checkbox-notify-sms"
+          />
+          <span>SMS</span>
+        </label>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={form.notifyWhatsapp}
+            onChange={(e) => setForm({ ...form, notifyWhatsapp: e.target.checked })}
+            data-testid="checkbox-notify-whatsapp"
+          />
+          <span>WhatsApp</span>
+        </label>
+        <div>
+          <Label>Numéro de téléphone (SMS)</Label>
+          <Input
+            value={form.phone ?? ""}
+            placeholder="+33612345678"
+            onChange={(e) => setForm({ ...form, phone: e.target.value || null })}
+            data-testid="input-notify-phone"
+          />
+        </div>
+        <div>
+          <Label>Numéro WhatsApp (optionnel)</Label>
+          <Input
+            value={form.whatsappNumber ?? ""}
+            placeholder="+33612345678"
+            onChange={(e) =>
+              setForm({ ...form, whatsappNumber: e.target.value || null })
+            }
+            data-testid="input-notify-whatsapp"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <Button onClick={save} disabled={saving} data-testid="button-save-notify-prefs">
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+          {savedAt && (
+            <span className="text-xs text-emerald-600">Enregistré ✓</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -22,6 +22,7 @@ import {
 import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { sendMail, studentSelfLink } from "../lib/mailer";
+import { notify } from "../lib/notify";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateDocumentBody,
@@ -176,7 +177,7 @@ router.post(
       (id): id is number => id !== null && id !== req.currentUser!.id,
     );
     for (const userId of notifyIds) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId,
         studentId,
         title: "Nouveau document à examiner",
@@ -343,7 +344,7 @@ router.post(
       .returning();
     const student = req.targetStudent!;
     if (student.userId) {
-      await db.insert(notificationsTable).values({
+      await notify({
         userId: student.userId,
         studentId,
         title: decision === "validated" ? "Document validé" : "Document rejeté",

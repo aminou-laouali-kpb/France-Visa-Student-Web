@@ -127,6 +127,24 @@ export function StudentDetail() {
             <div className="text-3xl font-bold text-blue-700">{student.completionScore}%</div>
             <Progress value={student.completionScore} className="w-32 h-2 mt-1" />
           </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a
+              href={`/api/students/${studentId}/dossier.pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center text-xs px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              data-testid="link-download-pdf"
+            >
+              📄 PDF
+            </a>
+            <a
+              href={`/api/students/${studentId}/calendar.ics`}
+              className="inline-flex items-center text-xs px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              data-testid="link-download-ics"
+            >
+              📅 .ics
+            </a>
+          </div>
           {isStaff && (
             <Button
               type="button"
