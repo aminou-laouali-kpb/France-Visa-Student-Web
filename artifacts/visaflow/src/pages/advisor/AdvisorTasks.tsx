@@ -3,7 +3,6 @@ import type { UpdateTaskBody, UpdateTaskBodyStatus } from "@workspace/api-client
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import type { Task } from "@/types";
 import { AlertTriangle, Clock, ListTodo } from "lucide-react";
 
 const PRIORITY_ORDER = ["urgent", "high", "medium", "low"] as const;
@@ -64,8 +63,7 @@ function urgencyBadge(dueDate?: string | null) {
 }
 
 export function AdvisorTasks() {
-  const { data: tasksRaw = [], refetch } = useListMyTasks({});
-  const tasks = tasksRaw as unknown as Task[];
+  const { data: tasks = [], refetch } = useListMyTasks({});
   const update = useUpdateTask();
 
   const toggle = async (id: number, status: UpdateTaskBodyStatus) => {

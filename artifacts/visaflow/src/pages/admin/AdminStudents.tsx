@@ -8,7 +8,7 @@ import {
   useListSchools,
 } from "@workspace/api-client-react";
 import type { AssignStudentBody } from "@workspace/api-client-react";
-import type { StudentSummary, UserRow, Country, School } from "@/types";
+import type { StudentSummary } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -38,17 +38,15 @@ export function AdminStudents() {
   else if (advisorFilter) params.advisorId = Number(advisorFilter);
 
   const { data: studentsRaw = [], refetch, isLoading } = useListStudents(params);
-  const { data: usersRaw = [] } = useListUsers({});
+  const { data: users = [] } = useListUsers({});
   const { data: countries = [] } = useListCountries();
   const { data: schools = [] } = useListSchools();
   const assign = useAssignStudent();
 
-  const studentsArr = studentsRaw as unknown as StudentSummary[];
-  const users = usersRaw as unknown as UserRow[];
   const advisors = users.filter((u) => u.role === "advisor" && u.isActive);
   const reviewers = users.filter((u) => u.role === "reviewer" && u.isActive);
 
-  const students = studentsArr.slice().sort((a, b) => {
+  const students = studentsRaw.slice().sort((a, b) => {
     const av = (a[sortBy] ?? "") as string | number;
     const bv = (b[sortBy] ?? "") as string | number;
     if (av < bv) return sortDir === "asc" ? -1 : 1;
@@ -112,7 +110,7 @@ export function AdminStudents() {
             testid="select-country"
           >
             <option value="">Tous pays</option>
-            {(countries as unknown as Country[]).map((c) => (
+            {countries.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -120,7 +118,7 @@ export function AdminStudents() {
           </Select>
           <Select value={schoolId} onChange={setSchoolId} testid="select-school">
             <option value="">Toutes écoles</option>
-            {(schools as unknown as School[]).map((s) => (
+            {schools.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
@@ -209,7 +207,7 @@ export function AdminStudents() {
                       <td className="px-4 py-3 text-slate-700">
                         <CountryFlag
                           code={
-                            (countries as unknown as Country[]).find(
+                            countries.find(
                               (c) => c.id === s.countryId,
                             )?.code
                           }

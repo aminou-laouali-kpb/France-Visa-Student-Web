@@ -1,10 +1,7 @@
 import { useGetMe, useGetStudentDashboard, useGetAdvisorDashboard, useGetAdminDashboard } from "@workspace/api-client-react";
 import type {
   StudentDashboardData,
-  AdvisorDashboardData,
-  AdminDashboardData,
   Appointment,
-  Student,
   AuditLog,
 } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,8 +174,7 @@ function StudentDashboard() {
 
 function AdvisorDashboard() {
   const { data: me } = useGetMe();
-  const { data: raw, isLoading } = useGetAdvisorDashboard();
-  const data = raw as unknown as AdvisorDashboardData | undefined;
+  const { data, isLoading } = useGetAdvisorDashboard();
   if (isLoading) return <div>Chargement…</div>;
 
   return (
@@ -188,15 +184,15 @@ function AdvisorDashboard() {
           Bonjour, {me?.firstName} 👋
         </h1>
         <p className="text-slate-600 mt-1">
-          Vous suivez actuellement {data?.studentCount ?? 0} étudiant(s)
+          Vous suivez actuellement {data?.totalStudents ?? 0} étudiant(s)
         </p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
-          label="Étudiants actifs"
-          value={data?.activeStudents ?? 0}
+          label="Étudiants à risque"
+          value={data?.highRiskStudents ?? 0}
           tone="blue"
         />
         <StatCard
@@ -207,21 +203,21 @@ function AdvisorDashboard() {
         />
         <StatCard
           icon={Plane}
-          label="Visas obtenus"
-          value={data?.visaObtained ?? 0}
+          label="RDV aujourd'hui"
+          value={data?.todayAppointments ?? 0}
           tone="green"
         />
         <StatCard
           icon={ClipboardList}
-          label="Tâches en retard"
-          value={data?.overdueTasks ?? 0}
+          label="Docs à valider"
+          value={data?.documentsAwaitingReview ?? 0}
           tone="amber"
         />
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Mes étudiants récents</CardTitle>
+          <CardTitle>Étudiants à suivre</CardTitle>
           <Link href="/app/students">
             <Button variant="outline" size="sm" data-testid="link-all-students">
               Tous les étudiants
@@ -230,7 +226,7 @@ function AdvisorDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {(data?.students ?? []).slice(0, 8).map((s: Student & { completionScore: number }) => (
+            {(data?.urgentStudents ?? []).slice(0, 8).map((s) => (
               <Link key={s.id} href={`/app/students/${s.id}`}>
                 <a className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <div>
@@ -249,9 +245,9 @@ function AdvisorDashboard() {
                 </a>
               </Link>
             ))}
-            {(!data?.students || data.students.length === 0) && (
+            {(!data?.urgentStudents || data.urgentStudents.length === 0) && (
               <div className="text-center text-slate-500 py-8">
-                Aucun étudiant pour l'instant
+                Aucun étudiant à suivre
               </div>
             )}
           </div>
@@ -262,8 +258,7 @@ function AdvisorDashboard() {
 }
 
 function AdminDashboard() {
-  const { data: raw, isLoading } = useGetAdminDashboard();
-  const data = raw as unknown as AdminDashboardData | undefined;
+  const { data, isLoading } = useGetAdminDashboard();
   if (isLoading) return <div>Chargement…</div>;
 
   return (
@@ -274,20 +269,20 @@ function AdminDashboard() {
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Utilisateurs" value={data?.userCount ?? 0} tone="blue" />
+        <StatCard icon={Users} label="Conseillers actifs" value={data?.totalAdvisors ?? 0} tone="blue" />
         <StatCard
           icon={GraduationCap}
           label="Étudiants"
-          value={data?.studentCount ?? 0}
+          value={data?.totalStudents ?? 0}
           tone="indigo"
         />
         <StatCard
           icon={FileText}
-          label="Documents"
-          value={data?.documentCount ?? 0}
+          label="Score moyen"
+          value={data?.avgCompletionScore ?? 0}
           tone="purple"
         />
-        <StatCard icon={Plane} label="Visas obtenus" value={data?.visaObtained ?? 0} tone="green" />
+        <StatCard icon={Plane} label="Visas obtenus" value={data?.studentsWithVisa ?? 0} tone="green" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -296,21 +291,21 @@ function AdminDashboard() {
             <CardTitle className="text-base">Répartition des dossiers</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="Actifs" value={data?.activeStudents ?? 0} />
-            <Row label="Bloqués" value={data?.blockedStudents ?? 0} />
-            <Row label="Soumis" value={data?.submittedStudents ?? 0} />
-            <Row label="Visas obtenus" value={data?.visaObtained ?? 0} />
+            <Row label="En cours" value={data?.studentsInProgress ?? 0} />
+            <Row label="Bloqués" value={data?.studentsBlocked ?? 0} />
+            <Row label="Visas obtenus" value={data?.studentsWithVisa ?? 0} />
             <Row label="Visas refusés" value={data?.visaRefused ?? 0} />
+            <Row label="Risque élevé" value={data?.highRiskCount ?? 0} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Utilisateurs par rôle</CardTitle>
+            <CardTitle className="text-base">Étudiants par étape</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {Object.entries(data?.usersByRole ?? {}).map(([role, count]) => (
-              <Row key={role} label={ROLE_LABELS[role] ?? role} value={count as number} />
+            {(data?.byStep ?? []).slice(0, 6).map((s) => (
+              <Row key={s.label} label={s.label} value={s.count} />
             ))}
           </CardContent>
         </Card>
@@ -321,7 +316,7 @@ function AdminDashboard() {
           <CardTitle className="text-base">Activité récente</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {(data?.recentActivity ?? []).slice(0, 10).map((log: AuditLog) => (
+          {(data?.recentAuditLogs ?? []).slice(0, 10).map((log: AuditLog) => (
             <div
               key={log.id}
               className="flex items-center justify-between p-2 text-sm border-b last:border-0"

@@ -266,6 +266,7 @@ export const ListStudentsResponseItem = zod.object({
   programName: zod.string().nullish(),
   advisorId: zod.number().nullish(),
   advisorName: zod.string().nullish(),
+  reviewerId: zod.number().nullish(),
   status: zod.string(),
   completionScore: zod.number(),
   riskLevel: zod.string().nullish(),
@@ -1353,6 +1354,7 @@ export const GetAdvisorDashboardResponse = zod.object({
       programName: zod.string().nullish(),
       advisorId: zod.number().nullish(),
       advisorName: zod.string().nullish(),
+      reviewerId: zod.number().nullish(),
       status: zod.string(),
       completionScore: zod.number(),
       riskLevel: zod.string().nullish(),
@@ -1418,6 +1420,13 @@ export const GetAdminDashboardResponse = zod.object({
       percentage: zod.number(),
     }),
   ),
+  byIntakeMonth: zod.array(
+    zod.object({
+      label: zod.string(),
+      count: zod.number(),
+      percentage: zod.number(),
+    }),
+  ),
   recentAuditLogs: zod.array(
     zod.object({
       id: zod.number(),
@@ -1431,6 +1440,7 @@ export const GetAdminDashboardResponse = zod.object({
       createdAt: zod.coerce.date(),
     }),
   ),
+  visaRefused: zod.number(),
 });
 
 /**

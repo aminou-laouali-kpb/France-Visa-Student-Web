@@ -1,4 +1,32 @@
+import type {
+  Task as ApiTask,
+  AuditLog as ApiAuditLog,
+  Country as ApiCountry,
+  School as ApiSchool,
+  UserProfile,
+  StudentSummary as ApiStudentSummary,
+  AdvisorDashboard,
+  AdminDashboard,
+  PortfolioStats,
+  WorkflowTemplate as ApiWorkflowTemplate,
+  WorkflowStep,
+  CountStat as ApiCountStat,
+} from "@workspace/api-client-react";
+
 export type Role = "student" | "advisor" | "reviewer" | "admin" | "superadmin";
+
+export type Task = ApiTask;
+export type AuditLog = ApiAuditLog;
+export type Country = ApiCountry;
+export type School = ApiSchool;
+export type UserRow = UserProfile;
+export type StudentSummary = ApiStudentSummary;
+export type AdvisorDashboardData = AdvisorDashboard;
+export type AdminDashboardData = AdminDashboard;
+export type PortfolioStatsData = PortfolioStats;
+export type WorkflowTemplate = ApiWorkflowTemplate;
+export type WorkflowTemplateStep = WorkflowStep;
+export type CountStat = ApiCountStat;
 
 export interface Student {
   id: number;
@@ -15,6 +43,15 @@ export interface Student {
   reviewerId?: number | null;
   lastActivityAt?: string | null;
   updatedAt?: string | null;
+}
+
+export interface Appointment {
+  id: number;
+  type: string;
+  title: string;
+  scheduledAt: string;
+  location?: string | null;
+  status?: string | null;
 }
 
 export interface Step {
@@ -48,24 +85,6 @@ export interface Comment {
   isCorrectionRequest?: boolean;
 }
 
-export interface Task {
-  id: number;
-  title: string;
-  description?: string | null;
-  status: string;
-  priority: string;
-  dueDate?: string | null;
-}
-
-export interface Appointment {
-  id: number;
-  type: string;
-  title: string;
-  scheduledAt: string;
-  location?: string | null;
-  status?: string | null;
-}
-
 export interface NotificationItem {
   id: number;
   title: string;
@@ -92,44 +111,6 @@ export interface StudentFormData {
   reviewerId?: number | null;
 }
 
-export interface UserRow {
-  id: number;
-  email: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  role: Role;
-  isActive: boolean;
-  createdAt: string;
-  phone?: string | null;
-}
-
-export interface Country {
-  id: number;
-  name: string;
-  code: string;
-  visaCenter?: string | null;
-  requiresCampusFrance: boolean;
-}
-
-export interface School {
-  id: number;
-  name: string;
-  city: string;
-  website?: string | null;
-}
-
-export interface AuditLog {
-  id: number;
-  createdAt: string;
-  action: string;
-  entityType: string;
-  entityId?: number | null;
-  details?: string | null;
-  userId?: number | null;
-  userName?: string | null;
-  studentId?: number | null;
-}
-
 export interface StudentDashboardData {
   student: Student | null;
   totalSteps: number;
@@ -142,105 +123,6 @@ export interface StudentDashboardData {
   currentStep?: Step | null;
   nextActions?: string[];
   recentComments?: Comment[];
-}
-
-export interface AdvisorDashboardData {
-  studentCount?: number;
-  activeStudents?: number;
-  blockedStudents?: number;
-  visaObtained?: number;
-  overdueTasks?: number;
-  students?: Array<Student & { completionScore: number }>;
-  totalStudents?: number;
-  lateStudents?: number;
-  highRiskStudents?: number;
-  documentsAwaitingReview?: number;
-  todayAppointments?: number;
-  unresponsiveStudents?: number;
-  urgentStudents?: StudentSummary[];
-  recentActivity?: AuditLog[];
-}
-
-export interface CountStat {
-  label: string;
-  count: number;
-  percentage: number;
-}
-
-export interface AdminDashboardData {
-  userCount?: number;
-  studentCount?: number;
-  documentCount?: number;
-  visaObtained?: number;
-  activeStudents?: number;
-  blockedStudents?: number;
-  submittedStudents?: number;
-  visaRefused?: number;
-  usersByRole?: Record<string, number>;
-  recentActivity?: AuditLog[];
-  totalStudents?: number;
-  totalAdvisors?: number;
-  totalReviewers?: number;
-  studentsWithVisa?: number;
-  studentsInProgress?: number;
-  studentsBlocked?: number;
-  avgCompletionScore?: number;
-  highRiskCount?: number;
-  byCountry?: CountStat[];
-  bySchool?: CountStat[];
-  byStep?: CountStat[];
-  byAdvisor?: CountStat[];
-  byIntakeMonth?: CountStat[];
-  recentAuditLogs?: AuditLog[];
-}
-
-export interface PortfolioStatsData {
-  byStatus: CountStat[];
-  byRiskLevel: CountStat[];
-  byCountry: CountStat[];
-  bySchool: CountStat[];
-  byIntakeMonth: CountStat[];
-}
-
-export interface StudentSummary {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  status: string;
-  completionScore: number;
-  riskLevel?: string | null;
-  riskScore?: number | null;
-  countryId?: number | null;
-  countryName?: string | null;
-  schoolId?: number | null;
-  schoolName?: string | null;
-  advisorId?: number | null;
-  advisorName?: string | null;
-  reviewerId?: number | null;
-  currentStepName?: string | null;
-  lastActivityAt?: string | null;
-}
-
-export interface WorkflowTemplate {
-  id: number;
-  name: string;
-  description?: string | null;
-  isDefault: boolean;
-  countryId?: number | null;
-  version: number;
-  createdAt: string;
-}
-
-export interface WorkflowTemplateStep {
-  id: number;
-  workflowTemplateId: number;
-  name: string;
-  description?: string | null;
-  order: number;
-  isCampusFranceStep: boolean;
-  isRequired: boolean;
-  isActive: boolean;
 }
 
 export interface UploadUrlResponse {

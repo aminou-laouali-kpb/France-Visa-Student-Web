@@ -1487,6 +1487,8 @@ components:
           type: ["integer", "null"]
         advisorName:
           type: ["string", "null"]
+        reviewerId:
+          type: ["integer", "null"]
         status:
           type: string
         completionScore:
@@ -2385,10 +2387,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CountStat"
+        byIntakeMonth:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
         recentAuditLogs:
           type: array
           items:
             $ref: "#/components/schemas/AuditLog"
+        visaRefused:
+          type: integer
       required:
         - totalStudents
         - totalAdvisors
@@ -2402,7 +2410,9 @@ components:
         - bySchool
         - byStep
         - byAdvisor
+        - byIntakeMonth
         - recentAuditLogs
+        - visaRefused
 
     PortfolioStats:
       type: object

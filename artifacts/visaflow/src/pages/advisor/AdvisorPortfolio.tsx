@@ -6,12 +6,7 @@ import {
   useListCountries,
   useListSchools,
 } from "@workspace/api-client-react";
-import type {
-  AdvisorDashboardData,
-  StudentSummary,
-  Country,
-  School,
-} from "@/types";
+import type { StudentSummary } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -30,8 +25,7 @@ import {
 import { formatDate } from "@/lib/utils";
 
 export function AdvisorPortfolio() {
-  const { data: rawDash } = useGetAdvisorDashboard();
-  const dash = rawDash as unknown as AdvisorDashboardData | undefined;
+  const { data: dash } = useGetAdvisorDashboard();
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -52,7 +46,7 @@ export function AdvisorPortfolio() {
   const { data: countries = [] } = useListCountries();
   const { data: schools = [] } = useListSchools();
 
-  const students = (studentsRaw as unknown as StudentSummary[]).slice().sort((a, b) => {
+  const students = studentsRaw.slice().sort((a, b) => {
     const av = (a[sortBy] ?? "") as string | number;
     const bv = (b[sortBy] ?? "") as string | number;
     if (av < bv) return sortDir === "asc" ? -1 : 1;
@@ -79,7 +73,7 @@ export function AdvisorPortfolio() {
         <KpiCard
           icon={Users}
           label="Étudiants"
-          value={dash?.totalStudents ?? dash?.studentCount ?? 0}
+          value={dash?.totalStudents ?? 0}
           tone="blue"
         />
         <KpiCard
@@ -131,7 +125,7 @@ export function AdvisorPortfolio() {
           </Select>
           <Select value={countryId} onChange={setCountryId} testid="select-country">
             <option value="">Tous pays</option>
-            {(countries as unknown as Country[]).map((c) => (
+            {countries.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -139,7 +133,7 @@ export function AdvisorPortfolio() {
           </Select>
           <Select value={schoolId} onChange={setSchoolId} testid="select-school">
             <option value="">Toutes écoles</option>
-            {(schools as unknown as School[]).map((s) => (
+            {schools.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
@@ -204,7 +198,7 @@ export function AdvisorPortfolio() {
                       <td className="px-4 py-3 text-slate-700">
                         <CountryFlag
                           code={
-                            (countries as unknown as Country[]).find(
+                            countries.find(
                               (c) => c.id === s.countryId,
                             )?.code
                           }

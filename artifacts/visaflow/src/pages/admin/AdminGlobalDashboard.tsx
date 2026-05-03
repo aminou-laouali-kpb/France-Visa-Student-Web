@@ -1,5 +1,5 @@
 import { useGetAdminDashboard } from "@workspace/api-client-react";
-import type { AdminDashboardData, AuditLog, CountStat } from "@/types";
+import type { AuditLog, CountStat } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, Plane, ShieldAlert } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
@@ -17,8 +17,7 @@ import {
 } from "recharts";
 
 export function AdminGlobalDashboard() {
-  const { data: raw, isLoading } = useGetAdminDashboard();
-  const data = raw as unknown as AdminDashboardData | undefined;
+  const { data, isLoading } = useGetAdminDashboard();
 
   if (isLoading) return <div className="p-8">Chargement…</div>;
 
@@ -42,7 +41,7 @@ export function AdminGlobalDashboard() {
         <Kpi
           icon={GraduationCap}
           label="Étudiants"
-          value={data?.totalStudents ?? data?.studentCount ?? 0}
+          value={data?.totalStudents ?? 0}
           tone="blue"
         />
         <Kpi
@@ -85,7 +84,7 @@ export function AdminGlobalDashboard() {
           <CardTitle className="text-base">Activité récente</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1">
-          {(data?.recentAuditLogs ?? data?.recentActivity ?? []).slice(0, 12).map((log: AuditLog) => (
+          {(data?.recentAuditLogs ?? []).slice(0, 12).map((log: AuditLog) => (
             <div
               key={log.id}
               className="flex items-center justify-between p-2 text-sm border-b last:border-0"
@@ -97,7 +96,7 @@ export function AdminGlobalDashboard() {
               <div className="text-xs text-slate-500">{formatDateTime(log.createdAt)}</div>
             </div>
           ))}
-          {(data?.recentAuditLogs ?? data?.recentActivity ?? []).length === 0 && (
+          {(data?.recentAuditLogs ?? []).length === 0 && (
             <div className="text-center text-slate-500 py-6 text-sm">
               Aucune activité récente.
             </div>

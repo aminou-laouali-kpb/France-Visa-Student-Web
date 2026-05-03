@@ -9,7 +9,7 @@ import type {
   CreateWorkflowStepBody,
   UpdateWorkflowStepBody,
 } from "@workspace/api-client-react";
-import type { WorkflowTemplate, WorkflowTemplateStep } from "@/types";
+import type { WorkflowTemplateStep } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDown, ArrowUp, Plus, Building2 } from "lucide-react";
 
 export function AdminWorkflow() {
-  const { data: templatesRaw = [] } = useListWorkflowTemplates();
-  const templates = templatesRaw as unknown as WorkflowTemplate[];
+  const { data: templates = [] } = useListWorkflowTemplates();
   const [templateId, setTemplateId] = useState<number | null>(null);
   const activeId = templateId ?? templates[0]?.id ?? null;
 
@@ -65,9 +64,7 @@ export function AdminWorkflow() {
 
 function WorkflowSteps({ templateId }: { templateId: number }) {
   const { data: stepsRaw = [], refetch } = useListWorkflowTemplateSteps(templateId);
-  const steps = (stepsRaw as unknown as WorkflowTemplateStep[])
-    .slice()
-    .sort((a, b) => a.order - b.order);
+  const steps = stepsRaw.slice().sort((a, b) => a.order - b.order);
   const update = useUpdateWorkflowStep();
   const create = useCreateWorkflowStep();
 

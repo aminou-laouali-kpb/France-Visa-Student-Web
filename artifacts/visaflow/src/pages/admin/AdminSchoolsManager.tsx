@@ -22,22 +22,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Building2, GraduationCap, Plus, ExternalLink } from "lucide-react";
-import type { School } from "@/types";
-
-interface ProgramRow {
-  id: number;
-  name: string;
-  level?: string | null;
-  duration?: string | null;
-}
-interface SchoolWithPrograms extends School {
-  programs?: ProgramRow[];
-}
 
 export function AdminSchoolsManager() {
-  const { data: schoolsRaw = [], refetch } = useListSchools();
+  const { data: schools = [], refetch } = useListSchools();
   const create = useCreateSchool();
-  const schools = schoolsRaw as unknown as School[];
   const [form, setForm] = useState<CreateSchoolBody>({
     name: "",
     city: "",
@@ -160,9 +148,8 @@ function ProgramsDialog({
   schoolId: number;
   onClose: () => void;
 }) {
-  const { data: schoolRaw, refetch } = useGetSchool(schoolId);
+  const { data: school, refetch } = useGetSchool(schoolId);
   const create = useCreateProgram();
-  const school = schoolRaw as unknown as SchoolWithPrograms | undefined;
   const programs = school?.programs ?? [];
 
   const [form, setForm] = useState<{

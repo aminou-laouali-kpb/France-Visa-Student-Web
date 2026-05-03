@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
-import type { AuditLog, UserRow } from "@/types";
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 
 const PAGE_SIZE = 25;
@@ -27,10 +26,8 @@ export function AdminAuditLogs() {
     return p;
   }, [userId, action, studentId, page]);
 
-  const { data: logsRaw = [], isLoading } = useListAuditLogs(params);
-  const { data: usersRaw = [] } = useListUsers({});
-  const users = usersRaw as unknown as UserRow[];
-  const allLogs = logsRaw as unknown as AuditLog[];
+  const { data: allLogs = [], isLoading } = useListAuditLogs(params);
+  const { data: users = [] } = useListUsers({});
 
   const hasNext = allLogs.length > PAGE_SIZE;
   const visible = allLogs.slice(0, PAGE_SIZE);

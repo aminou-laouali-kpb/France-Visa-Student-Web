@@ -135,6 +135,8 @@ export interface StudentSummary {
   advisorId?: number | null;
   /** @nullable */
   advisorName?: string | null;
+  /** @nullable */
+  reviewerId?: number | null;
   status: string;
   completionScore: number;
   /** @nullable */
@@ -695,7 +697,9 @@ export interface AdminDashboard {
   bySchool: CountStat[];
   byStep: CountStat[];
   byAdvisor: CountStat[];
+  byIntakeMonth: CountStat[];
   recentAuditLogs: AuditLog[];
+  visaRefused: number;
 }
 
 export interface PortfolioStats {

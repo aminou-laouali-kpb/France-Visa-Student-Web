@@ -15,6 +15,11 @@ import {
   schoolsTable,
 } from "@workspace/db";
 import { eq, and, desc, sql, gte, lt } from "drizzle-orm";
+import {
+  GetAdvisorDashboardResponse,
+  GetAdminDashboardResponse,
+  GetPortfolioStatsResponse,
+} from "@workspace/api-zod";
 import { requireAuth, isAdmin, isStaff, requireStudentAccess } from "../middlewares/auth";
 import { calculateRiskScore } from "../lib/risk";
 
@@ -225,14 +230,28 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
     .slice(0, 12)
     .map((s) => ({
       id: s.id,
+      userId: s.userId ?? null,
       firstName: s.firstName,
       lastName: s.lastName,
       email: s.email,
+      nationalityCode: s.nationalityCode ?? null,
+      countryId: s.countryId ?? null,
+      countryName: null,
+      schoolId: s.schoolId ?? null,
+      schoolName: null,
+      programId: s.programId ?? null,
+      programName: null,
+      advisorId: s.advisorId ?? null,
+      advisorName: null,
+      reviewerId: s.reviewerId ?? null,
       status: s.status,
       completionScore: s.completionScore,
       riskLevel: risks.find((r) => r.studentId === s.id)?.level ?? null,
       riskScore: risks.find((r) => r.studentId === s.id)?.score ?? null,
-      lastActivityAt: s.lastActivityAt,
+      intakeDate: s.intakeDate ?? null,
+      currentStepName: null,
+      lastActivityAt: s.lastActivityAt ? new Date(s.lastActivityAt).toISOString() : null,
+      createdAt: new Date(s.createdAt).toISOString(),
     }));
   // Scope recent activity: admins see global, advisors/reviewers see only their own actions
   const recentActivity = isAdmin(u)
@@ -248,19 +267,9 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
         .orderBy(desc(auditLogsTable.createdAt))
         .limit(20);
 
-  res.json({
-    // Legacy fields (kept for older callers)
-    studentCount: myStudents.length,
-    activeStudents: myStudents.filter((s) => s.status === "active").length,
-    blockedStudents: myStudents.filter((s) => s.status === "blocked").length,
-    submittedStudents: myStudents.filter((s) => s.status === "submitted").length,
-    visaObtained: myStudents.filter((s) => s.status === "visa_obtained").length,
-    visaRefused: myStudents.filter((s) => s.status === "visa_refused").length,
-    myTasks: tasks.length,
-    overdueTasks: overdueTasks.length,
-    students: myStudents.slice(0, 50),
-    // Rich fields
+  const payload = GetAdvisorDashboardResponse.parse({
     totalStudents: myStudents.length,
+    blockedStudents: myStudents.filter((s) => s.status === "blocked").length,
     lateStudents,
     highRiskStudents: highRiskStudentIds.size,
     documentsAwaitingReview,
@@ -269,6 +278,7 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
     urgentStudents,
     recentActivity,
   });
+  res.json(payload);
 });
 
 router.get("/dashboard/admin", requireAuth, async (req, res) => {
@@ -333,8 +343,7 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
       percentage: Math.round((count / total) * 100),
     }));
 
-  res.json({
-    // Rich fields
+  const payload = GetAdminDashboardResponse.parse({
     totalStudents: students.length,
     totalAdvisors: users.filter((u) => u.role === "advisor" && u.isActive).length,
     totalReviewers: users.filter((u) => u.role === "reviewer" && u.isActive).length,
@@ -343,6 +352,7 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
       ["active", "submitted"].includes(s.status),
     ).length,
     studentsBlocked: students.filter((s) => s.status === "blocked").length,
+    visaRefused: students.filter((s) => s.status === "visa_refused").length,
     avgCompletionScore:
       students.length > 0
         ? Math.round(
@@ -356,27 +366,8 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     byAdvisor: stat(byAdvisor),
     byIntakeMonth,
     recentAuditLogs: recentLogs,
-    // Legacy
-    userCount: users.length,
-    studentCount: students.length,
-    documentCount: docs.length,
-    activeStudents: students.filter((s) => s.status === "active").length,
-    blockedStudents: students.filter((s) => s.status === "blocked").length,
-    submittedStudents: students.filter((s) => s.status === "submitted").length,
-    visaObtained: students.filter((s) => s.status === "visa_obtained").length,
-    visaRefused: students.filter((s) => s.status === "visa_refused").length,
-    pendingDocuments: docs.filter((d) => d.status === "received" || d.status === "under_review")
-      .length,
-    rejectedDocuments: docs.filter((d) => d.status === "rejected").length,
-    usersByRole: {
-      student: users.filter((u) => u.role === "student").length,
-      advisor: users.filter((u) => u.role === "advisor").length,
-      reviewer: users.filter((u) => u.role === "reviewer").length,
-      admin: users.filter((u) => u.role === "admin").length,
-      superadmin: users.filter((u) => u.role === "superadmin").length,
-    },
-    recentActivity: recentLogs,
   });
+  res.json(payload);
 });
 
 router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
@@ -428,7 +419,7 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
   for (const r of risks) {
     byRiskLevel[r.level] = (byRiskLevel[r.level] ?? 0) + 1;
   }
-  res.json({
+  const payload = GetPortfolioStatsResponse.parse({
     byStatus: tally(byStatus),
     byRiskLevel: tally(byRiskLevel),
     byCountry: tally(byCountry).slice(0, 10),
@@ -442,6 +433,7 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
         percentage: Math.round((count / total) * 100),
       })),
   });
+  res.json(payload);
 });
 
 export default router;

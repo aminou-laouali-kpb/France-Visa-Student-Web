@@ -2,7 +2,7 @@ import {
   useGetPortfolioStats,
   useListStudents,
 } from "@workspace/api-client-react";
-import type { PortfolioStatsData, CountStat, StudentSummary } from "@/types";
+import type { CountStat } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ResponsiveContainer,
@@ -29,10 +29,8 @@ const HISTOGRAM_BUCKETS: { label: string; min: number; max: number }[] = [
 ];
 
 export function AdvisorReports() {
-  const { data: rawStats, isLoading } = useGetPortfolioStats();
-  const { data: studentsRaw = [] } = useListStudents({});
-  const stats = rawStats as unknown as PortfolioStatsData | undefined;
-  const students = studentsRaw as unknown as StudentSummary[];
+  const { data: stats, isLoading } = useGetPortfolioStats();
+  const { data: students = [] } = useListStudents({});
 
   if (isLoading) return <div className="p-8">Chargement…</div>;
 
