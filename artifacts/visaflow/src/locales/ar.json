@@ -1,5 +1,8 @@
 {
-  "app": { "name": "VisaFlow", "tagline": "فرنسا" },
+  "app": {
+    "name": "VisaFlow",
+    "tagline": "فرنسا"
+  },
   "nav": {
     "home": "الرئيسية",
     "myJourney": "مساري",

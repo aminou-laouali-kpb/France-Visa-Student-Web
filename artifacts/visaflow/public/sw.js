@@ -1,10 +1,16 @@
 // VisaFlow service worker — minimal offline shell.
-// - App shell: cache-first with network fallback (cached on success).
-// - /api/* GETs: network-first with cache write on success and fallback to
-//   any previously cached response, so the dashboard still loads when the
-//   user is offline. Mutating verbs are never intercepted.
+//
+// Strategy:
+// - App shell (HTML / JS / CSS / icons): cache-first with network fallback.
+// - /api/*: NEVER cached. Authenticated API responses contain per-user PII
+//   and would leak across account switches if cached. We pass them through
+//   to the network and let the app handle offline behavior in JS.
+// - Mutating verbs (anything other than GET): never intercepted.
+//
+// On install we precache the static shell so the app boots when offline,
+// while never persisting account data.
 
-const CACHE = "visaflow-shell-v2";
+const CACHE = "visaflow-shell-v3";
 const SHELL = ["./", "./index.html", "./favicon.svg", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -28,31 +34,10 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // Never intercept Clerk auth flows — they must always hit the network.
+  // Never intercept Clerk auth flows or API calls — they must always hit
+  // the network and never be persisted in cache (privacy + tenancy safety).
   if (url.pathname.startsWith("/api/__clerk")) return;
-
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(req);
-          if (fresh && fresh.ok) {
-            const copy = fresh.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          }
-          return fresh;
-        } catch {
-          const cached = await caches.match(req);
-          if (cached) return cached;
-          return new Response(JSON.stringify({ offline: true }), {
-            status: 503,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-      })(),
-    );
-    return;
-  }
+  if (url.pathname.startsWith("/api/")) return;
 
   // App shell: cache-first with network fallback.
   event.respondWith(

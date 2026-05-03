@@ -1,5 +1,8 @@
 {
-  "app": { "name": "VisaFlow", "tagline": "France" },
+  "app": {
+    "name": "VisaFlow",
+    "tagline": "France"
+  },
   "nav": {
     "home": "Home",
     "myJourney": "My journey",

@@ -278,40 +278,62 @@ router.post("/admin/import/commit", requireAuth, async (req, res) => {
     const tenantId = me.tenantId ?? 1;
     const rawRows = await rowsFromBody(parsed.data);
     const preview = await buildPreview(rawRows, tenantId);
-    let created = 0;
-    let skipped = 0;
+
+    // Atomic commit: all valid (non-duplicate, error-free) rows insert in a
+    // single DB transaction. If any insert throws, the entire batch is
+    // rolled back so partial cohorts never end up in the database.
     const errors: Array<{ rowIndex: number; reason: string }> = [];
-    for (const r of preview.rows) {
+    const insertable = preview.rows.filter((r) => {
       if (r.errors.length > 0) {
         errors.push({ rowIndex: r.rowIndex, reason: r.errors.join(", ") });
-        skipped++;
-        continue;
+        return false;
       }
-      if (r.resolved.duplicate && parsed.data.skipDuplicates) {
-        skipped++;
-        continue;
-      }
-      try {
-        await db.insert(studentsTable).values({
-          tenantId,
-          firstName: r.parsed.firstName!,
-          lastName: r.parsed.lastName!,
-          email: r.parsed.email!,
-          phone: r.parsed.phone ?? null,
-          nationalityCode: r.parsed.nationalityCode ?? null,
-          intakeDate: r.parsed.intakeDate ?? null,
-          countryId: r.resolved.countryId ?? null,
-          schoolId: r.resolved.schoolId ?? null,
-          programId: r.resolved.programId ?? null,
-          status: "active",
-        });
-        created++;
-      } catch (err) {
-        errors.push({ rowIndex: r.rowIndex, reason: (err as Error).message });
-        skipped++;
-      }
+      if (r.resolved.duplicate && parsed.data.skipDuplicates) return false;
+      return true;
+    });
+    const skippedFromValidation =
+      preview.rows.length - insertable.length - errors.length;
+
+    let created = 0;
+    try {
+      await db.transaction(async (tx) => {
+        for (const r of insertable) {
+          await tx.insert(studentsTable).values({
+            tenantId,
+            firstName: r.parsed.firstName!,
+            lastName: r.parsed.lastName!,
+            email: r.parsed.email!,
+            phone: r.parsed.phone ?? null,
+            nationalityCode: r.parsed.nationalityCode ?? null,
+            intakeDate: r.parsed.intakeDate ?? null,
+            countryId: r.resolved.countryId ?? null,
+            schoolId: r.resolved.schoolId ?? null,
+            programId: r.resolved.programId ?? null,
+            status: "active",
+          });
+          created++;
+        }
+      });
+    } catch (err) {
+      logger.warn({ err }, "import commit transaction rolled back");
+      res.status(400).json({
+        created: 0,
+        skipped: preview.rows.length,
+        errors: [
+          ...errors,
+          {
+            rowIndex: -1,
+            reason: `transaction rolled back: ${(err as Error).message}`,
+          },
+        ],
+      });
+      return;
     }
-    res.json({ created, skipped, errors });
+    res.json({
+      created,
+      skipped: skippedFromValidation + errors.length,
+      errors,
+    });
   } catch (err) {
     logger.warn({ err }, "import commit failed");
     res.status(400).json({ error: "Parse failed" });

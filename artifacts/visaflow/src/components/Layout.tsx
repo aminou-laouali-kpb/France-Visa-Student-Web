@@ -30,8 +30,10 @@ import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { Upload, Menu } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface NavItem {
   href: string;
@@ -49,6 +51,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const role = me?.role ?? "student";
   const unreadCount = notifications?.length ?? 0;
+  const { t } = useTranslation();
 
   const isStudent = role === "student";
   const isStaff = ["advisor", "reviewer", "admin", "superadmin"].includes(role);
@@ -57,55 +60,55 @@ export function Layout({ children }: { children: ReactNode }) {
   const navItems: NavItem[] = [
     ...(isStudent
       ? [
-          { href: "/student", icon: LayoutDashboard, label: "Accueil" },
-          { href: "/student/steps", icon: ListChecks, label: "Mon parcours" },
-          { href: "/student/documents", icon: FileText, label: "Documents" },
-          { href: "/student/projet", icon: ScrollText, label: "Projet & motivation" },
-          { href: "/student/finance", icon: Wallet, label: "Finances & logement" },
-          { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
-          { href: "/student/post-arrival", icon: Plane, label: "Après l'arrivée" },
-          { href: "/student/messages", icon: MessageSquare, label: "Messages" },
-          { href: "/student/interview", icon: Sparkles, label: "Simulateur d'entretien" },
+          { href: "/student", icon: LayoutDashboard, label: t("nav.home") },
+          { href: "/student/steps", icon: ListChecks, label: t("nav.myJourney") },
+          { href: "/student/documents", icon: FileText, label: t("nav.documents") },
+          { href: "/student/projet", icon: ScrollText, label: t("nav.projet") },
+          { href: "/student/finance", icon: Wallet, label: t("nav.finance") },
+          { href: "/student/appointments", icon: Calendar, label: t("nav.appointments") },
+          { href: "/student/post-arrival", icon: Plane, label: t("nav.postArrival") },
+          { href: "/student/messages", icon: MessageSquare, label: t("nav.messages") },
+          { href: "/student/interview", icon: Sparkles, label: t("nav.interview") },
         ]
       : []),
     ...(isStaff && !isAdmin
       ? [
-          { href: "/advisor", icon: LayoutDashboard, label: "Mon portefeuille" },
-          { href: "/advisor/tasks", icon: CheckSquare, label: "Mes tâches" },
-          { href: "/advisor/reports", icon: BarChart3, label: "Statistiques" },
+          { href: "/advisor", icon: LayoutDashboard, label: t("nav.portfolio") },
+          { href: "/advisor/tasks", icon: CheckSquare, label: t("nav.tasks") },
+          { href: "/advisor/reports", icon: BarChart3, label: t("nav.stats") },
         ]
       : []),
     ...(isAdmin
       ? [
-          { href: "/admin", icon: LayoutDashboard, label: "Centre de pilotage" },
-          { href: "/advisor", icon: Users, label: "Portefeuille" },
-          { href: "/advisor/tasks", icon: CheckSquare, label: "Mes tâches" },
-          { href: "/advisor/reports", icon: BarChart3, label: "Statistiques" },
+          { href: "/admin", icon: LayoutDashboard, label: t("nav.controlCenter") },
+          { href: "/advisor", icon: Users, label: t("nav.portfolio") },
+          { href: "/advisor/tasks", icon: CheckSquare, label: t("nav.tasks") },
+          { href: "/advisor/reports", icon: BarChart3, label: t("nav.stats") },
         ]
       : []),
     {
       href: isStudent ? "/student/notifications" : "/app/notifications",
       icon: Bell,
-      label: "Notifications",
+      label: t("nav.notifications"),
       badge: unreadCount,
     },
     ...(isAdmin
       ? [
-          { href: "/admin/users", icon: ShieldCheck, label: "Utilisateurs" },
-          { href: "/admin/students", icon: GraduationCap, label: "Tous les étudiants" },
-          { href: "/admin/schools", icon: Building2, label: "Écoles" },
-          { href: "/admin/countries", icon: Globe, label: "Pays" },
-          { href: "/admin/workflow", icon: Workflow, label: "Parcours" },
-          { href: "/admin/matrix", icon: Workflow, label: "Matrice nationalité" },
-          { href: "/admin/intake-calendar", icon: Workflow, label: "Calendrier admissions" },
-          { href: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
-          { href: "/admin/billing", icon: CreditCard, label: "Facturation" },
-          { href: "/admin/branding", icon: Palette, label: "Personnalisation" },
-          { href: "/admin/import", icon: Upload, label: "Import en masse" },
+          { href: "/admin/users", icon: ShieldCheck, label: t("nav.users") },
+          { href: "/admin/students", icon: GraduationCap, label: t("nav.allStudents") },
+          { href: "/admin/schools", icon: Building2, label: t("nav.schools") },
+          { href: "/admin/countries", icon: Globe, label: t("nav.countries") },
+          { href: "/admin/workflow", icon: Workflow, label: t("nav.workflow") },
+          { href: "/admin/matrix", icon: Workflow, label: t("nav.matrix") },
+          { href: "/admin/intake-calendar", icon: Workflow, label: t("nav.intakeCalendar") },
+          { href: "/admin/audit", icon: ScrollText, label: t("nav.auditLog") },
+          { href: "/admin/billing", icon: CreditCard, label: t("nav.billing") },
+          { href: "/admin/branding", icon: Palette, label: t("nav.branding") },
+          { href: "/admin/import", icon: Upload, label: t("nav.bulkImport") },
         ]
       : []),
-    { href: "/app/profile", icon: Settings, label: "Profil" },
-    { href: "/app/privacy", icon: Lock, label: "Confidentialité" },
+    { href: "/app/profile", icon: Settings, label: t("nav.profile") },
+    { href: "/app/privacy", icon: Lock, label: t("nav.privacy") },
   ];
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -203,6 +206,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </header>
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
+      <PWAInstallPrompt />
     </div>
   );
 }

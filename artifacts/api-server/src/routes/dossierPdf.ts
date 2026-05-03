@@ -89,6 +89,28 @@ router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => 
   doc.moveDown();
   doc.fillColor("#000");
 
+  // Table of contents — section + (estimated) page anchor.
+  doc.fontSize(14).text("Sommaire", { underline: true });
+  doc.moveDown(0.3);
+  doc.fontSize(11);
+  const toc: Array<{ title: string; count?: number }> = [
+    { title: "1. Identité" },
+    ...(risk ? [{ title: "2. Évaluation des risques" }] : []),
+    { title: `${risk ? "3" : "2"}. Étapes du dossier`, count: steps.length },
+    { title: `${risk ? "4" : "3"}. Documents`, count: docs.length },
+    { title: `${risk ? "5" : "4"}. Rendez-vous`, count: appts.length },
+    ...(paSteps.length > 0
+      ? [{ title: `${risk ? "6" : "5"}. Post-arrivée`, count: paSteps.length }]
+      : []),
+  ];
+  for (const t of toc) {
+    doc.font("Helvetica").text(
+      t.count !== undefined ? `${t.title}  (${t.count})` : t.title,
+    );
+  }
+  doc.moveDown();
+  doc.addPage();
+
   // Identity
   doc.fontSize(14).text("Identité", { underline: true });
   doc.moveDown(0.3);
@@ -152,17 +174,32 @@ router.get("/students/:studentId/dossier.pdf", requireAuth, async (req, res) => 
   }
   doc.moveDown();
 
-  // Documents
+  // Documents — grouped by category for embassy-friendly ordering, with
+  // status, version, and uploader info. Binary attachments are referenced
+  // by URL rather than embedded so the PDF stays a single small file.
   doc.fontSize(14).text("Documents", { underline: true });
   doc.moveDown(0.3);
   doc.fontSize(10);
   if (docs.length === 0) {
     doc.fillColor("#888").text("Aucun document").fillColor("#000");
   } else {
+    const byCategory = new Map<string, typeof docs>();
     for (const d of docs) {
-      doc.font("Helvetica-Bold").text(`• ${d.fileName ?? d.category}`, { continued: true });
-      doc.font("Helvetica").fillColor("#666").text(`  [${d.status}]`).fillColor("#000");
-      if (d.category) doc.fontSize(9).fillColor("#444").text(`   Catégorie: ${d.category}`).fillColor("#000").fontSize(10);
+      const k = d.category ?? "(non classé)";
+      if (!byCategory.has(k)) byCategory.set(k, [] as typeof docs);
+      byCategory.get(k)!.push(d);
+    }
+    for (const [cat, group] of [...byCategory.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+      doc.font("Helvetica-Bold").fontSize(11).text(cat);
+      doc.fontSize(10);
+      for (const d of group) {
+        doc.font("Helvetica-Bold").text(`  • ${d.fileName ?? "document"}`, { continued: true });
+        doc.font("Helvetica").fillColor("#666").text(`  [${d.status}]`).fillColor("#000");
+        if (d.objectPath) {
+          doc.fontSize(9).fillColor("#444").text(`     Référence: ${d.objectPath}`).fillColor("#000").fontSize(10);
+        }
+      }
+      doc.moveDown(0.3);
     }
   }
   doc.moveDown();
