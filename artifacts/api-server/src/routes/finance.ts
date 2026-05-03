@@ -444,7 +444,13 @@ router.put(
     const student = await loadStudentOr403(req, res);
     if (!student) return;
     const body = req.body ?? {};
-    const academicYear = body.academicYear ?? currentAcademicYear();
+    // Default the CVEC academic year to the year derived from the
+    // student's intakeDate (the year they actually start in), not the
+    // wall-clock current year. This keeps reads/writes consistent with
+    // computeFinancialReadiness when the user submits without typing
+    // an explicit academicYear.
+    const academicYear =
+      body.academicYear ?? resolveTargetAcademicYear(student.intakeDate);
     const [existing] = await db
       .select()
       .from(cvecPaymentsTable)

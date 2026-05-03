@@ -1,14 +1,11 @@
-import { Layout } from "@/components/Layout";
 import { useMyStudent, StudentGate } from "./StudentLayout";
 import { FinancialReadinessTab } from "../FinancialReadinessTab";
 
 export function StudentFinance() {
   return (
-    <Layout>
-      <StudentGate>
-        <StudentFinanceInner />
-      </StudentGate>
-    </Layout>
+    <StudentGate>
+      <StudentFinanceInner />
+    </StudentGate>
   );
 }
 
