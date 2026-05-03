@@ -19,6 +19,7 @@ import type {
 import type {
   AdminDashboard,
   AdvisorDashboard,
+  AiHealthResponse,
   Appointment,
   AssignStudentBody,
   AuditLog,
@@ -38,6 +39,7 @@ import type {
   Document,
   DocumentReview,
   DownloadUrlResponse,
+  ForbiddenResponse,
   HealthStatus,
   ListAuditLogsParams,
   ListCommentsParams,
@@ -153,6 +155,83 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary AI subsystem health (admin only)
+ */
+export const getGetAiHealthUrl = () => {
+  return `/api/ai/health`;
+};
+
+export const getAiHealth = async (
+  options?: RequestInit,
+): Promise<AiHealthResponse> => {
+  return customFetch<AiHealthResponse>(getGetAiHealthUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAiHealthQueryKey = () => {
+  return [`/api/ai/health`] as const;
+};
+
+export const getGetAiHealthQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAiHealth>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAiHealth>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAiHealthQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAiHealth>>> = ({
+    signal,
+  }) => getAiHealth({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAiHealth>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAiHealthQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAiHealth>>
+>;
+export type GetAiHealthQueryError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary AI subsystem health (admin only)
+ */
+
+export function useGetAiHealth<
+  TData = Awaited<ReturnType<typeof getAiHealth>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAiHealth>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAiHealthQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

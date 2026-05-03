@@ -9,6 +9,16 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface AiHealthResponse {
+  configured: boolean;
+  reachable: boolean;
+  model: string;
+  monthlyBudgetUsd: number;
+  monthSpentUsd: number;
+  /** @nullable */
+  error: string | null;
+}
+
 export interface ErrorResponse {
   error: string;
 }
@@ -765,6 +775,11 @@ export interface UpdateWorkflowStepBody {
  * Unauthorized
  */
 export type UnauthorizedResponse = ErrorResponse;
+
+/**
+ * Forbidden
+ */
+export type ForbiddenResponse = ErrorResponse;
 
 export type ListUsersParams = {
   role?: string;

@@ -57,6 +57,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /ai/health:
+    get:
+      operationId: getAiHealth
+      tags: [health]
+      summary: AI subsystem health (admin only)
+      responses:
+        "200":
+          description: AI health report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiHealthResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   # ─── USERS ───────────────────────────────────────────────────────────────────
   /users/me:
     get:
@@ -1254,6 +1271,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
     HealthStatus:
@@ -1263,6 +1286,29 @@ components:
           type: string
       required:
         - status
+
+    AiHealthResponse:
+      type: object
+      properties:
+        configured:
+          type: boolean
+        reachable:
+          type: boolean
+        model:
+          type: string
+        monthlyBudgetUsd:
+          type: number
+        monthSpentUsd:
+          type: number
+        error:
+          type: ["string", "null"]
+      required:
+        - configured
+        - reachable
+        - model
+        - monthlyBudgetUsd
+        - monthSpentUsd
+        - error
 
     ErrorResponse:
       type: object

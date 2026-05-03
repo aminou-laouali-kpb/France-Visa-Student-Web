@@ -10,3 +10,4 @@ export * from "./appointments";
 export * from "./notifications";
 export * from "./audit";
 export * from "./risk";
+export * from "./ai";

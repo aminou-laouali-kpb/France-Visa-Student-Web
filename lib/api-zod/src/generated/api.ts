@@ -15,6 +15,18 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * @summary AI subsystem health (admin only)
+ */
+export const GetAiHealthResponse = zod.object({
+  configured: zod.boolean(),
+  reachable: zod.boolean(),
+  model: zod.string(),
+  monthlyBudgetUsd: zod.number(),
+  monthSpentUsd: zod.number(),
+  error: zod.string().nullable(),
+});
+
+/**
  * @summary Get current user profile
  */
 export const GetMeResponse = zod.object({
