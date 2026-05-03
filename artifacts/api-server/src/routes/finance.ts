@@ -142,6 +142,21 @@ function currentAcademicYear(today = new Date()): string {
   return m >= 6 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
 }
 
+// Derive the CVEC target academic year from the student's intake date when
+// available. CVEC must be paid for the academic year the student starts in,
+// so an intake in Sept-2026 → "2026-2027" regardless of when readiness is
+// computed. Falls back to the clock-derived current year for off-cycle or
+// pre-intake-date dossiers.
+function resolveTargetAcademicYear(intakeDate?: string | null): string {
+  if (intakeDate) {
+    const d = new Date(intakeDate);
+    if (!Number.isNaN(d.getTime())) {
+      return currentAcademicYear(d);
+    }
+  }
+  return currentAcademicYear();
+}
+
 // ─── REFERENCE: STATIC ENUMS ────────────────────────────────────────────────
 const PROOF_TYPES_REF = [
   { value: "bank_attestation", label: "Attestation bancaire", validityMonths: 3 },
@@ -477,7 +492,7 @@ export async function computeFinancialReadiness(studentId: number) {
     .select()
     .from(accommodationRecordsTable)
     .where(eq(accommodationRecordsTable.studentId, studentId));
-  const targetAcademicYear = currentAcademicYear();
+  const targetAcademicYear = resolveTargetAcademicYear(student.intakeDate);
   const cvec = await db
     .select()
     .from(cvecPaymentsTable)
