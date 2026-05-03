@@ -191,7 +191,7 @@ function AdvisorDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">
-          {tr("dash.hello", { name: me?.firstName })} 👋
+          {tr("dash.hello", { name: me?.firstName })}
         </h1>
         <p className="text-slate-600 mt-1">
           {tr("dash.advisorSubtitle", { n: data?.totalStudents ?? 0 })}
