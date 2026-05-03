@@ -167,13 +167,35 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
   const { data: steps = [], refetch } = useListStudentSteps(studentId);
   const update = useUpdateStudentStep();
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [blockingStepId, setBlockingStepId] = useState<number | null>(null);
+  const [blockReason, setBlockReason] = useState("");
 
   const handleStatus = async (stepId: number, status: string) => {
+    if (status === "blocked") {
+      setBlockingStepId(stepId);
+      setBlockReason("");
+      return;
+    }
     await update.mutateAsync({
       studentId,
       stepId,
-      data: { status } as unknown as UpdateStudentStepBody,
+      data: { status, blockedReason: null } as unknown as UpdateStudentStepBody,
     });
+    refetch();
+  };
+
+  const confirmBlock = async () => {
+    if (!blockingStepId || !blockReason.trim()) return;
+    await update.mutateAsync({
+      studentId,
+      stepId: blockingStepId,
+      data: {
+        status: "blocked",
+        blockedReason: blockReason.trim(),
+      } as unknown as UpdateStudentStepBody,
+    });
+    setBlockingStepId(null);
+    setBlockReason("");
     refetch();
   };
 
@@ -262,6 +284,50 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
           )}
         </div>
       </CardContent>
+      <Dialog
+        open={blockingStepId !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setBlockingStepId(null);
+            setBlockReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bloquer cette étape</DialogTitle>
+            <DialogDescription>
+              Indiquez la raison du blocage. L'étudiant en sera informé.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={blockReason}
+            onChange={(e) => setBlockReason(e.target.value)}
+            placeholder="Ex. Document manquant ou non lisible…"
+            rows={4}
+            data-testid="textarea-block-reason"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBlockingStepId(null);
+                setBlockReason("");
+              }}
+              data-testid="button-cancel-block"
+            >
+              Annuler
+            </Button>
+            <Button
+              disabled={!blockReason.trim() || update.isPending}
+              onClick={confirmBlock}
+              data-testid="button-confirm-block"
+            >
+              Bloquer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
