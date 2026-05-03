@@ -75,7 +75,7 @@ export function RiskNarrativeCard({ studentId }: { studentId: number }) {
       // Invalidate the portfolio list so the row tooltip refreshes.
       qc.invalidateQueries({ queryKey: ["/students"] });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setGenerating(false);
     }
@@ -109,7 +109,7 @@ export function RiskNarrativeCard({ studentId }: { studentId: number }) {
         <CardTitle className="text-base flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-600" />
-            Explication IA du risque
+            {t("narrative.title")}
           </span>
           <Button
             size="sm"

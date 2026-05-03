@@ -658,7 +658,9 @@
     "addCountry": "Ajouter un pays",
     "colCode": "Code",
     "colVisaCenter": "Centre visa",
-    "colCampusFrance": "Campus France"
+    "colCampusFrance": "Campus France",
+    "required": "Requis",
+    "notRequired": "Non requis"
   },
   "interview": {
     "title": "Simulateur d'entretien Campus France",
@@ -754,7 +756,21 @@
     "wishSchoolFree": "École (texte libre, si hors catalogue)",
     "wishProgram": "Programme / Formation",
     "wishMotivation": "Motivation",
-    "equivTitle": "Équivalences de diplômes (ENIC-NARIC)"
+    "equivTitle": "Équivalences de diplômes (ENIC-NARIC)",
+    "completenessTitle": "Complétude du profil approfondi",
+    "langRenewalWarning": "Test(s) de langue à renouveler",
+    "langExpiresDays": "expire dans {{days}} jours",
+    "langPassedDate": "Passé le {{date}}",
+    "langExpiryDate": "expire le {{date}}",
+    "langExpiresSoon": "Expire dans {{days}} jour(s) — à renouveler",
+    "langExpired": "Expiré",
+    "equivEquivalent": "Équivalent : {{level}}",
+    "equivRefShort": "Réf. {{ref}}",
+    "equivStatusLabel": "Statut : {{status}}",
+    "wishCardTitle": "Vœux Études en France ({{count}}/{{max}})",
+    "wishSchoolFreeHint": "— ou texte libre ci-dessous —",
+    "wishEntry": "Vœu n°{{order}} —",
+    "wishStatusLabel": "statut : {{status}}"
   },
   "extract": {
     "done": "extraction terminée",

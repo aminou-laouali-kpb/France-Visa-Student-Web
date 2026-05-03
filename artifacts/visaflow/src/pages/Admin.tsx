@@ -397,7 +397,7 @@ export function AdminCountries() {
                       }
                       data-testid={`button-toggle-cf-${c.id}`}
                     >
-                      {c.requiresCampusFrance ? "Requis" : "Non requis"}
+                      {c.requiresCampusFrance ? t("admin.required") : t("admin.notRequired")}
                     </Button>
                   </td>
                   <td className="px-4 py-3 text-slate-600">

@@ -70,7 +70,7 @@ export function ProfileDepthTab({ studentId }: { studentId: number }) {
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <div className="text-sm text-slate-500">
-              Complétude du profil approfondi
+              {t("depth.completenessTitle")}
             </div>
             <div className="text-2xl font-bold text-blue-700">
               {depth.profileCompletenessScore}%
@@ -85,12 +85,12 @@ export function ProfileDepthTab({ studentId }: { studentId: number }) {
               <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <div className="font-semibold text-amber-900">
-                  Test(s) de langue à renouveler
+                  {t("depth.langRenewalWarning")}
                 </div>
-                {depth.expiringLanguageTests.map((t) => (
-                  <div key={t.id} className="text-amber-800">
-                    {t.testType} expire dans {t.daysUntilExpiry} jours
-                    {t.expiryDate ? ` (${t.expiryDate})` : ""}
+                {depth.expiringLanguageTests.map((lt) => (
+                  <div key={lt.id} className="text-amber-800">
+                    {lt.testType}{" "}{t("depth.langExpiresDays", { days: lt.daysUntilExpiry })}
+                    {lt.expiryDate ? ` (${lt.expiryDate})` : ""}
                   </div>
                 ))}
               </div>
@@ -387,7 +387,7 @@ function PriorSchoolingCard({
               disabled={!form.institutionName.trim()}
               data-testid="button-add-schooling"
             >
-              Ajouter
+              {t("depth.addEntry")}
             </Button>
           </div>
         )}
@@ -555,8 +555,8 @@ function LanguageTestsCard({
           <div className="text-sm text-slate-500">{t("depth.noEntries")}</div>
         ) : (
           <div className="divide-y">
-            {(tests as any[]).map((t) => {
-              const exp = t.expiryDate ? new Date(t.expiryDate) : null;
+            {(tests as any[]).map((lt) => {
+              const exp = lt.expiryDate ? new Date(lt.expiryDate) : null;
               const days = exp
                 ? Math.ceil(
                     (exp.getTime() - today.getTime()) / (86400 * 1000),
@@ -565,38 +565,38 @@ function LanguageTestsCard({
               const expSoon = days !== null && days > 0 && days <= 90;
               const expired = days !== null && days <= 0;
               return (
-                <div key={t.id} className="py-3 flex items-start justify-between">
+                <div key={lt.id} className="py-3 flex items-start justify-between">
                   <div>
                     <div className="font-medium">
-                      {t.testType}{" "}
-                      {t.level && (
-                        <span className="text-blue-600">· {t.level}</span>
+                      {lt.testType}{" "}
+                      {lt.level && (
+                        <span className="text-blue-600">· {lt.level}</span>
                       )}
-                      {t.overallScore && (
+                      {lt.overallScore && (
                         <span className="text-slate-600 ml-2">
-                          score {t.overallScore}
+                          score {lt.overallScore}
                         </span>
                       )}
                     </div>
                     <div className="text-sm text-slate-600">
-                      {t.testDate && `Passé le ${t.testDate}`}
-                      {t.expiryDate && ` · expire le ${t.expiryDate}`}
+                      {lt.testDate && t("depth.langPassedDate", { date: lt.testDate })}
+                      {lt.expiryDate && ` · ${t("depth.langExpiryDate", { date: lt.expiryDate })}`}
                     </div>
                     {expSoon && (
                       <div className="text-xs text-amber-700 font-medium mt-1">
-                        ⚠ Expire dans {days} jour(s) — à renouveler
+                        ⚠ {t("depth.langExpiresSoon", { days })}
                       </div>
                     )}
                     {expired && (
                       <div className="text-xs text-red-700 font-medium mt-1">
-                        ⚠ Expiré
+                        ⚠ {t("depth.langExpired")}
                       </div>
                     )}
                   </div>
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => handleDelete(t.id)}
+                    onClick={() => handleDelete(lt.id)}
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </Button>
@@ -741,9 +741,9 @@ function DiplomaEquivalencesCard({
                 <div>
                   <div className="font-medium">{e.originalDiploma}</div>
                   <div className="text-sm text-slate-600">
-                    {e.equivalentLevel && `Équivalent : ${e.equivalentLevel}`}
-                    {e.enicNaricRef && ` · Réf. ${e.enicNaricRef}`}
-                    {` · Statut : ${e.status}`}
+                    {e.equivalentLevel && t("depth.equivEquivalent", { level: e.equivalentLevel })}
+                    {e.enicNaricRef && ` · ${t("depth.equivRefShort", { ref: e.enicNaricRef })}`}
+                    {` · ${t("depth.equivStatusLabel", { status: e.status })}`}
                   </div>
                 </div>
                 <Button
@@ -832,7 +832,7 @@ function EefWishesCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">
-          Vœux Études en France ({wishesArr.length}/{MAX_WISHES})
+          {t("depth.wishCardTitle", { count: wishesArr.length, max: MAX_WISHES })}
         </CardTitle>
         <Button
           size="sm"
@@ -866,7 +866,7 @@ function EefWishesCard({
                   onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
                   data-testid="select-wish-school"
                 >
-                  <option value="">— ou texte libre ci-dessous —</option>
+                  <option value="">{t("depth.wishSchoolFreeHint")}</option>
                   {(schools as any[]).map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.city})
@@ -929,12 +929,12 @@ function EefWishesCard({
               <div key={w.id} className="py-3 flex items-start justify-between">
                 <div className="flex-1">
                   <div className="font-medium">
-                    Vœu n°{w.wishOrder} —{" "}
+                    {t("depth.wishEntry", { order: w.wishOrder })}{" "}
                     {(w as any).schoolName ?? w.schoolNameFreeText ?? "—"}
                   </div>
                   <div className="text-sm text-slate-600">
                     {(w as any).programName ?? w.programNameFreeText ?? ""}
-                    {` · statut : ${w.status}`}
+                    {` · ${t("depth.wishStatusLabel", { status: w.status })}`}
                   </div>
                   {w.motivationText && (
                     <div className="text-sm text-slate-700 mt-1 line-clamp-3">

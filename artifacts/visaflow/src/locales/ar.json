@@ -658,7 +658,9 @@
     "addCountry": "إضافة دولة",
     "colCode": "الرمز",
     "colVisaCenter": "مركز التأشيرة",
-    "colCampusFrance": "كامبوس فرانس"
+    "colCampusFrance": "كامبوس فرانس",
+    "required": "مطلوب",
+    "notRequired": "غير مطلوب"
   },
   "interview": {
     "title": "محاكي مقابلة كامبوس فرانس",
@@ -754,7 +756,21 @@
     "wishSchoolFree": "المدرسة (نص حر، إذا لم تكن في الكتالوج)",
     "wishProgram": "البرنامج / التكوين",
     "wishMotivation": "الدافع",
-    "equivTitle": "تعادل الشهادات (ENIC-NARIC)"
+    "equivTitle": "تعادل الشهادات (ENIC-NARIC)",
+    "completenessTitle": "اكتمال الملف الموسع",
+    "langRenewalWarning": "اختبار(ات) لغة يجب تجديدها",
+    "langExpiresDays": "تنتهي خلال {{days}} يومًا",
+    "langPassedDate": "أُجري بتاريخ {{date}}",
+    "langExpiryDate": "تنتهي في {{date}}",
+    "langExpiresSoon": "تنتهي خلال {{days}} يوم — مطلوب التجديد",
+    "langExpired": "منتهية الصلاحية",
+    "equivEquivalent": "معادل: {{level}}",
+    "equivRefShort": "مرجع. {{ref}}",
+    "equivStatusLabel": "الحالة: {{status}}",
+    "wishCardTitle": "رغبات كامبوس فرانس ({{count}}/{{max}})",
+    "wishSchoolFreeHint": "— أو نص حر أدناه —",
+    "wishEntry": "الرغبة رقم {{order}} —",
+    "wishStatusLabel": "الحالة: {{status}}"
   },
   "extract": {
     "done": "اكتمل الاستخراج",

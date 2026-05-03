@@ -658,7 +658,9 @@
     "addCountry": "Adicionar país",
     "colCode": "Código",
     "colVisaCenter": "Centro de vistos",
-    "colCampusFrance": "Campus France"
+    "colCampusFrance": "Campus France",
+    "required": "Necessário",
+    "notRequired": "Não necessário"
   },
   "interview": {
     "title": "Simulador de entrevista Campus France",
@@ -754,7 +756,21 @@
     "wishSchoolFree": "Escola (texto livre, fora do catálogo)",
     "wishProgram": "Programa / Formação",
     "wishMotivation": "Motivação",
-    "equivTitle": "Equivalências de diplomas (ENIC-NARIC)"
+    "equivTitle": "Equivalências de diplomas (ENIC-NARIC)",
+    "completenessTitle": "Completude do perfil aprofundado",
+    "langRenewalWarning": "Teste(s) de língua a renovar",
+    "langExpiresDays": "expira em {{days}} dias",
+    "langPassedDate": "Realizado em {{date}}",
+    "langExpiryDate": "expira em {{date}}",
+    "langExpiresSoon": "Expira em {{days}} dia(s) — renovação necessária",
+    "langExpired": "Expirado",
+    "equivEquivalent": "Equivalente: {{level}}",
+    "equivRefShort": "Ref. {{ref}}",
+    "equivStatusLabel": "Estado: {{status}}",
+    "wishCardTitle": "Desejos Études en France ({{count}}/{{max}})",
+    "wishSchoolFreeHint": "— ou texto livre abaixo —",
+    "wishEntry": "Desejo nº{{order}} —",
+    "wishStatusLabel": "estado: {{status}}"
   },
   "extract": {
     "done": "extração concluída",

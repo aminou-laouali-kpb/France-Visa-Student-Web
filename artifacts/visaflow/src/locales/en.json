@@ -658,7 +658,9 @@
     "addCountry": "Add a country",
     "colCode": "Code",
     "colVisaCenter": "Visa centre",
-    "colCampusFrance": "Campus France"
+    "colCampusFrance": "Campus France",
+    "required": "Required",
+    "notRequired": "Not required"
   },
   "interview": {
     "title": "Campus France Interview Simulator",
@@ -754,7 +756,21 @@
     "wishSchoolFree": "School (free text, if not in catalogue)",
     "wishProgram": "Programme / Course",
     "wishMotivation": "Motivation",
-    "equivTitle": "Diploma equivalences (ENIC-NARIC)"
+    "equivTitle": "Diploma equivalences (ENIC-NARIC)",
+    "completenessTitle": "Extended profile completeness",
+    "langRenewalWarning": "Language test(s) to renew",
+    "langExpiresDays": "expires in {{days}} days",
+    "langPassedDate": "Taken on {{date}}",
+    "langExpiryDate": "expires on {{date}}",
+    "langExpiresSoon": "Expires in {{days}} day(s) — renewal required",
+    "langExpired": "Expired",
+    "equivEquivalent": "Equivalent: {{level}}",
+    "equivRefShort": "Ref. {{ref}}",
+    "equivStatusLabel": "Status: {{status}}",
+    "wishCardTitle": "Campus France wishes ({{count}}/{{max}})",
+    "wishSchoolFreeHint": "— or free text below —",
+    "wishEntry": "Wish #{{order}} —",
+    "wishStatusLabel": "status: {{status}}"
   },
   "extract": {
     "done": "extraction complete",
