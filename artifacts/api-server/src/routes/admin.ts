@@ -83,7 +83,7 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     res.json({ student: null });
     return;
   }
-  const [steps, docs, apts, unreadNotifs] = await Promise.all([
+  const [steps, docs, apts, unreadNotifs, comments] = await Promise.all([
     db.select().from(studentStepsTable).where(eq(studentStepsTable.studentId, student.id)),
     db.select().from(documentsTable).where(eq(documentsTable.studentId, student.id)),
     db
@@ -99,10 +99,52 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
       .select()
       .from(notificationsTable)
       .where(and(eq(notificationsTable.userId, u.id), eq(notificationsTable.isRead, false))),
+    db
+      .select({
+        id: commentsTable.id,
+        studentId: commentsTable.studentId,
+        authorId: commentsTable.authorId,
+        content: commentsTable.content,
+        isInternal: commentsTable.isInternal,
+        isCorrectionRequest: commentsTable.isCorrectionRequest,
+        createdAt: commentsTable.createdAt,
+        authorFirstName: usersTable.firstName,
+        authorLastName: usersTable.lastName,
+        authorRole: usersTable.role,
+      })
+      .from(commentsTable)
+      .leftJoin(usersTable, eq(commentsTable.authorId, usersTable.id))
+      .where(
+        and(eq(commentsTable.studentId, student.id), eq(commentsTable.isInternal, false)),
+      )
+      .orderBy(desc(commentsTable.createdAt))
+      .limit(10),
   ]);
   const currentStep = steps
     .sort((a, b) => a.stepOrder - b.stepOrder)
     .find((s) => s.status !== "validated");
+  const rejectedDocs = docs.filter((d) => d.status === "rejected");
+  const blockedSteps = steps.filter((s) => s.status === "blocked");
+  const nextActions: string[] = [];
+  if (rejectedDocs.length > 0)
+    nextActions.push(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`);
+  if (blockedSteps.length > 0)
+    nextActions.push(`Débloquer ${blockedSteps.length} étape(s)`);
+  if (currentStep) nextActions.push(`Avancer sur : ${currentStep.stepName}`);
+  if (apts.length > 0) nextActions.push(`Préparer ${apts.length} rendez-vous à venir`);
+  const recentComments = comments
+    .filter((c) => c.authorRole !== "student")
+    .map((c) => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt,
+      authorId: c.authorId,
+      authorName:
+        `${c.authorFirstName ?? ""} ${c.authorLastName ?? ""}`.trim() || "Conseiller",
+      authorRole: c.authorRole ?? "advisor",
+      isInternal: c.isInternal,
+      isCorrectionRequest: c.isCorrectionRequest,
+    }));
   res.json({
     student,
     completionScore: student.completionScore,
@@ -113,6 +155,8 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     pendingDocuments: docs.filter((d) => d.status === "missing" || d.status === "rejected").length,
     upcomingAppointments: apts,
     unreadNotifications: unreadNotifs.length,
+    nextActions,
+    recentComments,
   });
 });
 

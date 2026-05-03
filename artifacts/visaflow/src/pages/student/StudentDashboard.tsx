@@ -15,13 +15,17 @@ import { formatDateTime, ROLE_LABELS } from "@/lib/utils";
 import {
   AlertTriangle,
   ArrowRight,
+  Building2,
   Calendar,
   CheckCircle2,
   FileText,
   GraduationCap,
   ListChecks,
+  MapPin,
   MessageSquare,
+  Stamp,
 } from "lucide-react";
+import type { Appointment } from "@/types";
 
 export function StudentDashboard() {
   const { data: me } = useGetMe();
@@ -228,6 +232,102 @@ export function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {nextStep && (
+        <Card data-testid="card-current-step">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-blue-600" />
+              Étape en cours
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold shrink-0">
+                {nextStep.stepOrder}
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-slate-900">{nextStep.stepName}</div>
+                <div className="mt-1">
+                  <StatusBadge status={nextStep.status} />
+                </div>
+                {nextStep.blockedReason && (
+                  <div className="text-sm text-rose-700 mt-2 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    {nextStep.blockedReason}
+                  </div>
+                )}
+                {nextStep.notes && (
+                  <div className="text-sm text-slate-600 mt-2 whitespace-pre-wrap">
+                    {nextStep.notes}
+                  </div>
+                )}
+              </div>
+              <Link href="/student/steps">
+                <Button variant="outline" size="sm" data-testid="button-view-step">
+                  Voir l'étape
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card data-testid="card-upcoming-appointments">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            Rendez-vous à venir
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {(data.upcomingAppointments ?? []).length === 0 ? (
+            <div className="text-sm text-slate-500 py-4">
+              Aucun rendez-vous planifié.
+            </div>
+          ) : (
+            (data.upcomingAppointments as Appointment[]).map((apt) => {
+              const Icon =
+                apt.type === "campus_france"
+                  ? Building2
+                  : apt.type === "tls" || apt.type === "vfs"
+                    ? Stamp
+                    : Calendar;
+              return (
+                <div
+                  key={apt.id}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-slate-50"
+                  data-testid={`appointment-${apt.id}`}
+                >
+                  <Icon className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-slate-900">{apt.title}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">
+                      {formatDateTime(apt.scheduledAt)}
+                    </div>
+                    {apt.location && (
+                      <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {apt.location}
+                      </div>
+                    )}
+                  </div>
+                  {apt.status && <StatusBadge status={apt.status} />}
+                </div>
+              );
+            })
+          )}
+          <Link href="/student/appointments">
+            <a
+              className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
+              data-testid="link-all-appointments"
+            >
+              Voir tous les rendez-vous
+              <ArrowRight className="w-3 h-3" />
+            </a>
+          </Link>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-3 gap-4">
         <Card>
