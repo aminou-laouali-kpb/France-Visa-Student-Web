@@ -7,6 +7,7 @@ import documentsRouter from "./documents";
 import collabRouter from "./collab";
 import adminRouter from "./admin";
 import aiRouter from "./ai";
+import profileRouter from "./profile";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(documentsRouter);
 router.use(collabRouter);
 router.use(adminRouter);
 router.use(aiRouter);
+router.use(profileRouter);
 
 export default router;

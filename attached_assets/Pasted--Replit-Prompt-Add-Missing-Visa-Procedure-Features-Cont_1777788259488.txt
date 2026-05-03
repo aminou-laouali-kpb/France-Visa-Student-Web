@@ -1,0 +1,349 @@
+# Replit Prompt — Add Missing Visa Procedure Features
+
+---
+
+## Context
+
+We are building **VisaFlow France**, a SaaS web app that helps students from French-speaking Africa manage their French student visa process from school admission to arrival in France.
+
+The initial build is already in progress. The following prompt describes **only what needs to be added or updated** — do not rebuild what already exists.
+
+---
+
+## PART 1 — Add AVI (Attestation de Virement Irrévocable) Support
+
+### What is AVI
+
+The AVI (Attestation de Virement Irrévocable) is a financial guarantee document widely used by students from Africa to prove financial resources for a French student visa. Instead of showing personal bank statements, the student deposits funds with a certified AVI provider, who then issues an official guarantee letter of at least 615 €/month for 12 months (~7,380 € total). This document is accepted by French consulates as valid proof of financial resources.
+
+### What to add
+
+#### 1. New document category: "Financial Proof / AVI"
+
+In the document management module, add a document category called **"Preuve financière / AVI"** with two sub-options:
+- Classic bank statements (relevés bancaires)
+- AVI certificate from a certified provider
+
+#### 2. AVI provider selection
+
+When the student selects "AVI" as their financial proof type, show a structured form with:
+
+- A dropdown list of the 4 recognized AVI providers:
+  - **Studely** — studely.com
+  - **AVICENTER** (ISO 9001 certified) — avicenter.fr
+  - **Visa Etude France** — visaetudefrance.fr
+  - **Ready Study Go** — ready-study-go.com
+
+- Fields:
+  - Provider name (from dropdown above or "Other — manual entry")
+  - AVI file/reference number
+  - Date of issuance
+  - Amount guaranteed per month
+  - Total amount blocked
+  - Upload field for the AVI certificate PDF
+
+#### 3. Advisor view
+
+In the advisor/reviewer document review panel, when a document is of type AVI:
+- Show the provider name and reference number clearly
+- Add a quick link to the provider website
+- Add a validation checklist specific to AVI:
+  - [ ] Provider is recognized (ORIAS registered or ISO certified)
+  - [ ] Amount is at least 615 €/month
+  - [ ] Duration covers at least 12 months
+  - [ ] Student name matches passport
+  - [ ] Document is less than 3 months old
+  - [ ] Signature and stamp visible
+
+#### 4. Workflow integration
+
+In the workflow step **"Financial documents prepared"**, update the checklist to include:
+- If AVI selected: AVI certificate uploaded and validated
+- If classic bank statements selected: bank statements for last 3–6 months uploaded
+- Add a risk flag if neither option is completed 4 weeks before estimated visa appointment
+
+---
+
+## PART 2 — Add Official Visa Refusal Reasons (Motifs de Refus)
+
+### Context
+
+French consulates use standardized numbered refusal reasons (motifs). Students must understand these in advance to build a stronger file and know how to respond if refused.
+
+### What to add
+
+#### 1. New informational section in the student dashboard
+
+Add a collapsible card titled **"Understanding Visa Refusal Reasons"** visible in the student dashboard during the visa preparation phase. Display the 7 main official refusal reasons with explanations and prevention tips:
+
+| Motif | Label | Explanation | Prevention |
+|---|---|---|---|
+| 1 | Insufficient justification of the purpose and conditions of stay | The study project is unclear or not credible | Prepare a detailed, coherent motivation letter and study project |
+| 2 | Insufficient financial resources | Resources below 615 €/month or not credible | Use AVI, verified bank statements, or scholarship letter |
+| 3 | Intention to leave France not established | Risk of illegal stay suspected | Show ties to home country: family, property, professional plans |
+| 4 | False or falsified documents | Fraudulent documents detected | Never submit any falsified document |
+| 5 | Threat to public order | Criminal record or security concerns | Submit clean criminal record certificate |
+| 6 | Insufficient insurance | No valid health insurance | Provide international health/travel insurance |
+| 7 | Application incomplete | Missing documents | Double-check the full checklist before submission |
+
+#### 2. Risk flag on dossier
+
+In the risk scoring engine, add specific risk flags linked to each motif:
+- No financial proof or AVI → flag Motif 2
+- No accommodation proof → flag Motif 1
+- No Campus France certificate for eligible country → flag Motif 1
+- Missing insurance → flag Motif 6
+- Document older than 3 months → flag incomplete dossier
+- History of visa refusal → flag Motif 3
+
+#### 3. Admin configuration
+
+Allow admin to enable/disable the display of refusal reasons per country context.
+
+---
+
+## PART 3 — Add Visa Refusal Appeal Process (Recours)
+
+### What to add
+
+#### 1. New workflow step: "Visa Refusal — Appeal"
+
+If the student's visa decision is set to **"Refused"**, automatically unlock a new workflow step:
+
+**Step: "Visa Refusal — Initiate Appeal"**
+
+With the following sub-steps and guidance:
+
+**Step 3.1 — Gracious Appeal (Recours gracieux)**
+- Deadline: 2 months from refusal notification
+- Target: The consul who issued the refusal
+- Action: Send a formal letter addressing the specific refusal reason with additional supporting documents
+- Form template: Pre-fill a appeal letter template based on the refusal reason the student selects
+
+**Step 3.2 — Commission nationale de refus de visas**
+- If gracious appeal fails or is not answered within 2 months
+- Submit request to the national visa refusal commission
+- Provide: copy of original application, refusal decision, appeal letter, new supporting documents
+
+**Step 3.3 — Administrative Court (Recours contentieux)**
+- Last resort, requires a lawyer
+- Must be filed within 2 months of commission decision
+- Note: Mark this step as "legal assistance recommended" with a warning badge
+
+#### 2. Advisor tools on refusal
+
+When a visa is marked as refused, the advisor dashboard should:
+- Show an alert: "Student requires immediate action — visa refused"
+- Display the refusal reason the student entered
+- Suggest the appropriate appeal path based on the reason
+- Allow the advisor to assign a "refusal case manager" to the student
+
+#### 3. Refusal tracking in analytics
+
+In the admin analytics panel, track:
+- Number of refusals per country
+- Number of refusals per refusal reason
+- Number of successful appeals
+- Average time between refusal and re-application
+
+---
+
+## PART 4 — Add OFII and Post-Arrival Steps
+
+### Context
+
+After arriving in France with a VLS-TS (Visa de Long Séjour valant Titre de Séjour), the student must complete mandatory steps with OFII (Office Français de l'Immigration et de l'Intégration) within 3 months.
+
+### What to add
+
+#### 1. New workflow phase: "Arrival in France & OFII"
+
+Add the following steps after "Departure prepared":
+
+**Step: Arrival in France**
+- Date of arrival (input field)
+- Checklist:
+  - [ ] VLS-TS visa in passport verified
+  - [ ] School enrollment confirmed
+  - [ ] Accommodation ready
+
+**Step: VLS-TS Online Validation (OFII)**
+- Deadline: within 3 months of arrival
+- Action: Validate VLS-TS on the OFII portal (administration-etrangers-en-france.interieur.gouv.fr)
+- Cost: 75 € fiscal stamp (timbre fiscal dématérialisé)
+- Checklist:
+  - [ ] OFII portal account created
+  - [ ] Online form completed
+  - [ ] 75 € fiscal stamp purchased and attached
+  - [ ] Validation confirmed
+
+- Add an automatic alert if this step is not completed within 60 days of arrival
+
+**Step: OFII Medical Visit**
+- After VLS-TS validation, OFII schedules a mandatory medical visit (visite médicale)
+- Student receives a convocation letter
+- Checklist:
+  - [ ] Convocation received
+  - [ ] Medical visit attended
+  - [ ] OFII stamp added to passport
+
+**Step: CVEC Payment and Final School Enrollment**
+- CVEC (Contribution de Vie Étudiante et de Campus) = 105 € for 2025–2026
+- Must be paid at cvec.etudiant.gouv.fr before final enrollment
+- Checklist:
+  - [ ] CVEC paid
+  - [ ] CVEC certificate downloaded
+  - [ ] CVEC certificate submitted to school
+  - [ ] Final enrollment completed
+
+**IMPORTANT NOTE for developers:** CVEC is paid AFTER arriving in France and AFTER obtaining the visa. It must NOT appear in the pre-visa checklist. Its correct position is after arrival, before final enrollment.
+
+**Step: Student Social Security Registration**
+- Register on ameli.fr for the French health insurance system
+- Free for students under 28
+- Checklist:
+  - [ ] Ameli account created
+  - [ ] Carte Vitale requested
+  - [ ] Complementary insurance (mutuelle) subscribed
+
+**Step: Open French Bank Account**
+- Needed for direct debit for rent, subscriptions, school payments
+- Suggested options to display: Lydia, N26, Revolut, Wise (international, fast to open), or traditional banks (BNP, Société Générale, La Banque Postale — require in-person visit)
+- Checklist:
+  - [ ] Bank account opened
+  - [ ] IBAN received
+
+---
+
+## PART 5 — Add Key Document Validity Rules & Passport Requirements
+
+### What to add
+
+#### 1. Passport validity check
+
+In the student profile and document checklist, add a dedicated passport validity check:
+- Passport must be valid for at least **3 months after the end of the planned stay** (not just during the studies)
+- Passport must have at least **2 blank pages**
+- Add a calculated warning if the passport expiry date is insufficient based on the program end date
+
+Display a clear warning banner: "⚠️ Your passport may expire before the required deadline. Please renew it before applying for a visa."
+
+#### 2. Document freshness validation (3-month rule)
+
+For the following document types, add a "date of issue" field and flag any document older than 3 months at the time of visa appointment:
+- Bank statements
+- Housing proof (attestation d'hébergement)
+- ID photos
+- Criminal record certificate
+- AVI certificate
+
+Show a warning: "⚠️ This document may be expired at the time of your visa appointment. Please obtain a recent version."
+
+#### 3. Certified translation requirement
+
+Add a notice in the document upload panel for all documents not in French:
+- Display: "Documents not written in French must be translated by a sworn translator (traducteur assermenté). Unofficial translations are rejected by French consulates."
+- Add a document sub-field: "Is this document in French?" → Yes / No
+- If No: require upload of both the original AND the certified French translation
+
+---
+
+## PART 6 — Add Language Certificate Tracking
+
+### What to add
+
+In the student profile and checklist, add a dedicated section **"Language Certificates"**:
+
+For programs taught in French:
+- Accepted certificates: DELF, DALF, TCF, TEF
+- Required level: typically B2 minimum (varies by school and program)
+- Fields: certificate type, level obtained, score, date of issue, upload
+
+For programs taught in English:
+- Accepted certificates: IELTS, TOEFL, Cambridge
+- Fields: certificate type, score, date of issue, upload
+
+Logic:
+- If program language is set to "French" and no French language certificate is uploaded → show warning flag
+- If program language is set to "English" and no English language certificate is uploaded → show warning flag
+- Allow advisor to mark language certificate as "waived by school" with a note
+
+---
+
+## PART 7 — Add Visa Fee Display
+
+### What to add
+
+In the "Visa appointment" step, add an informational card showing the estimated fees the student must bring:
+
+**Standard fees for French student visa (long-stay VLS-TS):**
+- Visa fee: ~50 € (paid to the consulate)
+- TLS/VFS service fee: ~30–60 € depending on country
+- Total estimated: ~80–110 €
+
+Add a country-specific fee lookup if possible, or allow admin to configure the fee amounts per country.
+
+Display a note: "Exact fees may vary. Check the TLScontact or VFS website for your country before your appointment."
+
+---
+
+## PART 8 — Add Flight Reservation Field
+
+### What to add
+
+In the visa appointment preparation checklist, add:
+
+**Document: Flight reservation**
+- Note: "Some consulates require proof of onward travel. A refundable or on-hold reservation is usually sufficient — you do not need a confirmed purchased ticket."
+- Fields:
+  - Reservation reference
+  - Airline
+  - Departure date
+  - Upload field (PDF or screenshot of reservation)
+- Advisor checklist item:
+  - [ ] Reservation shows student's full name as on passport
+  - [ ] Date is consistent with school start date
+  - [ ] Departure airport is in the country of residence
+
+---
+
+## PART 9 — Add Refusal Rate Context for Advisors
+
+### What to add
+
+In the admin analytics panel and the advisor dossier sidebar, add a contextual information card:
+
+**"French visa refusal rates in Francophone Africa"**
+
+Display:
+- "The French consulate refusal rate for students from Sub-Saharan Africa is significantly higher than the global average (~30% vs ~16% globally). A complete, coherent, and well-documented dossier is essential."
+- This context card should be visible to advisors and admins only — not to students (to avoid discouraging them).
+
+---
+
+## Implementation priority order
+
+Please implement in this order:
+
+1. AVI support (Part 1) — highest priority, most common financial proof method
+2. Passport validity and document freshness rules (Part 5) — prevents silent blocking
+3. Post-arrival OFII steps (Part 4) — complete the workflow end-to-end
+4. Visa refusal reasons display (Part 2) — student education
+5. Refusal appeal workflow (Part 3) — critical edge case handling
+6. Language certificates (Part 6) — profile completeness
+7. Visa fee display (Part 7) — practical info
+8. Flight reservation field (Part 8) — document completeness
+9. Refusal rate context for advisors (Part 9) — advisory intelligence
+
+---
+
+## General rules
+
+- Do not break or refactor existing features — only add what is described above.
+- All new UI components must follow the existing design system.
+- All new database fields must be added via proper migration.
+- All new workflow steps must be configurable by admin (enable/disable per country).
+- All new checklist items must support: not started, in progress, done, blocked.
+- All new document types must support: missing, uploaded, under review, validated, rejected.
+- Add server-side validation for all new fields.
+- Add appropriate audit log entries for all new status changes.

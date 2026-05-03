@@ -12,3 +12,4 @@ export * from "./audit";
 export * from "./risk";
 export * from "./tenants";
 export * from "./ai";
+export * from "./profile";

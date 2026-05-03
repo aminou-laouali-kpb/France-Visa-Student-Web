@@ -772,6 +772,454 @@ export interface UpdateWorkflowStepBody {
 }
 
 /**
+ * @nullable
+ */
+export type StudentCivilStatusMaritalStatus =
+  | (typeof StudentCivilStatusMaritalStatus)[keyof typeof StudentCivilStatusMaritalStatus]
+  | null;
+
+export const StudentCivilStatusMaritalStatus = {
+  single: "single",
+  married: "married",
+  divorced: "divorced",
+  widowed: "widowed",
+  other: "other",
+} as const;
+
+export interface StudentCivilStatus {
+  id: number;
+  studentId: number;
+  /** @nullable */
+  maritalStatus?: StudentCivilStatusMaritalStatus;
+  /** @nullable */
+  birthCity?: string | null;
+  /** @nullable */
+  birthCountryCode?: string | null;
+  /** @nullable */
+  addressLine?: string | null;
+  /** @nullable */
+  postalCode?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  countryCode?: string | null;
+  /** @nullable */
+  fatherFirstName?: string | null;
+  /** @nullable */
+  fatherLastName?: string | null;
+  /** @nullable */
+  fatherProfession?: string | null;
+  /** @nullable */
+  motherFirstName?: string | null;
+  /** @nullable */
+  motherLastName?: string | null;
+  /** @nullable */
+  motherProfession?: string | null;
+  /** @nullable */
+  numberOfSiblings?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UpsertStudentCivilStatusBodyMaritalStatus =
+  (typeof UpsertStudentCivilStatusBodyMaritalStatus)[keyof typeof UpsertStudentCivilStatusBodyMaritalStatus];
+
+export const UpsertStudentCivilStatusBodyMaritalStatus = {
+  single: "single",
+  married: "married",
+  divorced: "divorced",
+  widowed: "widowed",
+  other: "other",
+} as const;
+
+export interface UpsertStudentCivilStatusBody {
+  maritalStatus?: UpsertStudentCivilStatusBodyMaritalStatus;
+  birthCity?: string;
+  birthCountryCode?: string;
+  addressLine?: string;
+  postalCode?: string;
+  city?: string;
+  countryCode?: string;
+  fatherFirstName?: string;
+  fatherLastName?: string;
+  fatherProfession?: string;
+  motherFirstName?: string;
+  motherLastName?: string;
+  motherProfession?: string;
+  numberOfSiblings?: number;
+}
+
+export interface PriorSchoolingEntry {
+  id: number;
+  studentId: number;
+  /** @nullable */
+  startYear?: number | null;
+  /** @nullable */
+  endYear?: number | null;
+  institutionName: string;
+  /** @nullable */
+  diplomaOrLevel?: string | null;
+  /** @nullable */
+  countryCode?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  mainSubjects?: string | null;
+  /** @nullable */
+  finalGrade?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePriorSchoolingEntryBody {
+  institutionName: string;
+  startYear?: number;
+  endYear?: number;
+  diplomaOrLevel?: string;
+  countryCode?: string;
+  city?: string;
+  mainSubjects?: string;
+  finalGrade?: string;
+  notes?: string;
+}
+
+export interface UpdatePriorSchoolingEntryBody {
+  institutionName?: string;
+  startYear?: number;
+  endYear?: number;
+  diplomaOrLevel?: string;
+  countryCode?: string;
+  city?: string;
+  mainSubjects?: string;
+  finalGrade?: string;
+  notes?: string;
+}
+
+export type LanguageTestTestType =
+  (typeof LanguageTestTestType)[keyof typeof LanguageTestTestType];
+
+export const LanguageTestTestType = {
+  TCF: "TCF",
+  TCF_DAP: "TCF_DAP",
+  TCF_TP: "TCF_TP",
+  TCF_QUEBEC: "TCF_QUEBEC",
+  TEF: "TEF",
+  TEFAQ: "TEFAQ",
+  DELF: "DELF",
+  DALF: "DALF",
+  DILF: "DILF",
+  IELTS: "IELTS",
+  TOEFL: "TOEFL",
+  OTHER: "OTHER",
+} as const;
+
+/**
+ * @nullable
+ */
+export type LanguageTestLevel =
+  | (typeof LanguageTestLevel)[keyof typeof LanguageTestLevel]
+  | null;
+
+export const LanguageTestLevel = {
+  A1: "A1",
+  A2: "A2",
+  B1: "B1",
+  B2: "B2",
+  C1: "C1",
+  C2: "C2",
+} as const;
+
+export interface LanguageTest {
+  id: number;
+  studentId: number;
+  testType: LanguageTestTestType;
+  language: string;
+  /** @nullable */
+  overallScore?: string | null;
+  /** @nullable */
+  level?: LanguageTestLevel;
+  /** @nullable */
+  comprehensionOral?: string | null;
+  /** @nullable */
+  comprehensionEcrite?: string | null;
+  /** @nullable */
+  expressionOrale?: string | null;
+  /** @nullable */
+  expressionEcrite?: string | null;
+  /** @nullable */
+  testDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /** @nullable */
+  certificateDocumentId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateLanguageTestBodyTestType =
+  (typeof CreateLanguageTestBodyTestType)[keyof typeof CreateLanguageTestBodyTestType];
+
+export const CreateLanguageTestBodyTestType = {
+  TCF: "TCF",
+  TCF_DAP: "TCF_DAP",
+  TCF_TP: "TCF_TP",
+  TCF_QUEBEC: "TCF_QUEBEC",
+  TEF: "TEF",
+  TEFAQ: "TEFAQ",
+  DELF: "DELF",
+  DALF: "DALF",
+  DILF: "DILF",
+  IELTS: "IELTS",
+  TOEFL: "TOEFL",
+  OTHER: "OTHER",
+} as const;
+
+export type CreateLanguageTestBodyLevel =
+  (typeof CreateLanguageTestBodyLevel)[keyof typeof CreateLanguageTestBodyLevel];
+
+export const CreateLanguageTestBodyLevel = {
+  A1: "A1",
+  A2: "A2",
+  B1: "B1",
+  B2: "B2",
+  C1: "C1",
+  C2: "C2",
+} as const;
+
+export interface CreateLanguageTestBody {
+  testType: CreateLanguageTestBodyTestType;
+  language?: string;
+  overallScore?: string;
+  level?: CreateLanguageTestBodyLevel;
+  comprehensionOral?: string;
+  comprehensionEcrite?: string;
+  expressionOrale?: string;
+  expressionEcrite?: string;
+  testDate?: string;
+  expiryDate?: string;
+  certificateDocumentId?: number;
+}
+
+export type UpdateLanguageTestBodyTestType =
+  (typeof UpdateLanguageTestBodyTestType)[keyof typeof UpdateLanguageTestBodyTestType];
+
+export const UpdateLanguageTestBodyTestType = {
+  TCF: "TCF",
+  TCF_DAP: "TCF_DAP",
+  TCF_TP: "TCF_TP",
+  TCF_QUEBEC: "TCF_QUEBEC",
+  TEF: "TEF",
+  TEFAQ: "TEFAQ",
+  DELF: "DELF",
+  DALF: "DALF",
+  DILF: "DILF",
+  IELTS: "IELTS",
+  TOEFL: "TOEFL",
+  OTHER: "OTHER",
+} as const;
+
+export type UpdateLanguageTestBodyLevel =
+  (typeof UpdateLanguageTestBodyLevel)[keyof typeof UpdateLanguageTestBodyLevel];
+
+export const UpdateLanguageTestBodyLevel = {
+  A1: "A1",
+  A2: "A2",
+  B1: "B1",
+  B2: "B2",
+  C1: "C1",
+  C2: "C2",
+} as const;
+
+export interface UpdateLanguageTestBody {
+  testType?: UpdateLanguageTestBodyTestType;
+  language?: string;
+  overallScore?: string;
+  level?: UpdateLanguageTestBodyLevel;
+  comprehensionOral?: string;
+  comprehensionEcrite?: string;
+  expressionOrale?: string;
+  expressionEcrite?: string;
+  testDate?: string;
+  expiryDate?: string;
+  certificateDocumentId?: number;
+}
+
+export type DiplomaEquivalenceStatus =
+  (typeof DiplomaEquivalenceStatus)[keyof typeof DiplomaEquivalenceStatus];
+
+export const DiplomaEquivalenceStatus = {
+  not_requested: "not_requested",
+  requested: "requested",
+  received: "received",
+  not_required: "not_required",
+} as const;
+
+export interface DiplomaEquivalence {
+  id: number;
+  studentId: number;
+  originalDiploma: string;
+  /** @nullable */
+  originalCountryCode?: string | null;
+  /** @nullable */
+  equivalentLevel?: string | null;
+  /** @nullable */
+  enicNaricRef?: string | null;
+  status: DiplomaEquivalenceStatus;
+  /** @nullable */
+  requestedAt?: string | null;
+  /** @nullable */
+  decisionAt?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateDiplomaEquivalenceBodyStatus =
+  (typeof CreateDiplomaEquivalenceBodyStatus)[keyof typeof CreateDiplomaEquivalenceBodyStatus];
+
+export const CreateDiplomaEquivalenceBodyStatus = {
+  not_requested: "not_requested",
+  requested: "requested",
+  received: "received",
+  not_required: "not_required",
+} as const;
+
+export interface CreateDiplomaEquivalenceBody {
+  originalDiploma: string;
+  originalCountryCode?: string;
+  equivalentLevel?: string;
+  enicNaricRef?: string;
+  status?: CreateDiplomaEquivalenceBodyStatus;
+  requestedAt?: string;
+  decisionAt?: string;
+  notes?: string;
+}
+
+export type UpdateDiplomaEquivalenceBodyStatus =
+  (typeof UpdateDiplomaEquivalenceBodyStatus)[keyof typeof UpdateDiplomaEquivalenceBodyStatus];
+
+export const UpdateDiplomaEquivalenceBodyStatus = {
+  not_requested: "not_requested",
+  requested: "requested",
+  received: "received",
+  not_required: "not_required",
+} as const;
+
+export interface UpdateDiplomaEquivalenceBody {
+  originalDiploma?: string;
+  originalCountryCode?: string;
+  equivalentLevel?: string;
+  enicNaricRef?: string;
+  status?: UpdateDiplomaEquivalenceBodyStatus;
+  requestedAt?: string;
+  decisionAt?: string;
+  notes?: string;
+}
+
+export type EefWishStatus = (typeof EefWishStatus)[keyof typeof EefWishStatus];
+
+export const EefWishStatus = {
+  draft: "draft",
+  submitted: "submitted",
+  accepted: "accepted",
+  refused: "refused",
+  waitlist: "waitlist",
+  withdrawn: "withdrawn",
+} as const;
+
+export interface EefWish {
+  id: number;
+  studentId: number;
+  wishOrder: number;
+  /** @nullable */
+  schoolId?: number | null;
+  /** @nullable */
+  programId?: number | null;
+  /** @nullable */
+  schoolNameFreeText?: string | null;
+  /** @nullable */
+  programNameFreeText?: string | null;
+  /** @nullable */
+  motivationText?: string | null;
+  status: EefWishStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateEefWishBodyStatus =
+  (typeof CreateEefWishBodyStatus)[keyof typeof CreateEefWishBodyStatus];
+
+export const CreateEefWishBodyStatus = {
+  draft: "draft",
+  submitted: "submitted",
+  accepted: "accepted",
+  refused: "refused",
+  waitlist: "waitlist",
+  withdrawn: "withdrawn",
+} as const;
+
+export interface CreateEefWishBody {
+  /**
+   * @minimum 1
+   * @maximum 7
+   */
+  wishOrder: number;
+  schoolId?: number;
+  programId?: number;
+  schoolNameFreeText?: string;
+  programNameFreeText?: string;
+  motivationText?: string;
+  status?: CreateEefWishBodyStatus;
+}
+
+export type UpdateEefWishBodyStatus =
+  (typeof UpdateEefWishBodyStatus)[keyof typeof UpdateEefWishBodyStatus];
+
+export const UpdateEefWishBodyStatus = {
+  draft: "draft",
+  submitted: "submitted",
+  accepted: "accepted",
+  refused: "refused",
+  waitlist: "waitlist",
+  withdrawn: "withdrawn",
+} as const;
+
+export interface UpdateEefWishBody {
+  /**
+   * @minimum 1
+   * @maximum 7
+   */
+  wishOrder?: number;
+  schoolId?: number;
+  programId?: number;
+  schoolNameFreeText?: string;
+  programNameFreeText?: string;
+  motivationText?: string;
+  status?: UpdateEefWishBodyStatus;
+}
+
+export interface ExpiringLanguageTest {
+  id: number;
+  testType: string;
+  /** @nullable */
+  expiryDate?: string | null;
+  daysUntilExpiry: number;
+}
+
+export interface StudentProfileDepth {
+  civilStatus?: StudentCivilStatus | null;
+  priorSchooling: PriorSchoolingEntry[];
+  languageTests: LanguageTest[];
+  diplomaEquivalences: DiplomaEquivalence[];
+  eefWishes: EefWish[];
+  profileCompletenessScore: number;
+  expiringLanguageTests: ExpiringLanguageTest[];
+}
+
+/**
  * Unauthorized
  */
 export type UnauthorizedResponse = ErrorResponse;

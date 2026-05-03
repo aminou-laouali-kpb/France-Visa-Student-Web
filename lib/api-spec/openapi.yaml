@@ -1263,6 +1263,316 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowStep"
 
+  # ─── PROFILE DEPTH ───────────────────────────────────────────────────────────
+  /students/{studentId}/profile-depth:
+    get:
+      operationId: getStudentProfileDepth
+      tags: [profile-depth]
+      summary: Aggregated profile-depth view (civil status, schooling, language tests, equivalences, EEF wishes, completeness, expiring tests)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Profile depth payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfileDepth"
+
+  /students/{studentId}/civil-status:
+    get:
+      operationId: getStudentCivilStatus
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Civil status (or null)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/StudentCivilStatus"
+                  - type: "null"
+    put:
+      operationId: upsertStudentCivilStatus
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertStudentCivilStatusBody"
+      responses:
+        "200":
+          description: Saved civil status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentCivilStatus"
+
+  /students/{studentId}/prior-schooling:
+    get:
+      operationId: listPriorSchooling
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Prior schooling entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PriorSchoolingEntry"
+    post:
+      operationId: createPriorSchoolingEntry
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePriorSchoolingEntryBody"
+      responses:
+        "201":
+          description: Created entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriorSchoolingEntry"
+
+  /students/{studentId}/prior-schooling/{entryId}:
+    patch:
+      operationId: updatePriorSchoolingEntry
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePriorSchoolingEntryBody"
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriorSchoolingEntry"
+    delete:
+      operationId: deletePriorSchoolingEntry
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: entryId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{studentId}/language-tests:
+    get:
+      operationId: listLanguageTests
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Language tests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LanguageTest"
+    post:
+      operationId: createLanguageTest
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLanguageTestBody"
+      responses:
+        "201":
+          description: Created test
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageTest"
+
+  /students/{studentId}/language-tests/{testId}:
+    patch:
+      operationId: updateLanguageTest
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: testId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLanguageTestBody"
+      responses:
+        "200":
+          description: Updated test
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LanguageTest"
+    delete:
+      operationId: deleteLanguageTest
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: testId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{studentId}/diploma-equivalences:
+    get:
+      operationId: listDiplomaEquivalences
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Diploma equivalences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiplomaEquivalence"
+    post:
+      operationId: createDiplomaEquivalence
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiplomaEquivalenceBody"
+      responses:
+        "201":
+          description: Created equivalence
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiplomaEquivalence"
+
+  /students/{studentId}/diploma-equivalences/{equivId}:
+    patch:
+      operationId: updateDiplomaEquivalence
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: equivId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDiplomaEquivalenceBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiplomaEquivalence"
+    delete:
+      operationId: deleteDiplomaEquivalence
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: equivId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{studentId}/eef-wishes:
+    get:
+      operationId: listEefWishes
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: EEF wishes (max 7)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EefWish"
+    post:
+      operationId: createEefWish
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEefWishBody"
+      responses:
+        "201":
+          description: Created wish
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EefWish"
+
+  /students/{studentId}/eef-wishes/{wishId}:
+    patch:
+      operationId: updateEefWish
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEefWishBody"
+      responses:
+        "200":
+          description: Updated wish
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EefWish"
+    delete:
+      operationId: deleteEefWish
+      tags: [profile-depth]
+      parameters:
+        - { name: studentId, in: path, required: true, schema: { type: integer } }
+        - { name: wishId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204":
+          description: Deleted
+
 components:
   responses:
     Unauthorized:
@@ -2616,3 +2926,487 @@ components:
           type: array
           items:
             type: string
+
+    # ── Profile Depth ─────────────────────────────────────────────────────────
+    StudentCivilStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        maritalStatus:
+          type: ["string", "null"]
+          enum: [single, married, divorced, widowed, other, null]
+        birthCity:
+          type: ["string", "null"]
+        birthCountryCode:
+          type: ["string", "null"]
+        addressLine:
+          type: ["string", "null"]
+        postalCode:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        countryCode:
+          type: ["string", "null"]
+        fatherFirstName:
+          type: ["string", "null"]
+        fatherLastName:
+          type: ["string", "null"]
+        fatherProfession:
+          type: ["string", "null"]
+        motherFirstName:
+          type: ["string", "null"]
+        motherLastName:
+          type: ["string", "null"]
+        motherProfession:
+          type: ["string", "null"]
+        numberOfSiblings:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - createdAt
+        - updatedAt
+
+    UpsertStudentCivilStatusBody:
+      type: object
+      properties:
+        maritalStatus:
+          type: string
+          enum: [single, married, divorced, widowed, other]
+        birthCity:
+          type: string
+        birthCountryCode:
+          type: string
+        addressLine:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+        countryCode:
+          type: string
+        fatherFirstName:
+          type: string
+        fatherLastName:
+          type: string
+        fatherProfession:
+          type: string
+        motherFirstName:
+          type: string
+        motherLastName:
+          type: string
+        motherProfession:
+          type: string
+        numberOfSiblings:
+          type: integer
+
+    PriorSchoolingEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        startYear:
+          type: ["integer", "null"]
+        endYear:
+          type: ["integer", "null"]
+        institutionName:
+          type: string
+        diplomaOrLevel:
+          type: ["string", "null"]
+        countryCode:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        mainSubjects:
+          type: ["string", "null"]
+        finalGrade:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - institutionName
+        - createdAt
+        - updatedAt
+
+    CreatePriorSchoolingEntryBody:
+      type: object
+      properties:
+        institutionName:
+          type: string
+        startYear:
+          type: integer
+        endYear:
+          type: integer
+        diplomaOrLevel:
+          type: string
+        countryCode:
+          type: string
+        city:
+          type: string
+        mainSubjects:
+          type: string
+        finalGrade:
+          type: string
+        notes:
+          type: string
+      required:
+        - institutionName
+
+    UpdatePriorSchoolingEntryBody:
+      type: object
+      properties:
+        institutionName:
+          type: string
+        startYear:
+          type: integer
+        endYear:
+          type: integer
+        diplomaOrLevel:
+          type: string
+        countryCode:
+          type: string
+        city:
+          type: string
+        mainSubjects:
+          type: string
+        finalGrade:
+          type: string
+        notes:
+          type: string
+
+    LanguageTest:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        testType:
+          type: string
+          enum: [TCF, TCF_DAP, TCF_TP, TCF_QUEBEC, TEF, TEFAQ, DELF, DALF, DILF, IELTS, TOEFL, OTHER]
+        language:
+          type: string
+        overallScore:
+          type: ["string", "null"]
+        level:
+          type: ["string", "null"]
+          enum: [A1, A2, B1, B2, C1, C2, null]
+        comprehensionOral:
+          type: ["string", "null"]
+        comprehensionEcrite:
+          type: ["string", "null"]
+        expressionOrale:
+          type: ["string", "null"]
+        expressionEcrite:
+          type: ["string", "null"]
+        testDate:
+          type: ["string", "null"]
+        expiryDate:
+          type: ["string", "null"]
+        certificateDocumentId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - testType
+        - language
+        - createdAt
+        - updatedAt
+
+    CreateLanguageTestBody:
+      type: object
+      properties:
+        testType:
+          type: string
+          enum: [TCF, TCF_DAP, TCF_TP, TCF_QUEBEC, TEF, TEFAQ, DELF, DALF, DILF, IELTS, TOEFL, OTHER]
+        language:
+          type: string
+        overallScore:
+          type: string
+        level:
+          type: string
+          enum: [A1, A2, B1, B2, C1, C2]
+        comprehensionOral:
+          type: string
+        comprehensionEcrite:
+          type: string
+        expressionOrale:
+          type: string
+        expressionEcrite:
+          type: string
+        testDate:
+          type: string
+        expiryDate:
+          type: string
+        certificateDocumentId:
+          type: integer
+      required:
+        - testType
+
+    UpdateLanguageTestBody:
+      type: object
+      properties:
+        testType:
+          type: string
+          enum: [TCF, TCF_DAP, TCF_TP, TCF_QUEBEC, TEF, TEFAQ, DELF, DALF, DILF, IELTS, TOEFL, OTHER]
+        language:
+          type: string
+        overallScore:
+          type: string
+        level:
+          type: string
+          enum: [A1, A2, B1, B2, C1, C2]
+        comprehensionOral:
+          type: string
+        comprehensionEcrite:
+          type: string
+        expressionOrale:
+          type: string
+        expressionEcrite:
+          type: string
+        testDate:
+          type: string
+        expiryDate:
+          type: string
+        certificateDocumentId:
+          type: integer
+
+    DiplomaEquivalence:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        originalDiploma:
+          type: string
+        originalCountryCode:
+          type: ["string", "null"]
+        equivalentLevel:
+          type: ["string", "null"]
+        enicNaricRef:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [not_requested, requested, received, not_required]
+        requestedAt:
+          type: ["string", "null"]
+        decisionAt:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - originalDiploma
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateDiplomaEquivalenceBody:
+      type: object
+      properties:
+        originalDiploma:
+          type: string
+        originalCountryCode:
+          type: string
+        equivalentLevel:
+          type: string
+        enicNaricRef:
+          type: string
+        status:
+          type: string
+          enum: [not_requested, requested, received, not_required]
+        requestedAt:
+          type: string
+        decisionAt:
+          type: string
+        notes:
+          type: string
+      required:
+        - originalDiploma
+
+    UpdateDiplomaEquivalenceBody:
+      type: object
+      properties:
+        originalDiploma:
+          type: string
+        originalCountryCode:
+          type: string
+        equivalentLevel:
+          type: string
+        enicNaricRef:
+          type: string
+        status:
+          type: string
+          enum: [not_requested, requested, received, not_required]
+        requestedAt:
+          type: string
+        decisionAt:
+          type: string
+        notes:
+          type: string
+
+    EefWish:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        wishOrder:
+          type: integer
+        schoolId:
+          type: ["integer", "null"]
+        programId:
+          type: ["integer", "null"]
+        schoolNameFreeText:
+          type: ["string", "null"]
+        programNameFreeText:
+          type: ["string", "null"]
+        motivationText:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [draft, submitted, accepted, refused, waitlist, withdrawn]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - wishOrder
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateEefWishBody:
+      type: object
+      properties:
+        wishOrder:
+          type: integer
+          minimum: 1
+          maximum: 7
+        schoolId:
+          type: integer
+        programId:
+          type: integer
+        schoolNameFreeText:
+          type: string
+        programNameFreeText:
+          type: string
+        motivationText:
+          type: string
+        status:
+          type: string
+          enum: [draft, submitted, accepted, refused, waitlist, withdrawn]
+      required:
+        - wishOrder
+
+    UpdateEefWishBody:
+      type: object
+      properties:
+        wishOrder:
+          type: integer
+          minimum: 1
+          maximum: 7
+        schoolId:
+          type: integer
+        programId:
+          type: integer
+        schoolNameFreeText:
+          type: string
+        programNameFreeText:
+          type: string
+        motivationText:
+          type: string
+        status:
+          type: string
+          enum: [draft, submitted, accepted, refused, waitlist, withdrawn]
+
+    ExpiringLanguageTest:
+      type: object
+      properties:
+        id:
+          type: integer
+        testType:
+          type: string
+        expiryDate:
+          type: ["string", "null"]
+        daysUntilExpiry:
+          type: integer
+      required:
+        - id
+        - testType
+        - daysUntilExpiry
+
+    StudentProfileDepth:
+      type: object
+      properties:
+        civilStatus:
+          oneOf:
+            - $ref: "#/components/schemas/StudentCivilStatus"
+            - type: "null"
+        priorSchooling:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriorSchoolingEntry"
+        languageTests:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageTest"
+        diplomaEquivalences:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiplomaEquivalence"
+        eefWishes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EefWish"
+        profileCompletenessScore:
+          type: integer
+        expiringLanguageTests:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpiringLanguageTest"
+      required:
+        - priorSchooling
+        - languageTests
+        - diplomaEquivalences
+        - eefWishes
+        - profileCompletenessScore
+        - expiringLanguageTests

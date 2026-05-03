@@ -50,6 +50,7 @@ import {
   useListSchools,
 } from "@workspace/api-client-react";
 import type { ChecklistItem } from "@workspace/api-client-react";
+import { ProfileDepthTab } from "./ProfileDepthTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,6 +132,7 @@ export function StudentDetail() {
             <TabsTrigger value="risk" data-testid="tab-risk">Risque</TabsTrigger>
           )}
           <TabsTrigger value="profile" data-testid="tab-profile">Profil</TabsTrigger>
+          <TabsTrigger value="profile-depth" data-testid="tab-profile-depth">Profil approfondi</TabsTrigger>
         </TabsList>
 
         <TabsContent value="steps" className="mt-4">
@@ -157,6 +159,9 @@ export function StudentDetail() {
         )}
         <TabsContent value="profile" className="mt-4">
           <ProfileTab studentId={studentId} student={student} isStaff={!!isStaff} onUpdate={refetch} />
+        </TabsContent>
+        <TabsContent value="profile-depth" className="mt-4">
+          <ProfileDepthTab studentId={studentId} />
         </TabsContent>
       </Tabs>
     </div>

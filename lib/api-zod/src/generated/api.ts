@@ -1588,3 +1588,664 @@ export const UpdateWorkflowStepResponse = zod.object({
   isActive: zod.boolean(),
   requiredDocumentCategories: zod.array(zod.string()).optional(),
 });
+
+/**
+ * @summary Aggregated profile-depth view (civil status, schooling, language tests, equivalences, EEF wishes, completeness, expiring tests)
+ */
+export const GetStudentProfileDepthParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetStudentProfileDepthResponse = zod.object({
+  civilStatus: zod
+    .union([
+      zod.object({
+        id: zod.number(),
+        studentId: zod.number(),
+        maritalStatus: zod
+          .union([
+            zod.literal("single"),
+            zod.literal("married"),
+            zod.literal("divorced"),
+            zod.literal("widowed"),
+            zod.literal("other"),
+            zod.literal(null),
+          ])
+          .nullish(),
+        birthCity: zod.string().nullish(),
+        birthCountryCode: zod.string().nullish(),
+        addressLine: zod.string().nullish(),
+        postalCode: zod.string().nullish(),
+        city: zod.string().nullish(),
+        countryCode: zod.string().nullish(),
+        fatherFirstName: zod.string().nullish(),
+        fatherLastName: zod.string().nullish(),
+        fatherProfession: zod.string().nullish(),
+        motherFirstName: zod.string().nullish(),
+        motherLastName: zod.string().nullish(),
+        motherProfession: zod.string().nullish(),
+        numberOfSiblings: zod.number().nullish(),
+        createdAt: zod.coerce.date(),
+        updatedAt: zod.coerce.date(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  priorSchooling: zod.array(
+    zod.object({
+      id: zod.number(),
+      studentId: zod.number(),
+      startYear: zod.number().nullish(),
+      endYear: zod.number().nullish(),
+      institutionName: zod.string(),
+      diplomaOrLevel: zod.string().nullish(),
+      countryCode: zod.string().nullish(),
+      city: zod.string().nullish(),
+      mainSubjects: zod.string().nullish(),
+      finalGrade: zod.string().nullish(),
+      notes: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+    }),
+  ),
+  languageTests: zod.array(
+    zod.object({
+      id: zod.number(),
+      studentId: zod.number(),
+      testType: zod.enum([
+        "TCF",
+        "TCF_DAP",
+        "TCF_TP",
+        "TCF_QUEBEC",
+        "TEF",
+        "TEFAQ",
+        "DELF",
+        "DALF",
+        "DILF",
+        "IELTS",
+        "TOEFL",
+        "OTHER",
+      ]),
+      language: zod.string(),
+      overallScore: zod.string().nullish(),
+      level: zod
+        .union([
+          zod.literal("A1"),
+          zod.literal("A2"),
+          zod.literal("B1"),
+          zod.literal("B2"),
+          zod.literal("C1"),
+          zod.literal("C2"),
+          zod.literal(null),
+        ])
+        .nullish(),
+      comprehensionOral: zod.string().nullish(),
+      comprehensionEcrite: zod.string().nullish(),
+      expressionOrale: zod.string().nullish(),
+      expressionEcrite: zod.string().nullish(),
+      testDate: zod.string().nullish(),
+      expiryDate: zod.string().nullish(),
+      certificateDocumentId: zod.number().nullish(),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+    }),
+  ),
+  diplomaEquivalences: zod.array(
+    zod.object({
+      id: zod.number(),
+      studentId: zod.number(),
+      originalDiploma: zod.string(),
+      originalCountryCode: zod.string().nullish(),
+      equivalentLevel: zod.string().nullish(),
+      enicNaricRef: zod.string().nullish(),
+      status: zod.enum([
+        "not_requested",
+        "requested",
+        "received",
+        "not_required",
+      ]),
+      requestedAt: zod.string().nullish(),
+      decisionAt: zod.string().nullish(),
+      notes: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+    }),
+  ),
+  eefWishes: zod.array(
+    zod.object({
+      id: zod.number(),
+      studentId: zod.number(),
+      wishOrder: zod.number(),
+      schoolId: zod.number().nullish(),
+      programId: zod.number().nullish(),
+      schoolNameFreeText: zod.string().nullish(),
+      programNameFreeText: zod.string().nullish(),
+      motivationText: zod.string().nullish(),
+      status: zod.enum([
+        "draft",
+        "submitted",
+        "accepted",
+        "refused",
+        "waitlist",
+        "withdrawn",
+      ]),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+    }),
+  ),
+  profileCompletenessScore: zod.number(),
+  expiringLanguageTests: zod.array(
+    zod.object({
+      id: zod.number(),
+      testType: zod.string(),
+      expiryDate: zod.string().nullish(),
+      daysUntilExpiry: zod.number(),
+    }),
+  ),
+});
+
+export const GetStudentCivilStatusParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetStudentCivilStatusResponse = zod.union([
+  zod.object({
+    id: zod.number(),
+    studentId: zod.number(),
+    maritalStatus: zod
+      .union([
+        zod.literal("single"),
+        zod.literal("married"),
+        zod.literal("divorced"),
+        zod.literal("widowed"),
+        zod.literal("other"),
+        zod.literal(null),
+      ])
+      .nullish(),
+    birthCity: zod.string().nullish(),
+    birthCountryCode: zod.string().nullish(),
+    addressLine: zod.string().nullish(),
+    postalCode: zod.string().nullish(),
+    city: zod.string().nullish(),
+    countryCode: zod.string().nullish(),
+    fatherFirstName: zod.string().nullish(),
+    fatherLastName: zod.string().nullish(),
+    fatherProfession: zod.string().nullish(),
+    motherFirstName: zod.string().nullish(),
+    motherLastName: zod.string().nullish(),
+    motherProfession: zod.string().nullish(),
+    numberOfSiblings: zod.number().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  }),
+  zod.null(),
+]);
+
+export const UpsertStudentCivilStatusParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const UpsertStudentCivilStatusBody = zod.object({
+  maritalStatus: zod
+    .enum(["single", "married", "divorced", "widowed", "other"])
+    .optional(),
+  birthCity: zod.string().optional(),
+  birthCountryCode: zod.string().optional(),
+  addressLine: zod.string().optional(),
+  postalCode: zod.string().optional(),
+  city: zod.string().optional(),
+  countryCode: zod.string().optional(),
+  fatherFirstName: zod.string().optional(),
+  fatherLastName: zod.string().optional(),
+  fatherProfession: zod.string().optional(),
+  motherFirstName: zod.string().optional(),
+  motherLastName: zod.string().optional(),
+  motherProfession: zod.string().optional(),
+  numberOfSiblings: zod.number().optional(),
+});
+
+export const UpsertStudentCivilStatusResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  maritalStatus: zod
+    .union([
+      zod.literal("single"),
+      zod.literal("married"),
+      zod.literal("divorced"),
+      zod.literal("widowed"),
+      zod.literal("other"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  birthCity: zod.string().nullish(),
+  birthCountryCode: zod.string().nullish(),
+  addressLine: zod.string().nullish(),
+  postalCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  countryCode: zod.string().nullish(),
+  fatherFirstName: zod.string().nullish(),
+  fatherLastName: zod.string().nullish(),
+  fatherProfession: zod.string().nullish(),
+  motherFirstName: zod.string().nullish(),
+  motherLastName: zod.string().nullish(),
+  motherProfession: zod.string().nullish(),
+  numberOfSiblings: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const ListPriorSchoolingParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListPriorSchoolingResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  startYear: zod.number().nullish(),
+  endYear: zod.number().nullish(),
+  institutionName: zod.string(),
+  diplomaOrLevel: zod.string().nullish(),
+  countryCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  mainSubjects: zod.string().nullish(),
+  finalGrade: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListPriorSchoolingResponse = zod.array(
+  ListPriorSchoolingResponseItem,
+);
+
+export const CreatePriorSchoolingEntryParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CreatePriorSchoolingEntryBody = zod.object({
+  institutionName: zod.string(),
+  startYear: zod.number().optional(),
+  endYear: zod.number().optional(),
+  diplomaOrLevel: zod.string().optional(),
+  countryCode: zod.string().optional(),
+  city: zod.string().optional(),
+  mainSubjects: zod.string().optional(),
+  finalGrade: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+export const UpdatePriorSchoolingEntryParams = zod.object({
+  studentId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+export const UpdatePriorSchoolingEntryBody = zod.object({
+  institutionName: zod.string().optional(),
+  startYear: zod.number().optional(),
+  endYear: zod.number().optional(),
+  diplomaOrLevel: zod.string().optional(),
+  countryCode: zod.string().optional(),
+  city: zod.string().optional(),
+  mainSubjects: zod.string().optional(),
+  finalGrade: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+export const UpdatePriorSchoolingEntryResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  startYear: zod.number().nullish(),
+  endYear: zod.number().nullish(),
+  institutionName: zod.string(),
+  diplomaOrLevel: zod.string().nullish(),
+  countryCode: zod.string().nullish(),
+  city: zod.string().nullish(),
+  mainSubjects: zod.string().nullish(),
+  finalGrade: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeletePriorSchoolingEntryParams = zod.object({
+  studentId: zod.coerce.number(),
+  entryId: zod.coerce.number(),
+});
+
+export const ListLanguageTestsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListLanguageTestsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  testType: zod.enum([
+    "TCF",
+    "TCF_DAP",
+    "TCF_TP",
+    "TCF_QUEBEC",
+    "TEF",
+    "TEFAQ",
+    "DELF",
+    "DALF",
+    "DILF",
+    "IELTS",
+    "TOEFL",
+    "OTHER",
+  ]),
+  language: zod.string(),
+  overallScore: zod.string().nullish(),
+  level: zod
+    .union([
+      zod.literal("A1"),
+      zod.literal("A2"),
+      zod.literal("B1"),
+      zod.literal("B2"),
+      zod.literal("C1"),
+      zod.literal("C2"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  comprehensionOral: zod.string().nullish(),
+  comprehensionEcrite: zod.string().nullish(),
+  expressionOrale: zod.string().nullish(),
+  expressionEcrite: zod.string().nullish(),
+  testDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  certificateDocumentId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListLanguageTestsResponse = zod.array(
+  ListLanguageTestsResponseItem,
+);
+
+export const CreateLanguageTestParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CreateLanguageTestBody = zod.object({
+  testType: zod.enum([
+    "TCF",
+    "TCF_DAP",
+    "TCF_TP",
+    "TCF_QUEBEC",
+    "TEF",
+    "TEFAQ",
+    "DELF",
+    "DALF",
+    "DILF",
+    "IELTS",
+    "TOEFL",
+    "OTHER",
+  ]),
+  language: zod.string().optional(),
+  overallScore: zod.string().optional(),
+  level: zod.enum(["A1", "A2", "B1", "B2", "C1", "C2"]).optional(),
+  comprehensionOral: zod.string().optional(),
+  comprehensionEcrite: zod.string().optional(),
+  expressionOrale: zod.string().optional(),
+  expressionEcrite: zod.string().optional(),
+  testDate: zod.string().optional(),
+  expiryDate: zod.string().optional(),
+  certificateDocumentId: zod.number().optional(),
+});
+
+export const UpdateLanguageTestParams = zod.object({
+  studentId: zod.coerce.number(),
+  testId: zod.coerce.number(),
+});
+
+export const UpdateLanguageTestBody = zod.object({
+  testType: zod
+    .enum([
+      "TCF",
+      "TCF_DAP",
+      "TCF_TP",
+      "TCF_QUEBEC",
+      "TEF",
+      "TEFAQ",
+      "DELF",
+      "DALF",
+      "DILF",
+      "IELTS",
+      "TOEFL",
+      "OTHER",
+    ])
+    .optional(),
+  language: zod.string().optional(),
+  overallScore: zod.string().optional(),
+  level: zod.enum(["A1", "A2", "B1", "B2", "C1", "C2"]).optional(),
+  comprehensionOral: zod.string().optional(),
+  comprehensionEcrite: zod.string().optional(),
+  expressionOrale: zod.string().optional(),
+  expressionEcrite: zod.string().optional(),
+  testDate: zod.string().optional(),
+  expiryDate: zod.string().optional(),
+  certificateDocumentId: zod.number().optional(),
+});
+
+export const UpdateLanguageTestResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  testType: zod.enum([
+    "TCF",
+    "TCF_DAP",
+    "TCF_TP",
+    "TCF_QUEBEC",
+    "TEF",
+    "TEFAQ",
+    "DELF",
+    "DALF",
+    "DILF",
+    "IELTS",
+    "TOEFL",
+    "OTHER",
+  ]),
+  language: zod.string(),
+  overallScore: zod.string().nullish(),
+  level: zod
+    .union([
+      zod.literal("A1"),
+      zod.literal("A2"),
+      zod.literal("B1"),
+      zod.literal("B2"),
+      zod.literal("C1"),
+      zod.literal("C2"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  comprehensionOral: zod.string().nullish(),
+  comprehensionEcrite: zod.string().nullish(),
+  expressionOrale: zod.string().nullish(),
+  expressionEcrite: zod.string().nullish(),
+  testDate: zod.string().nullish(),
+  expiryDate: zod.string().nullish(),
+  certificateDocumentId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteLanguageTestParams = zod.object({
+  studentId: zod.coerce.number(),
+  testId: zod.coerce.number(),
+});
+
+export const ListDiplomaEquivalencesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListDiplomaEquivalencesResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  originalDiploma: zod.string(),
+  originalCountryCode: zod.string().nullish(),
+  equivalentLevel: zod.string().nullish(),
+  enicNaricRef: zod.string().nullish(),
+  status: zod.enum(["not_requested", "requested", "received", "not_required"]),
+  requestedAt: zod.string().nullish(),
+  decisionAt: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListDiplomaEquivalencesResponse = zod.array(
+  ListDiplomaEquivalencesResponseItem,
+);
+
+export const CreateDiplomaEquivalenceParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const CreateDiplomaEquivalenceBody = zod.object({
+  originalDiploma: zod.string(),
+  originalCountryCode: zod.string().optional(),
+  equivalentLevel: zod.string().optional(),
+  enicNaricRef: zod.string().optional(),
+  status: zod
+    .enum(["not_requested", "requested", "received", "not_required"])
+    .optional(),
+  requestedAt: zod.string().optional(),
+  decisionAt: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+export const UpdateDiplomaEquivalenceParams = zod.object({
+  studentId: zod.coerce.number(),
+  equivId: zod.coerce.number(),
+});
+
+export const UpdateDiplomaEquivalenceBody = zod.object({
+  originalDiploma: zod.string().optional(),
+  originalCountryCode: zod.string().optional(),
+  equivalentLevel: zod.string().optional(),
+  enicNaricRef: zod.string().optional(),
+  status: zod
+    .enum(["not_requested", "requested", "received", "not_required"])
+    .optional(),
+  requestedAt: zod.string().optional(),
+  decisionAt: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+export const UpdateDiplomaEquivalenceResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  originalDiploma: zod.string(),
+  originalCountryCode: zod.string().nullish(),
+  equivalentLevel: zod.string().nullish(),
+  enicNaricRef: zod.string().nullish(),
+  status: zod.enum(["not_requested", "requested", "received", "not_required"]),
+  requestedAt: zod.string().nullish(),
+  decisionAt: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteDiplomaEquivalenceParams = zod.object({
+  studentId: zod.coerce.number(),
+  equivId: zod.coerce.number(),
+});
+
+export const ListEefWishesParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListEefWishesResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  wishOrder: zod.number(),
+  schoolId: zod.number().nullish(),
+  programId: zod.number().nullish(),
+  schoolNameFreeText: zod.string().nullish(),
+  programNameFreeText: zod.string().nullish(),
+  motivationText: zod.string().nullish(),
+  status: zod.enum([
+    "draft",
+    "submitted",
+    "accepted",
+    "refused",
+    "waitlist",
+    "withdrawn",
+  ]),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListEefWishesResponse = zod.array(ListEefWishesResponseItem);
+
+export const CreateEefWishParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const createEefWishBodyWishOrderMax = 7;
+
+export const CreateEefWishBody = zod.object({
+  wishOrder: zod.number().min(1).max(createEefWishBodyWishOrderMax),
+  schoolId: zod.number().optional(),
+  programId: zod.number().optional(),
+  schoolNameFreeText: zod.string().optional(),
+  programNameFreeText: zod.string().optional(),
+  motivationText: zod.string().optional(),
+  status: zod
+    .enum([
+      "draft",
+      "submitted",
+      "accepted",
+      "refused",
+      "waitlist",
+      "withdrawn",
+    ])
+    .optional(),
+});
+
+export const UpdateEefWishParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});
+
+export const updateEefWishBodyWishOrderMax = 7;
+
+export const UpdateEefWishBody = zod.object({
+  wishOrder: zod.number().min(1).max(updateEefWishBodyWishOrderMax).optional(),
+  schoolId: zod.number().optional(),
+  programId: zod.number().optional(),
+  schoolNameFreeText: zod.string().optional(),
+  programNameFreeText: zod.string().optional(),
+  motivationText: zod.string().optional(),
+  status: zod
+    .enum([
+      "draft",
+      "submitted",
+      "accepted",
+      "refused",
+      "waitlist",
+      "withdrawn",
+    ])
+    .optional(),
+});
+
+export const UpdateEefWishResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  wishOrder: zod.number(),
+  schoolId: zod.number().nullish(),
+  programId: zod.number().nullish(),
+  schoolNameFreeText: zod.string().nullish(),
+  programNameFreeText: zod.string().nullish(),
+  motivationText: zod.string().nullish(),
+  status: zod.enum([
+    "draft",
+    "submitted",
+    "accepted",
+    "refused",
+    "waitlist",
+    "withdrawn",
+  ]),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteEefWishParams = zod.object({
+  studentId: zod.coerce.number(),
+  wishId: zod.coerce.number(),
+});

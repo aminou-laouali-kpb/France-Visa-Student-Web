@@ -29,18 +29,25 @@ import type {
   CreateAppointmentBody,
   CreateCommentBody,
   CreateCountryBody,
+  CreateDiplomaEquivalenceBody,
   CreateDocumentBody,
+  CreateEefWishBody,
+  CreateLanguageTestBody,
+  CreatePriorSchoolingEntryBody,
   CreateProgramBody,
   CreateSchoolBody,
   CreateStudentBody,
   CreateTaskBody,
   CreateWorkflowStepBody,
   CreateWorkflowTemplateBody,
+  DiplomaEquivalence,
   Document,
   DocumentReview,
   DownloadUrlResponse,
+  EefWish,
   ForbiddenResponse,
   HealthStatus,
+  LanguageTest,
   ListAuditLogsParams,
   ListCommentsParams,
   ListDocumentsParams,
@@ -51,6 +58,7 @@ import type {
   ListUsersParams,
   Notification,
   PortfolioStats,
+  PriorSchoolingEntry,
   Program,
   RequestUploadUrlBody,
   ReviewDocumentBody,
@@ -58,8 +66,10 @@ import type {
   School,
   SchoolWithPrograms,
   Student,
+  StudentCivilStatus,
   StudentDashboard,
   StudentDossier,
+  StudentProfileDepth,
   StudentStep,
   StudentSummary,
   SuccessResponse,
@@ -67,13 +77,18 @@ import type {
   UnauthorizedResponse,
   UpdateAppointmentBody,
   UpdateChecklistItemBody,
+  UpdateDiplomaEquivalenceBody,
   UpdateDocumentBody,
+  UpdateEefWishBody,
+  UpdateLanguageTestBody,
+  UpdatePriorSchoolingEntryBody,
   UpdateStudentBody,
   UpdateStudentStepBody,
   UpdateTaskBody,
   UpdateUserBody,
   UpdateWorkflowStepBody,
   UploadUrlResponse,
+  UpsertStudentCivilStatusBody,
   UserProfile,
   WorkflowStep,
   WorkflowTemplate,
@@ -5091,4 +5106,1659 @@ export const useUpdateWorkflowStep = <
   TContext
 > => {
   return useMutation(getUpdateWorkflowStepMutationOptions(options));
+};
+
+/**
+ * @summary Aggregated profile-depth view (civil status, schooling, language tests, equivalences, EEF wishes, completeness, expiring tests)
+ */
+export const getGetStudentProfileDepthUrl = (studentId: number) => {
+  return `/api/students/${studentId}/profile-depth`;
+};
+
+export const getStudentProfileDepth = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<StudentProfileDepth> => {
+  return customFetch<StudentProfileDepth>(
+    getGetStudentProfileDepthUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetStudentProfileDepthQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/profile-depth`] as const;
+};
+
+export const getGetStudentProfileDepthQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStudentProfileDepth>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentProfileDepth>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetStudentProfileDepthQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStudentProfileDepth>>
+  > = ({ signal }) =>
+    getStudentProfileDepth(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStudentProfileDepth>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStudentProfileDepthQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStudentProfileDepth>>
+>;
+export type GetStudentProfileDepthQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Aggregated profile-depth view (civil status, schooling, language tests, equivalences, EEF wishes, completeness, expiring tests)
+ */
+
+export function useGetStudentProfileDepth<
+  TData = Awaited<ReturnType<typeof getStudentProfileDepth>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentProfileDepth>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStudentProfileDepthQueryOptions(
+    studentId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getGetStudentCivilStatusUrl = (studentId: number) => {
+  return `/api/students/${studentId}/civil-status`;
+};
+
+export const getStudentCivilStatus = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<StudentCivilStatus | null> => {
+  return customFetch<StudentCivilStatus | null>(
+    getGetStudentCivilStatusUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetStudentCivilStatusQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/civil-status`] as const;
+};
+
+export const getGetStudentCivilStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStudentCivilStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentCivilStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetStudentCivilStatusQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStudentCivilStatus>>
+  > = ({ signal }) =>
+    getStudentCivilStatus(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStudentCivilStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStudentCivilStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStudentCivilStatus>>
+>;
+export type GetStudentCivilStatusQueryError = ErrorType<unknown>;
+
+export function useGetStudentCivilStatus<
+  TData = Awaited<ReturnType<typeof getStudentCivilStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentCivilStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStudentCivilStatusQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getUpsertStudentCivilStatusUrl = (studentId: number) => {
+  return `/api/students/${studentId}/civil-status`;
+};
+
+export const upsertStudentCivilStatus = async (
+  studentId: number,
+  upsertStudentCivilStatusBody: UpsertStudentCivilStatusBody,
+  options?: RequestInit,
+): Promise<StudentCivilStatus> => {
+  return customFetch<StudentCivilStatus>(
+    getUpsertStudentCivilStatusUrl(studentId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(upsertStudentCivilStatusBody),
+    },
+  );
+};
+
+export const getUpsertStudentCivilStatusMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertStudentCivilStatus>>,
+    TError,
+    { studentId: number; data: BodyType<UpsertStudentCivilStatusBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upsertStudentCivilStatus>>,
+  TError,
+  { studentId: number; data: BodyType<UpsertStudentCivilStatusBody> },
+  TContext
+> => {
+  const mutationKey = ["upsertStudentCivilStatus"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upsertStudentCivilStatus>>,
+    { studentId: number; data: BodyType<UpsertStudentCivilStatusBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return upsertStudentCivilStatus(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpsertStudentCivilStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upsertStudentCivilStatus>>
+>;
+export type UpsertStudentCivilStatusMutationBody =
+  BodyType<UpsertStudentCivilStatusBody>;
+export type UpsertStudentCivilStatusMutationError = ErrorType<unknown>;
+
+export const useUpsertStudentCivilStatus = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertStudentCivilStatus>>,
+    TError,
+    { studentId: number; data: BodyType<UpsertStudentCivilStatusBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof upsertStudentCivilStatus>>,
+  TError,
+  { studentId: number; data: BodyType<UpsertStudentCivilStatusBody> },
+  TContext
+> => {
+  return useMutation(getUpsertStudentCivilStatusMutationOptions(options));
+};
+
+export const getListPriorSchoolingUrl = (studentId: number) => {
+  return `/api/students/${studentId}/prior-schooling`;
+};
+
+export const listPriorSchooling = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<PriorSchoolingEntry[]> => {
+  return customFetch<PriorSchoolingEntry[]>(
+    getListPriorSchoolingUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListPriorSchoolingQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/prior-schooling`] as const;
+};
+
+export const getListPriorSchoolingQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPriorSchooling>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPriorSchooling>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListPriorSchoolingQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPriorSchooling>>
+  > = ({ signal }) =>
+    listPriorSchooling(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPriorSchooling>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPriorSchoolingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPriorSchooling>>
+>;
+export type ListPriorSchoolingQueryError = ErrorType<unknown>;
+
+export function useListPriorSchooling<
+  TData = Awaited<ReturnType<typeof listPriorSchooling>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPriorSchooling>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPriorSchoolingQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreatePriorSchoolingEntryUrl = (studentId: number) => {
+  return `/api/students/${studentId}/prior-schooling`;
+};
+
+export const createPriorSchoolingEntry = async (
+  studentId: number,
+  createPriorSchoolingEntryBody: CreatePriorSchoolingEntryBody,
+  options?: RequestInit,
+): Promise<PriorSchoolingEntry> => {
+  return customFetch<PriorSchoolingEntry>(
+    getCreatePriorSchoolingEntryUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createPriorSchoolingEntryBody),
+    },
+  );
+};
+
+export const getCreatePriorSchoolingEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPriorSchoolingEntry>>,
+    TError,
+    { studentId: number; data: BodyType<CreatePriorSchoolingEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPriorSchoolingEntry>>,
+  TError,
+  { studentId: number; data: BodyType<CreatePriorSchoolingEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["createPriorSchoolingEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPriorSchoolingEntry>>,
+    { studentId: number; data: BodyType<CreatePriorSchoolingEntryBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return createPriorSchoolingEntry(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePriorSchoolingEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPriorSchoolingEntry>>
+>;
+export type CreatePriorSchoolingEntryMutationBody =
+  BodyType<CreatePriorSchoolingEntryBody>;
+export type CreatePriorSchoolingEntryMutationError = ErrorType<unknown>;
+
+export const useCreatePriorSchoolingEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPriorSchoolingEntry>>,
+    TError,
+    { studentId: number; data: BodyType<CreatePriorSchoolingEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPriorSchoolingEntry>>,
+  TError,
+  { studentId: number; data: BodyType<CreatePriorSchoolingEntryBody> },
+  TContext
+> => {
+  return useMutation(getCreatePriorSchoolingEntryMutationOptions(options));
+};
+
+export const getUpdatePriorSchoolingEntryUrl = (
+  studentId: number,
+  entryId: number,
+) => {
+  return `/api/students/${studentId}/prior-schooling/${entryId}`;
+};
+
+export const updatePriorSchoolingEntry = async (
+  studentId: number,
+  entryId: number,
+  updatePriorSchoolingEntryBody: UpdatePriorSchoolingEntryBody,
+  options?: RequestInit,
+): Promise<PriorSchoolingEntry> => {
+  return customFetch<PriorSchoolingEntry>(
+    getUpdatePriorSchoolingEntryUrl(studentId, entryId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updatePriorSchoolingEntryBody),
+    },
+  );
+};
+
+export const getUpdatePriorSchoolingEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePriorSchoolingEntry>>,
+    TError,
+    {
+      studentId: number;
+      entryId: number;
+      data: BodyType<UpdatePriorSchoolingEntryBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePriorSchoolingEntry>>,
+  TError,
+  {
+    studentId: number;
+    entryId: number;
+    data: BodyType<UpdatePriorSchoolingEntryBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updatePriorSchoolingEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePriorSchoolingEntry>>,
+    {
+      studentId: number;
+      entryId: number;
+      data: BodyType<UpdatePriorSchoolingEntryBody>;
+    }
+  > = (props) => {
+    const { studentId, entryId, data } = props ?? {};
+
+    return updatePriorSchoolingEntry(studentId, entryId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePriorSchoolingEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePriorSchoolingEntry>>
+>;
+export type UpdatePriorSchoolingEntryMutationBody =
+  BodyType<UpdatePriorSchoolingEntryBody>;
+export type UpdatePriorSchoolingEntryMutationError = ErrorType<unknown>;
+
+export const useUpdatePriorSchoolingEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePriorSchoolingEntry>>,
+    TError,
+    {
+      studentId: number;
+      entryId: number;
+      data: BodyType<UpdatePriorSchoolingEntryBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePriorSchoolingEntry>>,
+  TError,
+  {
+    studentId: number;
+    entryId: number;
+    data: BodyType<UpdatePriorSchoolingEntryBody>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdatePriorSchoolingEntryMutationOptions(options));
+};
+
+export const getDeletePriorSchoolingEntryUrl = (
+  studentId: number,
+  entryId: number,
+) => {
+  return `/api/students/${studentId}/prior-schooling/${entryId}`;
+};
+
+export const deletePriorSchoolingEntry = async (
+  studentId: number,
+  entryId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(
+    getDeletePriorSchoolingEntryUrl(studentId, entryId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeletePriorSchoolingEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePriorSchoolingEntry>>,
+    TError,
+    { studentId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePriorSchoolingEntry>>,
+  TError,
+  { studentId: number; entryId: number },
+  TContext
+> => {
+  const mutationKey = ["deletePriorSchoolingEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePriorSchoolingEntry>>,
+    { studentId: number; entryId: number }
+  > = (props) => {
+    const { studentId, entryId } = props ?? {};
+
+    return deletePriorSchoolingEntry(studentId, entryId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePriorSchoolingEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePriorSchoolingEntry>>
+>;
+
+export type DeletePriorSchoolingEntryMutationError = ErrorType<unknown>;
+
+export const useDeletePriorSchoolingEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePriorSchoolingEntry>>,
+    TError,
+    { studentId: number; entryId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePriorSchoolingEntry>>,
+  TError,
+  { studentId: number; entryId: number },
+  TContext
+> => {
+  return useMutation(getDeletePriorSchoolingEntryMutationOptions(options));
+};
+
+export const getListLanguageTestsUrl = (studentId: number) => {
+  return `/api/students/${studentId}/language-tests`;
+};
+
+export const listLanguageTests = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<LanguageTest[]> => {
+  return customFetch<LanguageTest[]>(getListLanguageTestsUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListLanguageTestsQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/language-tests`] as const;
+};
+
+export const getListLanguageTestsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listLanguageTests>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listLanguageTests>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListLanguageTestsQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listLanguageTests>>
+  > = ({ signal }) =>
+    listLanguageTests(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listLanguageTests>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListLanguageTestsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listLanguageTests>>
+>;
+export type ListLanguageTestsQueryError = ErrorType<unknown>;
+
+export function useListLanguageTests<
+  TData = Awaited<ReturnType<typeof listLanguageTests>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listLanguageTests>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListLanguageTestsQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateLanguageTestUrl = (studentId: number) => {
+  return `/api/students/${studentId}/language-tests`;
+};
+
+export const createLanguageTest = async (
+  studentId: number,
+  createLanguageTestBody: CreateLanguageTestBody,
+  options?: RequestInit,
+): Promise<LanguageTest> => {
+  return customFetch<LanguageTest>(getCreateLanguageTestUrl(studentId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createLanguageTestBody),
+  });
+};
+
+export const getCreateLanguageTestMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createLanguageTest>>,
+    TError,
+    { studentId: number; data: BodyType<CreateLanguageTestBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createLanguageTest>>,
+  TError,
+  { studentId: number; data: BodyType<CreateLanguageTestBody> },
+  TContext
+> => {
+  const mutationKey = ["createLanguageTest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createLanguageTest>>,
+    { studentId: number; data: BodyType<CreateLanguageTestBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return createLanguageTest(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateLanguageTestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createLanguageTest>>
+>;
+export type CreateLanguageTestMutationBody = BodyType<CreateLanguageTestBody>;
+export type CreateLanguageTestMutationError = ErrorType<unknown>;
+
+export const useCreateLanguageTest = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createLanguageTest>>,
+    TError,
+    { studentId: number; data: BodyType<CreateLanguageTestBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createLanguageTest>>,
+  TError,
+  { studentId: number; data: BodyType<CreateLanguageTestBody> },
+  TContext
+> => {
+  return useMutation(getCreateLanguageTestMutationOptions(options));
+};
+
+export const getUpdateLanguageTestUrl = (studentId: number, testId: number) => {
+  return `/api/students/${studentId}/language-tests/${testId}`;
+};
+
+export const updateLanguageTest = async (
+  studentId: number,
+  testId: number,
+  updateLanguageTestBody: UpdateLanguageTestBody,
+  options?: RequestInit,
+): Promise<LanguageTest> => {
+  return customFetch<LanguageTest>(
+    getUpdateLanguageTestUrl(studentId, testId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateLanguageTestBody),
+    },
+  );
+};
+
+export const getUpdateLanguageTestMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLanguageTest>>,
+    TError,
+    {
+      studentId: number;
+      testId: number;
+      data: BodyType<UpdateLanguageTestBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateLanguageTest>>,
+  TError,
+  { studentId: number; testId: number; data: BodyType<UpdateLanguageTestBody> },
+  TContext
+> => {
+  const mutationKey = ["updateLanguageTest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateLanguageTest>>,
+    {
+      studentId: number;
+      testId: number;
+      data: BodyType<UpdateLanguageTestBody>;
+    }
+  > = (props) => {
+    const { studentId, testId, data } = props ?? {};
+
+    return updateLanguageTest(studentId, testId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateLanguageTestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateLanguageTest>>
+>;
+export type UpdateLanguageTestMutationBody = BodyType<UpdateLanguageTestBody>;
+export type UpdateLanguageTestMutationError = ErrorType<unknown>;
+
+export const useUpdateLanguageTest = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLanguageTest>>,
+    TError,
+    {
+      studentId: number;
+      testId: number;
+      data: BodyType<UpdateLanguageTestBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateLanguageTest>>,
+  TError,
+  { studentId: number; testId: number; data: BodyType<UpdateLanguageTestBody> },
+  TContext
+> => {
+  return useMutation(getUpdateLanguageTestMutationOptions(options));
+};
+
+export const getDeleteLanguageTestUrl = (studentId: number, testId: number) => {
+  return `/api/students/${studentId}/language-tests/${testId}`;
+};
+
+export const deleteLanguageTest = async (
+  studentId: number,
+  testId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteLanguageTestUrl(studentId, testId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteLanguageTestMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteLanguageTest>>,
+    TError,
+    { studentId: number; testId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteLanguageTest>>,
+  TError,
+  { studentId: number; testId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteLanguageTest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteLanguageTest>>,
+    { studentId: number; testId: number }
+  > = (props) => {
+    const { studentId, testId } = props ?? {};
+
+    return deleteLanguageTest(studentId, testId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteLanguageTestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteLanguageTest>>
+>;
+
+export type DeleteLanguageTestMutationError = ErrorType<unknown>;
+
+export const useDeleteLanguageTest = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteLanguageTest>>,
+    TError,
+    { studentId: number; testId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteLanguageTest>>,
+  TError,
+  { studentId: number; testId: number },
+  TContext
+> => {
+  return useMutation(getDeleteLanguageTestMutationOptions(options));
+};
+
+export const getListDiplomaEquivalencesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/diploma-equivalences`;
+};
+
+export const listDiplomaEquivalences = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<DiplomaEquivalence[]> => {
+  return customFetch<DiplomaEquivalence[]>(
+    getListDiplomaEquivalencesUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListDiplomaEquivalencesQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/diploma-equivalences`] as const;
+};
+
+export const getListDiplomaEquivalencesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDiplomaEquivalences>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDiplomaEquivalences>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListDiplomaEquivalencesQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDiplomaEquivalences>>
+  > = ({ signal }) =>
+    listDiplomaEquivalences(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDiplomaEquivalences>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDiplomaEquivalencesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDiplomaEquivalences>>
+>;
+export type ListDiplomaEquivalencesQueryError = ErrorType<unknown>;
+
+export function useListDiplomaEquivalences<
+  TData = Awaited<ReturnType<typeof listDiplomaEquivalences>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDiplomaEquivalences>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDiplomaEquivalencesQueryOptions(
+    studentId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateDiplomaEquivalenceUrl = (studentId: number) => {
+  return `/api/students/${studentId}/diploma-equivalences`;
+};
+
+export const createDiplomaEquivalence = async (
+  studentId: number,
+  createDiplomaEquivalenceBody: CreateDiplomaEquivalenceBody,
+  options?: RequestInit,
+): Promise<DiplomaEquivalence> => {
+  return customFetch<DiplomaEquivalence>(
+    getCreateDiplomaEquivalenceUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createDiplomaEquivalenceBody),
+    },
+  );
+};
+
+export const getCreateDiplomaEquivalenceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDiplomaEquivalence>>,
+    TError,
+    { studentId: number; data: BodyType<CreateDiplomaEquivalenceBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDiplomaEquivalence>>,
+  TError,
+  { studentId: number; data: BodyType<CreateDiplomaEquivalenceBody> },
+  TContext
+> => {
+  const mutationKey = ["createDiplomaEquivalence"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDiplomaEquivalence>>,
+    { studentId: number; data: BodyType<CreateDiplomaEquivalenceBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return createDiplomaEquivalence(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDiplomaEquivalenceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDiplomaEquivalence>>
+>;
+export type CreateDiplomaEquivalenceMutationBody =
+  BodyType<CreateDiplomaEquivalenceBody>;
+export type CreateDiplomaEquivalenceMutationError = ErrorType<unknown>;
+
+export const useCreateDiplomaEquivalence = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDiplomaEquivalence>>,
+    TError,
+    { studentId: number; data: BodyType<CreateDiplomaEquivalenceBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createDiplomaEquivalence>>,
+  TError,
+  { studentId: number; data: BodyType<CreateDiplomaEquivalenceBody> },
+  TContext
+> => {
+  return useMutation(getCreateDiplomaEquivalenceMutationOptions(options));
+};
+
+export const getUpdateDiplomaEquivalenceUrl = (
+  studentId: number,
+  equivId: number,
+) => {
+  return `/api/students/${studentId}/diploma-equivalences/${equivId}`;
+};
+
+export const updateDiplomaEquivalence = async (
+  studentId: number,
+  equivId: number,
+  updateDiplomaEquivalenceBody: UpdateDiplomaEquivalenceBody,
+  options?: RequestInit,
+): Promise<DiplomaEquivalence> => {
+  return customFetch<DiplomaEquivalence>(
+    getUpdateDiplomaEquivalenceUrl(studentId, equivId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateDiplomaEquivalenceBody),
+    },
+  );
+};
+
+export const getUpdateDiplomaEquivalenceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDiplomaEquivalence>>,
+    TError,
+    {
+      studentId: number;
+      equivId: number;
+      data: BodyType<UpdateDiplomaEquivalenceBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDiplomaEquivalence>>,
+  TError,
+  {
+    studentId: number;
+    equivId: number;
+    data: BodyType<UpdateDiplomaEquivalenceBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updateDiplomaEquivalence"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDiplomaEquivalence>>,
+    {
+      studentId: number;
+      equivId: number;
+      data: BodyType<UpdateDiplomaEquivalenceBody>;
+    }
+  > = (props) => {
+    const { studentId, equivId, data } = props ?? {};
+
+    return updateDiplomaEquivalence(studentId, equivId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDiplomaEquivalenceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDiplomaEquivalence>>
+>;
+export type UpdateDiplomaEquivalenceMutationBody =
+  BodyType<UpdateDiplomaEquivalenceBody>;
+export type UpdateDiplomaEquivalenceMutationError = ErrorType<unknown>;
+
+export const useUpdateDiplomaEquivalence = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDiplomaEquivalence>>,
+    TError,
+    {
+      studentId: number;
+      equivId: number;
+      data: BodyType<UpdateDiplomaEquivalenceBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDiplomaEquivalence>>,
+  TError,
+  {
+    studentId: number;
+    equivId: number;
+    data: BodyType<UpdateDiplomaEquivalenceBody>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdateDiplomaEquivalenceMutationOptions(options));
+};
+
+export const getDeleteDiplomaEquivalenceUrl = (
+  studentId: number,
+  equivId: number,
+) => {
+  return `/api/students/${studentId}/diploma-equivalences/${equivId}`;
+};
+
+export const deleteDiplomaEquivalence = async (
+  studentId: number,
+  equivId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDiplomaEquivalenceUrl(studentId, equivId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDiplomaEquivalenceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDiplomaEquivalence>>,
+    TError,
+    { studentId: number; equivId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDiplomaEquivalence>>,
+  TError,
+  { studentId: number; equivId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDiplomaEquivalence"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDiplomaEquivalence>>,
+    { studentId: number; equivId: number }
+  > = (props) => {
+    const { studentId, equivId } = props ?? {};
+
+    return deleteDiplomaEquivalence(studentId, equivId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDiplomaEquivalenceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDiplomaEquivalence>>
+>;
+
+export type DeleteDiplomaEquivalenceMutationError = ErrorType<unknown>;
+
+export const useDeleteDiplomaEquivalence = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDiplomaEquivalence>>,
+    TError,
+    { studentId: number; equivId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDiplomaEquivalence>>,
+  TError,
+  { studentId: number; equivId: number },
+  TContext
+> => {
+  return useMutation(getDeleteDiplomaEquivalenceMutationOptions(options));
+};
+
+export const getListEefWishesUrl = (studentId: number) => {
+  return `/api/students/${studentId}/eef-wishes`;
+};
+
+export const listEefWishes = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<EefWish[]> => {
+  return customFetch<EefWish[]>(getListEefWishesUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListEefWishesQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/eef-wishes`] as const;
+};
+
+export const getListEefWishesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listEefWishes>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listEefWishes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListEefWishesQueryKey(studentId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listEefWishes>>> = ({
+    signal,
+  }) => listEefWishes(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listEefWishes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListEefWishesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listEefWishes>>
+>;
+export type ListEefWishesQueryError = ErrorType<unknown>;
+
+export function useListEefWishes<
+  TData = Awaited<ReturnType<typeof listEefWishes>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listEefWishes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListEefWishesQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateEefWishUrl = (studentId: number) => {
+  return `/api/students/${studentId}/eef-wishes`;
+};
+
+export const createEefWish = async (
+  studentId: number,
+  createEefWishBody: CreateEefWishBody,
+  options?: RequestInit,
+): Promise<EefWish> => {
+  return customFetch<EefWish>(getCreateEefWishUrl(studentId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createEefWishBody),
+  });
+};
+
+export const getCreateEefWishMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createEefWish>>,
+    TError,
+    { studentId: number; data: BodyType<CreateEefWishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createEefWish>>,
+  TError,
+  { studentId: number; data: BodyType<CreateEefWishBody> },
+  TContext
+> => {
+  const mutationKey = ["createEefWish"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createEefWish>>,
+    { studentId: number; data: BodyType<CreateEefWishBody> }
+  > = (props) => {
+    const { studentId, data } = props ?? {};
+
+    return createEefWish(studentId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateEefWishMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createEefWish>>
+>;
+export type CreateEefWishMutationBody = BodyType<CreateEefWishBody>;
+export type CreateEefWishMutationError = ErrorType<unknown>;
+
+export const useCreateEefWish = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createEefWish>>,
+    TError,
+    { studentId: number; data: BodyType<CreateEefWishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createEefWish>>,
+  TError,
+  { studentId: number; data: BodyType<CreateEefWishBody> },
+  TContext
+> => {
+  return useMutation(getCreateEefWishMutationOptions(options));
+};
+
+export const getUpdateEefWishUrl = (studentId: number, wishId: number) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}`;
+};
+
+export const updateEefWish = async (
+  studentId: number,
+  wishId: number,
+  updateEefWishBody: UpdateEefWishBody,
+  options?: RequestInit,
+): Promise<EefWish> => {
+  return customFetch<EefWish>(getUpdateEefWishUrl(studentId, wishId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateEefWishBody),
+  });
+};
+
+export const getUpdateEefWishMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEefWish>>,
+    TError,
+    { studentId: number; wishId: number; data: BodyType<UpdateEefWishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateEefWish>>,
+  TError,
+  { studentId: number; wishId: number; data: BodyType<UpdateEefWishBody> },
+  TContext
+> => {
+  const mutationKey = ["updateEefWish"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateEefWish>>,
+    { studentId: number; wishId: number; data: BodyType<UpdateEefWishBody> }
+  > = (props) => {
+    const { studentId, wishId, data } = props ?? {};
+
+    return updateEefWish(studentId, wishId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateEefWishMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateEefWish>>
+>;
+export type UpdateEefWishMutationBody = BodyType<UpdateEefWishBody>;
+export type UpdateEefWishMutationError = ErrorType<unknown>;
+
+export const useUpdateEefWish = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEefWish>>,
+    TError,
+    { studentId: number; wishId: number; data: BodyType<UpdateEefWishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateEefWish>>,
+  TError,
+  { studentId: number; wishId: number; data: BodyType<UpdateEefWishBody> },
+  TContext
+> => {
+  return useMutation(getUpdateEefWishMutationOptions(options));
+};
+
+export const getDeleteEefWishUrl = (studentId: number, wishId: number) => {
+  return `/api/students/${studentId}/eef-wishes/${wishId}`;
+};
+
+export const deleteEefWish = async (
+  studentId: number,
+  wishId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteEefWishUrl(studentId, wishId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteEefWishMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteEefWish>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteEefWish>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteEefWish"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteEefWish>>,
+    { studentId: number; wishId: number }
+  > = (props) => {
+    const { studentId, wishId } = props ?? {};
+
+    return deleteEefWish(studentId, wishId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteEefWishMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteEefWish>>
+>;
+
+export type DeleteEefWishMutationError = ErrorType<unknown>;
+
+export const useDeleteEefWish = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteEefWish>>,
+    TError,
+    { studentId: number; wishId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteEefWish>>,
+  TError,
+  { studentId: number; wishId: number },
+  TContext
+> => {
+  return useMutation(getDeleteEefWishMutationOptions(options));
 };
