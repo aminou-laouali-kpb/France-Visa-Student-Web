@@ -94,7 +94,7 @@ export function StudentDetail() {
 
   return (
     <div className="space-y-6">
-      <Link href="/advisor/students">
+      <Link href="/advisor">
         <a className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900">
           <ArrowLeft className="w-4 h-4 mr-1" /> Retour à la liste
         </a>

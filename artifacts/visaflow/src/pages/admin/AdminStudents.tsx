@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
+import { CountryFlag } from "@/components/CountryFlag";
 import { formatDate } from "@/lib/utils";
 import { Search, AlertTriangle } from "lucide-react";
 
@@ -206,7 +207,14 @@ export function AdminStudents() {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-slate-700">
-                        {s.countryName ?? "—"}
+                        <CountryFlag
+                          code={
+                            (countries as unknown as Country[]).find(
+                              (c) => c.id === s.countryId,
+                            )?.code
+                          }
+                          name={s.countryName}
+                        />
                       </td>
                       <td className="px-4 py-3 text-slate-700">
                         {s.schoolName ?? "—"}
