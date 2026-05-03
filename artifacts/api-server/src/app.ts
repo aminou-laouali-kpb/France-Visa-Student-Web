@@ -29,7 +29,38 @@ app.use(
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
+// CORS allowlist: REPLIT_DEV_DOMAIN, REPLIT_DOMAINS (comma-separated), and
+// any explicit ALLOWED_ORIGINS. Requests with no Origin header (server-to-
+// server, curl, same-origin) are allowed. Anything else is rejected.
+const allowedOrigins = (() => {
+  const list = new Set<string>();
+  const dev = process.env["REPLIT_DEV_DOMAIN"];
+  if (dev) list.add(`https://${dev}`);
+  for (const d of (process.env["REPLIT_DOMAINS"] ?? "").split(",")) {
+    const t = d.trim();
+    if (t) list.add(`https://${t}`);
+  }
+  for (const o of (process.env["ALLOWED_ORIGINS"] ?? "").split(",")) {
+    const t = o.trim();
+    if (t) list.add(t);
+  }
+  if (process.env["NODE_ENV"] !== "production") {
+    list.add("http://localhost:5173");
+    list.add("http://localhost:5000");
+  }
+  return list;
+})();
+
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, cb) {
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.has(origin)) return cb(null, true);
+      return cb(new Error(`CORS: origin not allowed: ${origin}`));
+    },
+  }),
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 

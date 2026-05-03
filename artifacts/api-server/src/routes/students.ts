@@ -80,6 +80,9 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
     .where(eq(workflowStepsTable.workflowTemplateId, tpl.id))
     .orderBy(asc(workflowStepsTable.order));
 
+  const { STEPS } = await import("../lib/seed");
+  const checklistByStepName = new Map(STEPS.map((s) => [s.name, s.checklist]));
+
   for (const step of steps) {
     // Skip Campus France steps for countries that don't require it
     if (step.isCampusFranceStep && !requiresCampusFrance) continue;
@@ -92,6 +95,20 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
       isRequired: step.isRequired,
       status: "not_started",
     });
+    // Provision per-step checklist items from the seed template
+    const items = checklistByStepName.get(step.name) ?? [];
+    if (items.length > 0) {
+      await db.insert(checklistItemsTable).values(
+        items.map((it, idx) => ({
+          workflowStepId: step.id,
+          studentId,
+          label: it.label,
+          isRequired: it.isRequired,
+          isChecked: false,
+          order: idx,
+        })),
+      );
+    }
   }
 }
 

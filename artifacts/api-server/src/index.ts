@@ -1,6 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { seedReferenceData } from "./lib/seed";
+import { seedReferenceData, seedDemoPersonas } from "./lib/seed";
 
 const rawPort = process.env["PORT"];
 
@@ -24,4 +24,5 @@ app.listen(port, async (err) => {
 
   logger.info({ port }, "Server listening");
   await seedReferenceData();
+  await seedDemoPersonas();
 });
