@@ -11,6 +11,13 @@ import {
 } from "@workspace/db";
 import { eq, and, lt, ne } from "drizzle-orm";
 
+// How close to the intake/departure date a step is considered late if it has
+// not progressed past "not_started". Intake is the school start (rentrée);
+// students are expected to depart ~30 days before intake.
+const STEP_DELAY_THRESHOLD_DAYS = 60; // within 60 days of rentrée, not_started steps are "delayed"
+const DEPARTURE_OFFSET_DAYS = 30; // students typically depart 30 days before intake
+const APPOINTMENT_PROXIMITY_DAYS = 30; // appointments must be booked within 30 days of departure
+
 export async function calculateRiskScore(studentId: number): Promise<RiskScore> {
   const [student] = await db.select().from(studentsTable).where(eq(studentsTable.id, studentId));
   if (!student) throw new Error("Student not found");
@@ -34,20 +41,54 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     ? (await db.select().from(countriesTable).where(eq(countriesTable.id, student.countryId)))[0]
     : null;
 
-  const cfSteps = await db
+  const allSteps = await db
     .select()
     .from(studentStepsTable)
-    .where(
-      and(
-        eq(studentStepsTable.studentId, studentId),
-        eq(studentStepsTable.isCampusFranceStep, true),
-      ),
-    );
+    .where(eq(studentStepsTable.studentId, studentId));
+  const cfSteps = allSteps.filter((s) => s.isCampusFranceStep);
   const missingCampusFrance =
     !!country?.requiresCampusFrance &&
     cfSteps.length > 0 &&
     cfSteps.some((s) => s.status === "not_started" || s.status === "blocked");
 
+  // Step delays vs intake/rentrée timeline ----------------------------------
+  // If the student has an intake date, count required steps that are not yet
+  // validated or in_progress and whose intake is approaching within
+  // STEP_DELAY_THRESHOLD_DAYS days. Each delayed required step adds risk.
+  const now = new Date();
+  let intakeDate: Date | null = null;
+  if (student.intakeDate) {
+    const parsed = new Date(student.intakeDate);
+    if (!isNaN(parsed.getTime())) intakeDate = parsed;
+  }
+  const expectedDeparture = intakeDate
+    ? new Date(intakeDate.getTime() - DEPARTURE_OFFSET_DAYS * 86400000)
+    : null;
+  const daysToIntake = intakeDate
+    ? Math.floor((intakeDate.getTime() - now.getTime()) / 86400000)
+    : null;
+  const daysToDeparture = expectedDeparture
+    ? Math.floor((expectedDeparture.getTime() - now.getTime()) / 86400000)
+    : null;
+
+  let delayedSteps = 0;
+  let intakeOverdue = false;
+  if (intakeDate) {
+    if (daysToIntake !== null && daysToIntake < 0 && student.status === "active") {
+      // Rentrée passed without visa_obtained / submitted resolution
+      intakeOverdue = true;
+    }
+    if (daysToIntake !== null && daysToIntake <= STEP_DELAY_THRESHOLD_DAYS) {
+      delayedSteps = allSteps.filter(
+        (s) => s.isRequired && (s.status === "not_started" || s.status === "blocked"),
+      ).length;
+    }
+  }
+
+  // Appointment proximity to departure --------------------------------------
+  // Risk is high when: the student has a planned departure but no upcoming
+  // appointment falls within APPOINTMENT_PROXIMITY_DAYS of departure (visa
+  // appointments must realistically be booked in that window).
   const upcomingApts = await db
     .select()
     .from(appointmentsTable)
@@ -55,6 +96,17 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
       and(eq(appointmentsTable.studentId, studentId), eq(appointmentsTable.status, "upcoming")),
     );
   const missingAppointments = upcomingApts.length === 0 && student.status === "active";
+
+  let appointmentNotInProximityWindow = false;
+  if (expectedDeparture && upcomingApts.length > 0 && daysToDeparture !== null && daysToDeparture > 0) {
+    const minMs = (daysToDeparture - APPOINTMENT_PROXIMITY_DAYS) * 86400000;
+    const maxMs = (daysToDeparture + APPOINTMENT_PROXIMITY_DAYS) * 86400000;
+    const inWindow = upcomingApts.some((a) => {
+      const delta = a.scheduledAt.getTime() - now.getTime();
+      return delta >= minMs && delta <= maxMs;
+    });
+    appointmentNotInProximityWindow = !inWindow;
+  }
 
   const hasVisaRefusal = student.hasVisaRefusalHistory;
 
@@ -65,6 +117,10 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
   if (missingCampusFrance) score += 25;
   if (missingAppointments) score += 8;
   if (hasVisaRefusal) score += 20;
+  // Timeline-derived risk
+  score += delayedSteps * 5;
+  if (intakeOverdue) score += 30;
+  if (appointmentNotInProximityWindow) score += 15;
   score = Math.min(100, score);
 
   const level: "low" | "medium" | "high" = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
@@ -79,6 +135,19 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
   if (missingAppointments) recommendations.push("Planifier les prochains rendez-vous");
   if (hasVisaRefusal)
     recommendations.push("Joindre une lettre explicative liée au refus précédent");
+  if (delayedSteps > 0 && daysToIntake !== null) {
+    recommendations.push(
+      `Accélérer ${delayedSteps} étape(s) requise(s) — rentrée dans ${daysToIntake} jour(s)`,
+    );
+  }
+  if (intakeOverdue) {
+    recommendations.push("Date de rentrée dépassée — réviser le calendrier ou changer d'intake");
+  }
+  if (appointmentNotInProximityWindow) {
+    recommendations.push(
+      `Replanifier un rendez-vous dans la fenêtre de ${APPOINTMENT_PROXIMITY_DAYS} jours autour du départ`,
+    );
+  }
   if (recommendations.length === 0) recommendations.push("Dossier en bonne voie — continuer le suivi régulier");
 
   const values = {
@@ -89,7 +158,7 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     overdueTasks: overdueTasks.length,
     rejectedDocuments: rejectedDocs,
     missingCampusFrance,
-    missingAppointments,
+    missingAppointments: missingAppointments || appointmentNotInProximityWindow,
     hasVisaRefusal,
     recommendations,
     calculatedAt: new Date(),

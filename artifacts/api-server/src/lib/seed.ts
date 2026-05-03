@@ -9,6 +9,8 @@ import {
   usersTable,
   tasksTable,
   notificationsTable,
+  schoolsTable,
+  programsTable,
 } from "@workspace/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { logger } from "./logger";
@@ -24,6 +26,70 @@ const COUNTRIES = [
   { name: "Guinée", code: "GN", requiresCampusFrance: false, visaCenter: "TLS Conakry" },
   { name: "Niger", code: "NE", requiresCampusFrance: false, visaCenter: "TLS Niamey" },
   { name: "Madagascar", code: "MG", requiresCampusFrance: false, visaCenter: "TLS Antananarivo" },
+  { name: "Maroc", code: "MA", requiresCampusFrance: true, visaCenter: "TLS Casablanca" },
+];
+
+// Reference catalog of French schools commonly chosen by francophone African
+// students. Includes flagship business/engineering schools (INSEEC, ECE) plus
+// public universities — gives the school/program selection screens real
+// content out-of-the-box.
+const SCHOOLS: { name: string; city: string; website?: string; programs: { name: string; level: string; duration?: string }[] }[] = [
+  {
+    name: "INSEEC Grande École",
+    city: "Paris",
+    website: "https://www.inseec.com",
+    programs: [
+      { name: "Bachelor in Business", level: "bachelor", duration: "3 ans" },
+      { name: "MSc International Business", level: "master", duration: "2 ans" },
+      { name: "MBA Finance", level: "mba", duration: "1 an" },
+    ],
+  },
+  {
+    name: "ECE — École Centrale d'Électronique",
+    city: "Paris",
+    website: "https://www.ece.fr",
+    programs: [
+      { name: "Cycle Ingénieur Informatique", level: "ingenieur", duration: "5 ans" },
+      { name: "Bachelor Cybersécurité", level: "bachelor", duration: "3 ans" },
+      { name: "MSc Data & AI", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Sorbonne Université",
+    city: "Paris",
+    website: "https://www.sorbonne-universite.fr",
+    programs: [
+      { name: "Licence Économie-Gestion", level: "licence", duration: "3 ans" },
+      { name: "Master Droit International", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Université Paris-Saclay",
+    city: "Saclay",
+    website: "https://www.universite-paris-saclay.fr",
+    programs: [
+      { name: "Licence Informatique", level: "licence", duration: "3 ans" },
+      { name: "Master Mathématiques Appliquées", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "Université de Lyon",
+    city: "Lyon",
+    website: "https://www.universite-lyon.fr",
+    programs: [
+      { name: "Licence Sciences de la Vie", level: "licence", duration: "3 ans" },
+      { name: "Master Santé Publique", level: "master", duration: "2 ans" },
+    ],
+  },
+  {
+    name: "EM Lyon Business School",
+    city: "Lyon",
+    website: "https://em-lyon.com",
+    programs: [
+      { name: "Programme Grande École", level: "master", duration: "3 ans" },
+      { name: "MSc International Hospitality Management", level: "master", duration: "1 an" },
+    ],
+  },
 ];
 
 interface SeedStep {
@@ -234,7 +300,35 @@ export async function seedReferenceData(): Promise<void> {
       })),
     );
 
-    logger.info({ countries: COUNTRIES.length, steps: STEPS.length }, "Reference data seeded");
+    // Seed schools + programs (idempotent: only when schoolsTable is empty)
+    let schoolsSeeded = 0;
+    let programsSeeded = 0;
+    const existingSchools = await db.select().from(schoolsTable).limit(1);
+    if (existingSchools.length === 0) {
+      for (const s of SCHOOLS) {
+        const [school] = await db
+          .insert(schoolsTable)
+          .values({ name: s.name, city: s.city, website: s.website ?? null })
+          .returning();
+        if (s.programs.length > 0) {
+          await db.insert(programsTable).values(
+            s.programs.map((p) => ({
+              schoolId: school.id,
+              name: p.name,
+              level: p.level,
+              duration: p.duration ?? null,
+            })),
+          );
+          programsSeeded += s.programs.length;
+        }
+        schoolsSeeded += 1;
+      }
+    }
+
+    logger.info(
+      { countries: COUNTRIES.length, steps: STEPS.length, schools: schoolsSeeded, programs: programsSeeded },
+      "Reference data seeded",
+    );
   } catch (err) {
     logger.error({ err }, "Seed failed");
   }

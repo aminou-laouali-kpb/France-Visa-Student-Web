@@ -450,13 +450,34 @@ router.patch(
         req.log.warn({ err: taskErr }, "Task automation failed (non-fatal)");
       }
     }
+    // Determine whether this update was an admin override (transition outside
+    // the normal allow-list). The audit trail must capture that fact AND the
+    // justification supplied by the admin so the override is reviewable.
+    const previousStatus = existingStep.status;
+    const wasOverride =
+      status !== undefined &&
+      status !== previousStatus &&
+      isAdmin(req.currentUser!) &&
+      !(ALLOWED_TRANSITIONS[previousStatus as StepStatus] ?? []).includes(status);
+
     await logAudit({
       userId: req.currentUser!.id,
       studentId,
-      action: "student_step.update",
+      action: wasOverride ? "student_step.override" : "student_step.update",
       entityType: "student_step",
       entityId: stepId,
-      details: JSON.stringify({ status }),
+      details: JSON.stringify({
+        status,
+        previousStatus,
+        ...(blockedReason !== undefined && { blockedReason }),
+        ...(notes !== undefined && { notes }),
+        ...(wasOverride && {
+          override: true,
+          overrideJustification: overrideJustification ?? null,
+          overrideBy: req.currentUser!.id,
+          overrideRole: req.currentUser!.role,
+        }),
+      }),
     });
     res.json(updated);
   },
