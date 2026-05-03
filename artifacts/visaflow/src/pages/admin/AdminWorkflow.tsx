@@ -5,6 +5,10 @@ import {
   useCreateWorkflowStep,
   useUpdateWorkflowStep,
 } from "@workspace/api-client-react";
+import type {
+  CreateWorkflowStepBody,
+  UpdateWorkflowStepBody,
+} from "@workspace/api-client-react";
 import type { WorkflowTemplate, WorkflowTemplateStep } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,10 +73,13 @@ function WorkflowSteps({ templateId }: { templateId: number }) {
 
   const [newName, setNewName] = useState("");
 
+  const patchStep = (data: Partial<UpdateWorkflowStepBody>) =>
+    data as UpdateWorkflowStepBody;
+
   const toggleActive = async (s: WorkflowTemplateStep) => {
     await update.mutateAsync({
       stepId: s.id,
-      data: { isActive: !s.isActive } as never,
+      data: patchStep({ isActive: !s.isActive }),
     });
     refetch();
   };
@@ -80,7 +87,7 @@ function WorkflowSteps({ templateId }: { templateId: number }) {
   const toggleCampusFrance = async (s: WorkflowTemplateStep) => {
     await update.mutateAsync({
       stepId: s.id,
-      data: { isCampusFranceStep: !s.isCampusFranceStep } as never,
+      data: patchStep({ isCampusFranceStep: !s.isCampusFranceStep }),
     });
     refetch();
   };
@@ -90,8 +97,8 @@ function WorkflowSteps({ templateId }: { templateId: number }) {
     const me = steps[idx];
     if (!target || !me) return;
     await Promise.all([
-      update.mutateAsync({ stepId: me.id, data: { order: target.order } as never }),
-      update.mutateAsync({ stepId: target.id, data: { order: me.order } as never }),
+      update.mutateAsync({ stepId: me.id, data: patchStep({ order: target.order }) }),
+      update.mutateAsync({ stepId: target.id, data: patchStep({ order: me.order }) }),
     ]);
     refetch();
   };
@@ -99,10 +106,14 @@ function WorkflowSteps({ templateId }: { templateId: number }) {
   const addStep = async () => {
     if (!newName.trim()) return;
     const order = (steps[steps.length - 1]?.order ?? 0) + 1;
-    await create.mutateAsync({
-      templateId,
-      data: { name: newName.trim(), order } as never,
-    });
+    const body: CreateWorkflowStepBody = {
+      name: newName.trim(),
+      order,
+      isCampusFranceStep: false,
+      isRequired: true,
+      requiredDocumentCategories: [],
+    };
+    await create.mutateAsync({ templateId, data: body });
     setNewName("");
     refetch();
   };

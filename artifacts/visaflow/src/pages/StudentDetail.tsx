@@ -56,6 +56,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate, formatDateTime, ROLE_LABELS } from "@/lib/utils";
@@ -393,14 +401,51 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
     }
   };
 
-  const handleReview = async (documentId: number, decision: "validated" | "rejected") => {
-    const comment = decision === "rejected" ? prompt("Motif du rejet :") ?? "" : "";
-    await review.mutateAsync({
-      studentId,
-      documentId,
-      data: { decision, comment } as unknown as ReviewDocumentBody,
-    });
-    refetch();
+  const [rejectDocId, setRejectDocId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [optimisticStatus, setOptimisticStatus] = useState<
+    Record<number, { status: string; rejectionReason?: string | null }>
+  >({});
+
+  const handleValidate = async (documentId: number) => {
+    setOptimisticStatus((s) => ({
+      ...s,
+      [documentId]: { status: "validated", rejectionReason: null },
+    }));
+    try {
+      const data: ReviewDocumentBody = { decision: "validated", comment: "" };
+      await review.mutateAsync({ studentId, documentId, data });
+      refetch();
+    } catch (err) {
+      setOptimisticStatus((s) => {
+        const { [documentId]: _, ...rest } = s;
+        return rest;
+      });
+      throw err;
+    }
+  };
+
+  const submitRejection = async () => {
+    if (!rejectDocId || !rejectReason.trim()) return;
+    const documentId = rejectDocId;
+    const reason = rejectReason.trim();
+    setOptimisticStatus((s) => ({
+      ...s,
+      [documentId]: { status: "rejected", rejectionReason: reason },
+    }));
+    setRejectDocId(null);
+    setRejectReason("");
+    try {
+      const data: ReviewDocumentBody = { decision: "rejected", comment: reason };
+      await review.mutateAsync({ studentId, documentId, data });
+      refetch();
+    } catch (err) {
+      setOptimisticStatus((s) => {
+        const { [documentId]: _, ...rest } = s;
+        return rest;
+      });
+      throw err;
+    }
   };
 
   return (
@@ -453,48 +498,109 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">
-            {(docs as unknown as Document[]).map((d) => (
-              <div key={d.id} className="flex items-center gap-4 p-4">
-                <FileText className="w-8 h-8 text-blue-600" />
-                <div className="flex-1">
-                  <div className="font-medium">{d.name}</div>
-                  <div className="text-sm text-slate-500">
-                    {DOCUMENT_CATEGORIES.find((c) => c.value === d.category)?.label ?? d.category} ·
-                    v{d.version} · {formatDate(d.uploadedAt)}
+            {(docs as unknown as Document[]).map((d) => {
+              const o = optimisticStatus[d.id];
+              const status = o?.status ?? d.status;
+              const rejectionReason = o
+                ? o.rejectionReason ?? null
+                : d.rejectionReason;
+              const canReview =
+                isStaff && (status === "received" || status === "under_review");
+              return (
+                <div key={d.id} className="flex items-center gap-4 p-4">
+                  <FileText className="w-8 h-8 text-blue-600" />
+                  <div className="flex-1">
+                    <div className="font-medium">{d.name}</div>
+                    <div className="text-sm text-slate-500">
+                      {DOCUMENT_CATEGORIES.find((c) => c.value === d.category)?.label ?? d.category} ·
+                      v{d.version} · {formatDate(d.uploadedAt)}
+                    </div>
+                    {rejectionReason && (
+                      <div className="text-sm text-rose-600 mt-1">⚠️ {rejectionReason}</div>
+                    )}
                   </div>
-                  {d.rejectionReason && (
-                    <div className="text-sm text-rose-600 mt-1">⚠️ {d.rejectionReason}</div>
+                  <StatusBadge status={status} />
+                  {canReview && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleValidate(d.id)}
+                        data-testid={`button-validate-${d.id}`}
+                      >
+                        Valider
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setRejectDocId(d.id);
+                          setRejectReason("");
+                        }}
+                        data-testid={`button-reject-${d.id}`}
+                      >
+                        Rejeter
+                      </Button>
+                    </div>
                   )}
                 </div>
-                <StatusBadge status={d.status} />
-                {isStaff && (d.status === "received" || d.status === "under_review") && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleReview(d.id, "validated")}
-                      data-testid={`button-validate-${d.id}`}
-                    >
-                      Valider
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleReview(d.id, "rejected")}
-                      data-testid={`button-reject-${d.id}`}
-                    >
-                      Rejeter
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {docs.length === 0 && (
               <div className="p-8 text-center text-slate-500">Aucun document</div>
             )}
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={rejectDocId !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectDocId(null);
+            setRejectReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter le document</DialogTitle>
+            <DialogDescription>
+              Indiquez le motif du rejet. L'étudiant sera notifié.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="reject-reason">Motif du rejet</Label>
+            <Textarea
+              id="reject-reason"
+              rows={4}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Ex. Document illisible, page manquante…"
+              data-testid="textarea-reject-reason"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDocId(null);
+                setRejectReason("");
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!rejectReason.trim()}
+              onClick={submitRejection}
+              data-testid="button-confirm-reject"
+            >
+              Confirmer le rejet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

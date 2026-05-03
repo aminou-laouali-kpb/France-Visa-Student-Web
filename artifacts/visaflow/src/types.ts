@@ -125,6 +125,9 @@ export interface AuditLog {
   entityType: string;
   entityId?: number | null;
   details?: string | null;
+  userId?: number | null;
+  userName?: string | null;
+  studentId?: number | null;
 }
 
 export interface StudentDashboardData {
@@ -187,6 +190,7 @@ export interface AdminDashboardData {
   bySchool?: CountStat[];
   byStep?: CountStat[];
   byAdvisor?: CountStat[];
+  byIntakeMonth?: CountStat[];
   recentAuditLogs?: AuditLog[];
 }
 

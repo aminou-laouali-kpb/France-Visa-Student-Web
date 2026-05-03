@@ -24,9 +24,12 @@ import { Profile } from "@/pages/Profile";
 import { AdminUsers, AdminAudit, AdminSchools, AdminCountries } from "@/pages/Admin";
 import { AdvisorPortfolio } from "@/pages/advisor/AdvisorPortfolio";
 import { AdvisorReports } from "@/pages/advisor/AdvisorReports";
+import { AdvisorTasks } from "@/pages/advisor/AdvisorTasks";
 import { AdminGlobalDashboard } from "@/pages/admin/AdminGlobalDashboard";
 import { AdminStudents } from "@/pages/admin/AdminStudents";
 import { AdminWorkflow } from "@/pages/admin/AdminWorkflow";
+import { AdminAuditLogs } from "@/pages/admin/AdminAuditLogs";
+import { AdminSchoolsManager } from "@/pages/admin/AdminSchoolsManager";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -201,7 +204,7 @@ function AppRouter() {
       </Route>
       <Route path="/advisor/tasks">
         <StaffOnly>
-          <MyTasks />
+          <AdvisorTasks />
         </StaffOnly>
       </Route>
       <Route path="/advisor/reports">
@@ -232,7 +235,7 @@ function AppRouter() {
       </Route>
       <Route path="/admin/schools">
         <AdminOnly>
-          <AdminSchools />
+          <AdminSchoolsManager />
         </AdminOnly>
       </Route>
       <Route path="/admin/countries">
@@ -247,7 +250,12 @@ function AppRouter() {
       </Route>
       <Route path="/admin/audit">
         <AdminOnly>
-          <AdminAudit />
+          <AdminAuditLogs />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/audit-logs">
+        <AdminOnly>
+          <AdminAuditLogs />
         </AdminOnly>
       </Route>
 

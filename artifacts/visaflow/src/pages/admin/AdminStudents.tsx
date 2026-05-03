@@ -5,6 +5,7 @@ import {
   useListUsers,
   useAssignStudent,
 } from "@workspace/api-client-react";
+import type { AssignStudentBody } from "@workspace/api-client-react";
 import type { StudentSummary, UserRow } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,18 +25,14 @@ export function AdminStudents() {
   const reviewers = users.filter((u) => u.role === "reviewer" && u.isActive);
 
   const setAdvisor = async (studentId: number, advisorId: number | null) => {
-    await assign.mutateAsync({
-      studentId,
-      data: { advisorId } as never,
-    });
+    const data: AssignStudentBody = { advisorId };
+    await assign.mutateAsync({ studentId, data });
     refetch();
   };
 
   const setReviewer = async (studentId: number, reviewerId: number | null) => {
-    await assign.mutateAsync({
-      studentId,
-      data: { reviewerId } as never,
-    });
+    const data: AssignStudentBody = { reviewerId };
+    await assign.mutateAsync({ studentId, data });
     refetch();
   };
 

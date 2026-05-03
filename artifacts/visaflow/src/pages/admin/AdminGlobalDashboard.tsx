@@ -76,7 +76,7 @@ export function AdminGlobalDashboard() {
           <BarChartView data={data?.byStep ?? []} color="#8b5cf6" />
         </ChartCard>
         <ChartCard title="Tendance d'admission">
-          <LineChartView data={data?.byCountry ?? []} />
+          <LineChartView data={data?.byIntakeMonth ?? []} />
         </ChartCard>
       </div>
 

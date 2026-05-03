@@ -308,6 +308,19 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     const label = next?.stepName ?? "Terminé";
     byStep[label] = (byStep[label] ?? 0) + 1;
   }
+  const byMonth: Record<string, number> = {};
+  for (const s of students) {
+    const m = s.intakeDate ? s.intakeDate.slice(0, 7) : null;
+    if (!m) continue;
+    byMonth[m] = (byMonth[m] ?? 0) + 1;
+  }
+  const byIntakeMonth = Object.entries(byMonth)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, count]) => ({
+      label,
+      count,
+      percentage: Math.round((count / total) * 100),
+    }));
 
   res.json({
     // Rich fields
@@ -330,6 +343,7 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     bySchool: stat(bySchool),
     byStep: stat(byStep),
     byAdvisor: stat(byAdvisor),
+    byIntakeMonth,
     recentAuditLogs: recentLogs,
     // Legacy
     userCount: users.length,
