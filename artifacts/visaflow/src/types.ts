@@ -72,6 +72,17 @@ export interface Document {
   version: number;
   uploadedAt: string;
   rejectionReason?: string | null;
+  extractionStatus?: "pending" | "processing" | "done" | "failed" | "skipped";
+  extractedData?: Record<string, unknown> | null;
+  aiCategory?: string | null;
+  aiConfidence?: string | null;
+  expiryDate?: string | null;
+  extractedFirstName?: string | null;
+  extractedLastName?: string | null;
+  extractedDob?: string | null;
+  extractionError?: string | null;
+  extractedAt?: string | null;
+  extractionAttempts?: number;
 }
 
 export interface Comment {

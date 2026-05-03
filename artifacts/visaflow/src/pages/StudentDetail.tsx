@@ -34,6 +34,7 @@ import {
   useUpdateChecklistItem,
   useListDocuments,
   useReviewDocument,
+  useReExtractDocument,
   useListComments,
   useCreateComment,
   useListStudentTasks,
@@ -621,8 +622,8 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
               const canReview =
                 isStaff && (status === "received" || status === "under_review");
               return (
-                <div key={d.id} className="flex items-center gap-4 p-4">
-                  <FileText className="w-8 h-8 text-blue-600" />
+                <div key={d.id} className="flex items-start gap-4 p-4">
+                  <FileText className="w-8 h-8 text-blue-600 mt-1" />
                   <div className="flex-1">
                     <div className="font-medium">{d.name}</div>
                     <div className="text-sm text-slate-500">
@@ -632,6 +633,12 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                     {rejectionReason && (
                       <div className="text-sm text-rose-600 mt-1">⚠️ {rejectionReason}</div>
                     )}
+                    <DocumentExtractionPanel
+                      doc={d as unknown as Document}
+                      studentId={studentId}
+                      isStaff={isStaff}
+                      onRefetch={refetch}
+                    />
                   </div>
                   <StatusBadge status={status} />
                   {canReview && (
@@ -715,6 +722,179 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function DocumentExtractionPanel({
+  doc,
+  studentId,
+  isStaff,
+  onRefetch,
+}: {
+  doc: Document;
+  studentId: number;
+  isStaff: boolean;
+  onRefetch: () => void;
+}) {
+  const reExtract = useReExtractDocument();
+  const status = doc.extractionStatus ?? "pending";
+  const data = doc.extractedData as
+    | { fields?: Record<string, unknown>; warnings?: string[] }
+    | null
+    | undefined;
+  const fields = (data?.fields ?? {}) as Record<string, unknown>;
+  const aiWarnings = data?.warnings ?? [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expDays = doc.expiryDate
+    ? Math.floor(
+        (new Date(`${doc.expiryDate}T00:00:00Z`).getTime() - today.getTime()) /
+          (24 * 3600 * 1000),
+      )
+    : null;
+  const SOON_DAYS = 183;
+  const expired = expDays !== null && expDays < 0;
+  const expiringSoon = expDays !== null && expDays >= 0 && expDays <= SOON_DAYS;
+  const conf = doc.aiConfidence ? Number(doc.aiConfidence) : null;
+  const lowConfidence = doc.aiCategory != null && conf !== null && conf < 0.6;
+  const categoryMismatch =
+    doc.aiCategory != null &&
+    doc.aiCategory !== doc.category &&
+    conf !== null &&
+    conf >= 0.7;
+
+  const banners: { tone: "red" | "amber"; text: string }[] = [];
+  if (expired)
+    banners.push({
+      tone: "red",
+      text: `Document expiré le ${doc.expiryDate}.`,
+    });
+  else if (expiringSoon)
+    banners.push({
+      tone: "amber",
+      text: `Document expirant dans ${expDays} jours (${doc.expiryDate}).`,
+    });
+  if (categoryMismatch)
+    banners.push({
+      tone: "amber",
+      text: `Catégorie possible : ${doc.aiCategory} (au lieu de ${doc.category}).`,
+    });
+  if (lowConfidence)
+    banners.push({
+      tone: "amber",
+      text: `Extraction peu fiable (confiance ${(conf! * 100).toFixed(0)}%).`,
+    });
+
+  const showFields = status === "done";
+  const fieldEntries: [string, string][] = [];
+  if (showFields) {
+    const push = (label: string, v: unknown) => {
+      if (v === null || v === undefined || v === "") return;
+      fieldEntries.push([label, String(v)]);
+    };
+    push("N°", fields.documentNumber);
+    push("Prénom", doc.extractedFirstName);
+    push("Nom", doc.extractedLastName);
+    push("Né(e) le", doc.extractedDob);
+    push("Nationalité", fields.nationality);
+    push("Émission", fields.issueDate);
+    push("Expire", doc.expiryDate);
+    push("Solde EUR", fields.bankBalanceEur);
+    push("Banque", fields.bankName);
+    push("Diplôme", fields.diplomaType);
+    push("Établissement", fields.institution);
+    push("Test langue", fields.languageTest);
+    push("Score", fields.languageScore);
+  }
+
+  const handleReExtract = async () => {
+    await reExtract.mutateAsync({ studentId, documentId: doc.id });
+    onRefetch();
+  };
+
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="flex items-center gap-2 text-xs">
+        <span
+          className={
+            "px-2 py-0.5 rounded-full font-medium " +
+            (status === "done"
+              ? "bg-emerald-100 text-emerald-700"
+              : status === "processing" || status === "pending"
+                ? "bg-blue-100 text-blue-700"
+                : status === "failed"
+                  ? "bg-rose-100 text-rose-700"
+                  : "bg-slate-100 text-slate-600")
+          }
+          data-testid={`extraction-status-${doc.id}`}
+        >
+          IA :{" "}
+          {status === "done"
+            ? "extraction terminée"
+            : status === "processing"
+              ? "analyse en cours…"
+              : status === "pending"
+                ? "en attente"
+                : status === "failed"
+                  ? "échec"
+                  : "non traité"}
+        </span>
+        {conf !== null && status === "done" && (
+          <span className="text-slate-500">
+            confiance {(conf * 100).toFixed(0)}%
+          </span>
+        )}
+        {(isStaff || status === "failed") && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-xs"
+            onClick={handleReExtract}
+            disabled={reExtract.isPending}
+            data-testid={`button-reextract-${doc.id}`}
+          >
+            {reExtract.isPending ? "Relance…" : "Relancer l'IA"}
+          </Button>
+        )}
+      </div>
+      {status === "failed" && doc.extractionError && (
+        <div className="text-xs text-rose-600">{doc.extractionError}</div>
+      )}
+      {status === "skipped" && doc.extractionError && (
+        <div className="text-xs text-slate-500">{doc.extractionError}</div>
+      )}
+      {banners.map((b, i) => (
+        <div
+          key={i}
+          className={
+            "text-xs rounded px-2 py-1 " +
+            (b.tone === "red"
+              ? "bg-rose-50 text-rose-700 border border-rose-200"
+              : "bg-amber-50 text-amber-800 border border-amber-200")
+          }
+          data-testid={`extraction-warning-${doc.id}-${i}`}
+        >
+          ⚠️ {b.text}
+        </div>
+      ))}
+      {aiWarnings.length > 0 && (
+        <ul className="text-xs text-amber-700 list-disc pl-4">
+          {aiWarnings.map((w, i) => (
+            <li key={i}>{w}</li>
+          ))}
+        </ul>
+      )}
+      {fieldEntries.length > 0 && (
+        <div className="text-xs text-slate-600 grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1">
+          {fieldEntries.map(([k, v]) => (
+            <div key={k}>
+              <span className="text-slate-400">{k} :</span> {v}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

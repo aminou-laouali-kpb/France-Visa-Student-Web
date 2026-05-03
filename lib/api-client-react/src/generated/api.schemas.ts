@@ -247,6 +247,17 @@ export const DocumentStatus = {
   rejected: "rejected",
 } as const;
 
+export type DocumentExtractionStatus =
+  (typeof DocumentExtractionStatus)[keyof typeof DocumentExtractionStatus];
+
+export const DocumentExtractionStatus = {
+  pending: "pending",
+  processing: "processing",
+  done: "done",
+  failed: "failed",
+  skipped: "skipped",
+} as const;
+
 export type DocumentReviewDecision =
   (typeof DocumentReviewDecision)[keyof typeof DocumentReviewDecision];
 
@@ -265,6 +276,11 @@ export interface DocumentReview {
   comment?: string | null;
   createdAt: string;
 }
+
+/**
+ * @nullable
+ */
+export type DocumentExtractedData = { [key: string]: unknown } | null;
 
 export interface Document {
   id: number;
@@ -288,6 +304,32 @@ export interface Document {
   /** @nullable */
   reviewedAt?: string | null;
   uploadedAt: string;
+  extractionStatus: DocumentExtractionStatus;
+  /** @nullable */
+  extractedData?: DocumentExtractedData;
+  /** @nullable */
+  aiCategory?: string | null;
+  /**
+   * Decimal 0..1 as string (numeric column).
+   * @nullable
+   */
+  aiConfidence?: string | null;
+  /**
+   * ISO date YYYY-MM-DD extracted by AI.
+   * @nullable
+   */
+  expiryDate?: string | null;
+  /** @nullable */
+  extractedFirstName?: string | null;
+  /** @nullable */
+  extractedLastName?: string | null;
+  /** @nullable */
+  extractedDob?: string | null;
+  /** @nullable */
+  extractionError?: string | null;
+  /** @nullable */
+  extractedAt?: string | null;
+  extractionAttempts: number;
   reviews?: DocumentReview[];
 }
 
@@ -1617,6 +1659,9 @@ export interface FinancialReadiness {
   financeReady: boolean;
   accommodationReady: boolean;
   cvecReady: boolean;
+  documentsReady: boolean;
+  expiredDocumentsCount: number;
+  expiringDocumentsCount: number;
   targetAcademicYear: string;
   ready: boolean;
   overrideActive: boolean;

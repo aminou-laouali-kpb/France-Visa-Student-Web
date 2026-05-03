@@ -6,7 +6,9 @@ import {
   financialProofsTable,
   accommodationRecordsTable,
   cvecPaymentsTable,
+  documentsTable,
 } from "@workspace/db";
+import { computeDocumentFlags } from "../lib/documentExtraction";
 import { eq, and, asc, desc } from "drizzle-orm";
 import {
   requireAuth,
@@ -592,6 +594,46 @@ export async function computeFinancialReadiness(studentId: number) {
     (a) => a.status === "valid",
   );
 
+  // ── Document AI v1: block submission on expired/expiring documents ──────
+  const docs = await db
+    .select()
+    .from(documentsTable)
+    .where(eq(documentsTable.studentId, studentId));
+  const studentForFlags = {
+    firstName: student.firstName,
+    lastName: student.lastName,
+    dateOfBirth: student.dateOfBirth ?? null,
+  };
+  let expiredDocumentsCount = 0;
+  let expiringDocumentsCount = 0;
+  let mismatchCount = 0;
+  const docIssues: string[] = [];
+  for (const d of docs) {
+    if (d.status === "rejected") continue;
+    const flags = computeDocumentFlags(d, studentForFlags);
+    if (flags.isExpired) {
+      expiredDocumentsCount += 1;
+      docIssues.push(`Document expiré: ${d.name}.`);
+    } else if (flags.isExpiringSoon) {
+      expiringDocumentsCount += 1;
+      docIssues.push(
+        `Document expirant dans ${flags.daysUntilExpiry} jours: ${d.name}.`,
+      );
+    }
+    if (flags.nameMismatch) {
+      mismatchCount += 1;
+      docIssues.push(`Nom non concordant sur ${d.name}.`);
+    }
+    if (flags.dobMismatch) {
+      mismatchCount += 1;
+      docIssues.push(`Date de naissance non concordante sur ${d.name}.`);
+    }
+  }
+  const documentsReady =
+    expiredDocumentsCount === 0 &&
+    expiringDocumentsCount === 0 &&
+    mismatchCount === 0;
+
   // CVEC is only "ready" when the *current academic year* has a paid or
   // exempted payment; older years are informational.
   const cvecCurrent = cvec.find(
@@ -627,7 +669,9 @@ export async function computeFinancialReadiness(studentId: number) {
     );
   }
 
-  const ready = financeReady && accommodationReady && cvecReady;
+  for (const issue of docIssues) reasons.push(issue);
+
+  const ready = financeReady && accommodationReady && cvecReady && documentsReady;
 
   return {
     studentId,
@@ -643,6 +687,9 @@ export async function computeFinancialReadiness(studentId: number) {
     financeReady,
     accommodationReady,
     cvecReady,
+    documentsReady,
+    expiredDocumentsCount,
+    expiringDocumentsCount,
     targetAcademicYear,
     ready,
     overrideActive: !!student.submissionGateOverride,

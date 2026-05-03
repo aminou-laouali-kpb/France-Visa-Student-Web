@@ -15,6 +15,10 @@ import {
   loadAndAuthorizeStudent,
 } from "../middlewares/auth";
 import { ObjectStorageService } from "../lib/objectStorage";
+import {
+  enqueueDocumentExtraction,
+  runDocumentExtraction,
+} from "../lib/documentExtraction";
 import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { sendMail, studentSelfLink } from "../lib/mailer";
@@ -188,7 +192,42 @@ router.post(
       entityId: doc.id,
       details: name,
     });
+    enqueueDocumentExtraction(doc.id);
     res.status(201).json(doc);
+  },
+);
+
+// Re-run AI extraction on demand. Useful after a manual override of category,
+// or when the first extraction failed for transient reasons.
+router.post(
+  "/students/:studentId/documents/:documentId/re-extract",
+  requireAuth,
+  requireStudentAccess("studentId", "read"),
+  async (req, res) => {
+    const studentId = Number(req.params.studentId);
+    const documentId = Number(req.params.documentId);
+    const [doc] = await db
+      .select()
+      .from(documentsTable)
+      .where(and(eq(documentsTable.id, documentId), eq(documentsTable.studentId, studentId)));
+    if (!doc) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+    const result = await runDocumentExtraction(documentId);
+    const [updated] = await db
+      .select()
+      .from(documentsTable)
+      .where(eq(documentsTable.id, documentId));
+    await logAudit({
+      userId: req.currentUser!.id,
+      studentId,
+      action: "document.re_extract",
+      entityType: "document",
+      entityId: documentId,
+      details: result.ok ? "ok" : result.error ?? "failed",
+    });
+    res.json(updated);
   },
 );
 

@@ -2580,6 +2580,94 @@ export const useUpdateDocument = <
 };
 
 /**
+ * @summary Re-run AI extraction on a document
+ */
+export const getReExtractDocumentUrl = (
+  studentId: number,
+  documentId: number,
+) => {
+  return `/api/students/${studentId}/documents/${documentId}/re-extract`;
+};
+
+export const reExtractDocument = async (
+  studentId: number,
+  documentId: number,
+  options?: RequestInit,
+): Promise<Document> => {
+  return customFetch<Document>(getReExtractDocumentUrl(studentId, documentId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getReExtractDocumentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reExtractDocument>>,
+    TError,
+    { studentId: number; documentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof reExtractDocument>>,
+  TError,
+  { studentId: number; documentId: number },
+  TContext
+> => {
+  const mutationKey = ["reExtractDocument"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof reExtractDocument>>,
+    { studentId: number; documentId: number }
+  > = (props) => {
+    const { studentId, documentId } = props ?? {};
+
+    return reExtractDocument(studentId, documentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ReExtractDocumentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof reExtractDocument>>
+>;
+
+export type ReExtractDocumentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Re-run AI extraction on a document
+ */
+export const useReExtractDocument = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reExtractDocument>>,
+    TError,
+    { studentId: number; documentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof reExtractDocument>>,
+  TError,
+  { studentId: number; documentId: number },
+  TContext
+> => {
+  return useMutation(getReExtractDocumentMutationOptions(options));
+};
+
+/**
  * @summary Submit document review (validate or reject)
  */
 export const getReviewDocumentUrl = (studentId: number, documentId: number) => {

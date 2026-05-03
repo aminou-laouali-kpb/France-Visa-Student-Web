@@ -668,6 +668,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/Document"
 
+  /students/{studentId}/documents/{documentId}/re-extract:
+    post:
+      operationId: reExtractDocument
+      tags: [documents]
+      summary: Re-run AI extraction on a document
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated document with refreshed extraction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
   /students/{studentId}/documents/{documentId}/review:
     post:
       operationId: reviewDocument
@@ -2628,6 +2652,34 @@ components:
         uploadedAt:
           type: string
           format: date-time
+        # ── Document AI v1 ─────────────────────────────────────────────────
+        extractionStatus:
+          type: string
+          enum: [pending, processing, done, failed, skipped]
+        extractedData:
+          type: ["object", "null"]
+          additionalProperties: true
+        aiCategory:
+          type: ["string", "null"]
+        aiConfidence:
+          type: ["string", "null"]
+          description: Decimal 0..1 as string (numeric column).
+        expiryDate:
+          type: ["string", "null"]
+          description: ISO date YYYY-MM-DD extracted by AI.
+        extractedFirstName:
+          type: ["string", "null"]
+        extractedLastName:
+          type: ["string", "null"]
+        extractedDob:
+          type: ["string", "null"]
+        extractionError:
+          type: ["string", "null"]
+        extractedAt:
+          type: ["string", "null"]
+          format: date-time
+        extractionAttempts:
+          type: integer
         reviews:
           type: array
           items:
@@ -2642,6 +2694,8 @@ components:
         - status
         - version
         - uploadedAt
+        - extractionStatus
+        - extractionAttempts
 
     CreateDocumentBody:
       type: object
@@ -4052,6 +4106,9 @@ components:
         financeReady: { type: boolean }
         accommodationReady: { type: boolean }
         cvecReady: { type: boolean }
+        documentsReady: { type: boolean }
+        expiredDocumentsCount: { type: integer }
+        expiringDocumentsCount: { type: integer }
         targetAcademicYear: { type: string }
         ready: { type: boolean }
         overrideActive: { type: boolean }
@@ -4079,6 +4136,9 @@ components:
         - financeReady
         - accommodationReady
         - cvecReady
+        - documentsReady
+        - expiredDocumentsCount
+        - expiringDocumentsCount
         - targetAcademicYear
         - ready
         - overrideActive

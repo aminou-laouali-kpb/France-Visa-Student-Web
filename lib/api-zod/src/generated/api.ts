@@ -393,6 +393,29 @@ export const GetStudentResponse = zod.object({
       reviewedById: zod.number().nullish(),
       reviewedAt: zod.coerce.date().nullish(),
       uploadedAt: zod.coerce.date(),
+      extractionStatus: zod.enum([
+        "pending",
+        "processing",
+        "done",
+        "failed",
+        "skipped",
+      ]),
+      extractedData: zod.record(zod.string(), zod.unknown()).nullish(),
+      aiCategory: zod.string().nullish(),
+      aiConfidence: zod
+        .string()
+        .nullish()
+        .describe("Decimal 0..1 as string (numeric column)."),
+      expiryDate: zod
+        .string()
+        .nullish()
+        .describe("ISO date YYYY-MM-DD extracted by AI."),
+      extractedFirstName: zod.string().nullish(),
+      extractedLastName: zod.string().nullish(),
+      extractedDob: zod.string().nullish(),
+      extractionError: zod.string().nullish(),
+      extractedAt: zod.coerce.date().nullish(),
+      extractionAttempts: zod.number(),
       reviews: zod
         .array(
           zod.object({
@@ -761,6 +784,29 @@ export const ListDocumentsResponseItem = zod.object({
   reviewedById: zod.number().nullish(),
   reviewedAt: zod.coerce.date().nullish(),
   uploadedAt: zod.coerce.date(),
+  extractionStatus: zod.enum([
+    "pending",
+    "processing",
+    "done",
+    "failed",
+    "skipped",
+  ]),
+  extractedData: zod.record(zod.string(), zod.unknown()).nullish(),
+  aiCategory: zod.string().nullish(),
+  aiConfidence: zod
+    .string()
+    .nullish()
+    .describe("Decimal 0..1 as string (numeric column)."),
+  expiryDate: zod
+    .string()
+    .nullish()
+    .describe("ISO date YYYY-MM-DD extracted by AI."),
+  extractedFirstName: zod.string().nullish(),
+  extractedLastName: zod.string().nullish(),
+  extractedDob: zod.string().nullish(),
+  extractionError: zod.string().nullish(),
+  extractedAt: zod.coerce.date().nullish(),
+  extractionAttempts: zod.number(),
   reviews: zod
     .array(
       zod.object({
@@ -823,6 +869,29 @@ export const GetDocumentResponse = zod.object({
   reviewedById: zod.number().nullish(),
   reviewedAt: zod.coerce.date().nullish(),
   uploadedAt: zod.coerce.date(),
+  extractionStatus: zod.enum([
+    "pending",
+    "processing",
+    "done",
+    "failed",
+    "skipped",
+  ]),
+  extractedData: zod.record(zod.string(), zod.unknown()).nullish(),
+  aiCategory: zod.string().nullish(),
+  aiConfidence: zod
+    .string()
+    .nullish()
+    .describe("Decimal 0..1 as string (numeric column)."),
+  expiryDate: zod
+    .string()
+    .nullish()
+    .describe("ISO date YYYY-MM-DD extracted by AI."),
+  extractedFirstName: zod.string().nullish(),
+  extractedLastName: zod.string().nullish(),
+  extractedDob: zod.string().nullish(),
+  extractionError: zod.string().nullish(),
+  extractedAt: zod.coerce.date().nullish(),
+  extractionAttempts: zod.number(),
   reviews: zod
     .array(
       zod.object({
@@ -874,6 +943,97 @@ export const UpdateDocumentResponse = zod.object({
   reviewedById: zod.number().nullish(),
   reviewedAt: zod.coerce.date().nullish(),
   uploadedAt: zod.coerce.date(),
+  extractionStatus: zod.enum([
+    "pending",
+    "processing",
+    "done",
+    "failed",
+    "skipped",
+  ]),
+  extractedData: zod.record(zod.string(), zod.unknown()).nullish(),
+  aiCategory: zod.string().nullish(),
+  aiConfidence: zod
+    .string()
+    .nullish()
+    .describe("Decimal 0..1 as string (numeric column)."),
+  expiryDate: zod
+    .string()
+    .nullish()
+    .describe("ISO date YYYY-MM-DD extracted by AI."),
+  extractedFirstName: zod.string().nullish(),
+  extractedLastName: zod.string().nullish(),
+  extractedDob: zod.string().nullish(),
+  extractionError: zod.string().nullish(),
+  extractedAt: zod.coerce.date().nullish(),
+  extractionAttempts: zod.number(),
+  reviews: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        documentId: zod.number(),
+        reviewerId: zod.number(),
+        reviewerName: zod.string(),
+        decision: zod.enum(["validated", "rejected"]),
+        comment: zod.string().nullish(),
+        createdAt: zod.coerce.date(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * @summary Re-run AI extraction on a document
+ */
+export const ReExtractDocumentParams = zod.object({
+  studentId: zod.coerce.number(),
+  documentId: zod.coerce.number(),
+});
+
+export const ReExtractDocumentResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  uploadedById: zod.number().nullish(),
+  category: zod.string(),
+  name: zod.string(),
+  fileName: zod.string(),
+  objectPath: zod.string(),
+  mimeType: zod.string().nullish(),
+  sizeBytes: zod.number().nullish(),
+  status: zod.enum([
+    "missing",
+    "received",
+    "under_review",
+    "validated",
+    "rejected",
+  ]),
+  version: zod.number(),
+  rejectionReason: zod.string().nullish(),
+  reviewedById: zod.number().nullish(),
+  reviewedAt: zod.coerce.date().nullish(),
+  uploadedAt: zod.coerce.date(),
+  extractionStatus: zod.enum([
+    "pending",
+    "processing",
+    "done",
+    "failed",
+    "skipped",
+  ]),
+  extractedData: zod.record(zod.string(), zod.unknown()).nullish(),
+  aiCategory: zod.string().nullish(),
+  aiConfidence: zod
+    .string()
+    .nullish()
+    .describe("Decimal 0..1 as string (numeric column)."),
+  expiryDate: zod
+    .string()
+    .nullish()
+    .describe("ISO date YYYY-MM-DD extracted by AI."),
+  extractedFirstName: zod.string().nullish(),
+  extractedLastName: zod.string().nullish(),
+  extractedDob: zod.string().nullish(),
+  extractionError: zod.string().nullish(),
+  extractedAt: zod.coerce.date().nullish(),
+  extractionAttempts: zod.number(),
   reviews: zod
     .array(
       zod.object({
@@ -2559,6 +2719,9 @@ export const GetFinancialReadinessResponse = zod.object({
   financeReady: zod.boolean(),
   accommodationReady: zod.boolean(),
   cvecReady: zod.boolean(),
+  documentsReady: zod.boolean(),
+  expiredDocumentsCount: zod.number(),
+  expiringDocumentsCount: zod.number(),
   targetAcademicYear: zod.string(),
   ready: zod.boolean(),
   overrideActive: zod.boolean(),

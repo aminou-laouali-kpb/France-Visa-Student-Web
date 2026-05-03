@@ -1,5 +1,6 @@
 export { chat, chatStream } from "./chat";
 export { vision } from "./vision";
+export { isGroqConfigured } from "./client";
 export { transcribe } from "./transcribe";
 export { checkAiHealth } from "./health";
 export {

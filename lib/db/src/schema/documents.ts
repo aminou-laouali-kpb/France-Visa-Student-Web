@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, pgEnum, jsonb, numeric, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { studentsTable } from "./students";
@@ -9,6 +9,10 @@ export const documentStatusEnum = pgEnum("document_status", [
 ]);
 
 export const reviewDecisionEnum = pgEnum("review_decision", ["validated", "rejected"]);
+
+export const documentExtractionStatusEnum = pgEnum("document_extraction_status", [
+  "pending", "processing", "done", "failed", "skipped"
+]);
 
 export const documentsTable = pgTable("documents", {
   id: serial("id").primaryKey(),
@@ -26,6 +30,18 @@ export const documentsTable = pgTable("documents", {
   rejectionReason: text("rejection_reason"),
   reviewedAt: timestamp("reviewed_at"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  // ── Document AI v1 ────────────────────────────────────────────────────────
+  extractionStatus: documentExtractionStatusEnum("extraction_status").notNull().default("pending"),
+  extractedData: jsonb("extracted_data"),
+  aiCategory: text("ai_category"),
+  aiConfidence: numeric("ai_confidence", { precision: 4, scale: 3 }),
+  expiryDate: date("expiry_date"),
+  extractedFirstName: text("extracted_first_name"),
+  extractedLastName: text("extracted_last_name"),
+  extractedDob: date("extracted_dob"),
+  extractionError: text("extraction_error"),
+  extractedAt: timestamp("extracted_at"),
+  extractionAttempts: integer("extraction_attempts").notNull().default(0),
 });
 
 export const documentReviewsTable = pgTable("document_reviews", {

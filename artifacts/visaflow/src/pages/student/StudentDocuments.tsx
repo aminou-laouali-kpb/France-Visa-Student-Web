@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useListDocuments } from "@workspace/api-client-react";
+import {
+  useListDocuments,
+  useReExtractDocument,
+} from "@workspace/api-client-react";
 import { useAuth } from "@clerk/react";
 import type { Document, UploadUrlResponse } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,10 +131,10 @@ function Inner() {
                   g.docs.map((d) => (
                     <div
                       key={d.id}
-                      className="flex items-center gap-3 p-4"
+                      className="flex items-start gap-3 p-4"
                       data-testid={`doc-${d.id}`}
                     >
-                      <FileText className="w-6 h-6 text-blue-600 shrink-0" />
+                      <FileText className="w-6 h-6 text-blue-600 shrink-0 mt-1" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{d.name}</div>
                         <div className="text-xs text-slate-500">
@@ -142,6 +145,7 @@ function Inner() {
                             ⚠️ {d.rejectionReason}
                           </div>
                         )}
+                        <StudentDocExtraction doc={d} studentId={studentId} onRefetch={refetch} />
                       </div>
                       <StatusBadge status={d.status} />
                     </div>
@@ -152,6 +156,87 @@ function Inner() {
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+function StudentDocExtraction({
+  doc,
+  studentId,
+  onRefetch,
+}: {
+  doc: Document;
+  studentId: number;
+  onRefetch: () => void;
+}) {
+  const reExtract = useReExtractDocument();
+  const status = doc.extractionStatus ?? "pending";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expDays = doc.expiryDate
+    ? Math.floor(
+        (new Date(`${doc.expiryDate}T00:00:00Z`).getTime() - today.getTime()) /
+          (24 * 3600 * 1000),
+      )
+    : null;
+  const SOON_DAYS = 183;
+  const expired = expDays !== null && expDays < 0;
+  const expiringSoon = expDays !== null && expDays >= 0 && expDays <= SOON_DAYS;
+
+  const banners: { tone: "red" | "amber"; text: string }[] = [];
+  if (expired)
+    banners.push({ tone: "red", text: `Expiré le ${doc.expiryDate}.` });
+  else if (expiringSoon)
+    banners.push({
+      tone: "amber",
+      text: `Expire dans ${expDays} j (${doc.expiryDate}).`,
+    });
+
+  if (status === "pending" || status === "processing") {
+    return (
+      <div
+        className="text-xs text-blue-600 mt-1"
+        data-testid={`extraction-status-${doc.id}`}
+      >
+        Analyse IA en cours…
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1 space-y-1">
+      {banners.map((b, i) => (
+        <div
+          key={i}
+          className={
+            "text-xs rounded px-2 py-1 inline-block " +
+            (b.tone === "red"
+              ? "bg-rose-50 text-rose-700 border border-rose-200"
+              : "bg-amber-50 text-amber-800 border border-amber-200")
+          }
+          data-testid={`extraction-warning-${doc.id}-${i}`}
+        >
+          ⚠️ {b.text}
+        </div>
+      ))}
+      {status === "failed" && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-rose-600">Analyse IA en échec.</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-xs"
+            onClick={async () => {
+              await reExtract.mutateAsync({ studentId, documentId: doc.id });
+              onRefetch();
+            }}
+            disabled={reExtract.isPending}
+            data-testid={`button-reextract-${doc.id}`}
+          >
+            Relancer
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
