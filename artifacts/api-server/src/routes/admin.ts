@@ -28,15 +28,26 @@ router.get("/audit-logs", requireAuth, async (req, res) => {
   }
   const studentId = req.query.studentId ? Number(req.query.studentId) : undefined;
   const userId = req.query.userId ? Number(req.query.userId) : undefined;
+  const action =
+    typeof req.query.action === "string" && req.query.action
+      ? String(req.query.action)
+      : undefined;
   const limit = Math.min(Number(req.query.limit) || 100, 500);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
 
-  let rows = await db
+  const conds = [];
+  if (studentId) conds.push(eq(auditLogsTable.studentId, studentId));
+  if (userId) conds.push(eq(auditLogsTable.userId, userId));
+  if (action) conds.push(eq(auditLogsTable.action, action));
+  const whereExpr = conds.length ? and(...conds) : undefined;
+
+  const rows = await db
     .select()
     .from(auditLogsTable)
+    .where(whereExpr)
     .orderBy(desc(auditLogsTable.createdAt))
-    .limit(limit);
-  if (studentId) rows = rows.filter((l) => l.studentId === studentId);
-  if (userId) rows = rows.filter((l) => l.userId === userId);
+    .limit(limit)
+    .offset(offset);
   res.json(rows);
 });
 

@@ -231,7 +231,9 @@ export function AdminCountries() {
   const toggleCampusFrance = async (countryId: number, current: boolean) => {
     await update.mutateAsync({
       countryId,
-      data: { requiresCampusFrance: !current } as unknown as UpdateCountryPatchBody,
+      data: { requiresCampusFrance: !current } as unknown as Parameters<
+        typeof update.mutateAsync
+      >[0]["data"],
     });
     refetch();
   };

@@ -1,5 +1,8 @@
-import { useGetPortfolioStats } from "@workspace/api-client-react";
-import type { PortfolioStatsData, CountStat } from "@/types";
+import {
+  useGetPortfolioStats,
+  useListStudents,
+} from "@workspace/api-client-react";
+import type { PortfolioStatsData, CountStat, StudentSummary } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ResponsiveContainer,
@@ -13,22 +16,42 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
-  LineChart,
-  Line,
 } from "recharts";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
 
+const HISTOGRAM_BUCKETS: { label: string; min: number; max: number }[] = [
+  { label: "0–20%", min: 0, max: 20 },
+  { label: "21–40%", min: 21, max: 40 },
+  { label: "41–60%", min: 41, max: 60 },
+  { label: "61–80%", min: 61, max: 80 },
+  { label: "81–100%", min: 81, max: 100 },
+];
+
 export function AdvisorReports() {
   const { data: rawStats, isLoading } = useGetPortfolioStats();
+  const { data: studentsRaw = [] } = useListStudents({});
   const stats = rawStats as unknown as PortfolioStatsData | undefined;
+  const students = studentsRaw as unknown as StudentSummary[];
 
   if (isLoading) return <div className="p-8">Chargement…</div>;
 
   const byStatus = stats?.byStatus ?? [];
   const byCountry = stats?.byCountry ?? [];
   const byRisk = stats?.byRiskLevel ?? [];
-  const byMonth = stats?.byIntakeMonth ?? [];
+
+  const byCompletion: CountStat[] = HISTOGRAM_BUCKETS.map((b) => {
+    const count = students.filter(
+      (s) => s.completionScore >= b.min && s.completionScore <= b.max,
+    ).length;
+    return {
+      label: b.label,
+      count,
+      percentage: students.length
+        ? Math.round((count / students.length) * 100)
+        : 0,
+    };
+  });
 
   return (
     <div className="space-y-6" data-testid="advisor-reports">
@@ -108,26 +131,24 @@ export function AdvisorReports() {
           )}
         </ChartCard>
 
-        <ChartCard title="Tendance des admissions">
-          {byMonth.length === 0 ? (
+        <ChartCard title="Distribution des taux de complétion">
+          {students.length === 0 ? (
             <Empty />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={byMonth}>
+              <BarChart data={byCompletion}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="count"
                   name="Étudiants"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
+                  fill="#10b981"
+                  radius={[4, 4, 0, 0]}
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>

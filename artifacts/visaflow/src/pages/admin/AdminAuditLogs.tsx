@@ -17,32 +17,23 @@ export function AdminAuditLogs() {
   const [page, setPage] = useState(0);
 
   const params = useMemo(() => {
-    const p: Record<string, number | string> = {};
+    const p: Record<string, number | string> = {
+      limit: PAGE_SIZE + 1,
+      offset: page * PAGE_SIZE,
+    };
     if (userId) p.userId = Number(userId);
     if (action) p.action = action;
+    if (studentId) p.studentId = Number(studentId);
     return p;
-  }, [userId, action]);
+  }, [userId, action, studentId, page]);
 
-  const { data: logsRaw = [] } = useListAuditLogs(params);
+  const { data: logsRaw = [], isLoading } = useListAuditLogs(params);
   const { data: usersRaw = [] } = useListUsers({});
   const users = usersRaw as unknown as UserRow[];
   const allLogs = logsRaw as unknown as AuditLog[];
 
-  const filtered = useMemo(() => {
-    let out = allLogs;
-    if (studentId) {
-      const sid = Number(studentId);
-      out = out.filter(
-        (l) =>
-          l.studentId === sid ||
-          (l.entityType === "student" && l.entityId === sid),
-      );
-    }
-    return out;
-  }, [allLogs, studentId]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visible = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const hasNext = allLogs.length > PAGE_SIZE;
+  const visible = allLogs.slice(0, PAGE_SIZE);
 
   const userById = (id?: number | null) => {
     if (!id) return null;
@@ -53,6 +44,11 @@ export function AdminAuditLogs() {
     setUserId("");
     setAction("");
     setStudentId("");
+    setPage(0);
+  };
+
+  const onFilterChange = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
     setPage(0);
   };
 
@@ -76,10 +72,7 @@ export function AdminAuditLogs() {
             <select
               className="w-full mt-1 border rounded-lg px-3 py-2 bg-white text-sm"
               value={userId}
-              onChange={(e) => {
-                setUserId(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => onFilterChange(setUserId)(e.target.value)}
               data-testid="filter-user"
             >
               <option value="">Tous</option>
@@ -95,10 +88,7 @@ export function AdminAuditLogs() {
             <Input
               placeholder="ex. student.update"
               value={action}
-              onChange={(e) => {
-                setAction(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => onFilterChange(setAction)(e.target.value)}
               data-testid="filter-action"
             />
           </div>
@@ -108,10 +98,7 @@ export function AdminAuditLogs() {
               type="number"
               placeholder="ex. 42"
               value={studentId}
-              onChange={(e) => {
-                setStudentId(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => onFilterChange(setStudentId)(e.target.value)}
               data-testid="filter-student"
             />
           </div>
@@ -174,7 +161,7 @@ export function AdminAuditLogs() {
                     </tr>
                   );
                 })}
-                {visible.length === 0 && (
+                {!isLoading && visible.length === 0 && (
                   <tr>
                     <td colSpan={5} className="p-12 text-center text-slate-500">
                       Aucune entrée pour ces filtres.
@@ -184,33 +171,29 @@ export function AdminAuditLogs() {
               </tbody>
             </table>
           </div>
-          {filtered.length > PAGE_SIZE && (
-            <div className="flex items-center justify-between p-3 border-t bg-slate-50">
-              <div className="text-xs text-slate-500">
-                {filtered.length} entrées · page {page + 1} / {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  data-testid="button-prev-page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  data-testid="button-next-page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
+          <div className="flex items-center justify-between p-3 border-t bg-slate-50">
+            <div className="text-xs text-slate-500">Page {page + 1}</div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                data-testid="button-prev-page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!hasNext}
+                onClick={() => setPage((p) => p + 1)}
+                data-testid="button-next-page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>
