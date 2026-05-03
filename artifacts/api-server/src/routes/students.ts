@@ -216,7 +216,7 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
   res.json(updated);
 });
 
-router.post(
+router.patch(
   "/students/:studentId/assign",
   requireAuth,
   requireRole("admin", "superadmin"),
