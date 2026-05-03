@@ -173,12 +173,17 @@ router.get("/students", requireAuth, async (req, res) => {
   const search = req.query.search as string | undefined;
   const countryId = req.query.countryId ? Number(req.query.countryId) : undefined;
   const schoolId = req.query.schoolId ? Number(req.query.schoolId) : undefined;
-  const advisorId = req.query.advisorId ? Number(req.query.advisorId) : undefined;
+  const advisorIdRaw =
+    req.query.advisorId !== undefined ? Number(req.query.advisorId) : undefined;
   const riskLevel = req.query.riskLevel as string | undefined;
   if (status) rows = rows.filter((r) => r.status === status);
   if (countryId) rows = rows.filter((r) => r.countryId === countryId);
   if (schoolId) rows = rows.filter((r) => r.schoolId === schoolId);
-  if (advisorId) rows = rows.filter((r) => r.advisorId === advisorId);
+  if (advisorIdRaw === 0) {
+    rows = rows.filter((r) => r.advisorId == null);
+  } else if (advisorIdRaw && !Number.isNaN(advisorIdRaw)) {
+    rows = rows.filter((r) => r.advisorId === advisorIdRaw);
+  }
   if (riskLevel) rows = rows.filter((r) => r.riskLevel === riskLevel);
   if (search) {
     const q = search.toLowerCase();

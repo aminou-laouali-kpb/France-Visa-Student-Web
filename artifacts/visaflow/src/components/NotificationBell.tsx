@@ -21,8 +21,19 @@ export function NotificationBell() {
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
 
+  const handleOpenChange = async (open: boolean) => {
+    if (open && unread.length > 0) {
+      try {
+        await markAll.mutateAsync();
+        refetch();
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   return (
-    <Popover>
+    <Popover onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           className="relative w-10 h-10 rounded-full hover:bg-slate-100 inline-flex items-center justify-center"

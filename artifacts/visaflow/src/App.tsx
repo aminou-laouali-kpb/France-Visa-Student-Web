@@ -21,7 +21,7 @@ import { StudentMessages } from "@/pages/student/StudentMessages";
 import { MyTasks } from "@/pages/MyTasks";
 import { Notifications } from "@/pages/Notifications";
 import { Profile } from "@/pages/Profile";
-import { AdminUsers, AdminAudit, AdminSchools, AdminCountries } from "@/pages/Admin";
+import { AdminUsers, AdminCountries } from "@/pages/Admin";
 import { AdvisorPortfolio } from "@/pages/advisor/AdvisorPortfolio";
 import { AdvisorReports } from "@/pages/advisor/AdvisorReports";
 import { AdvisorTasks } from "@/pages/advisor/AdvisorTasks";
@@ -176,27 +176,6 @@ function AppRouter() {
           <Profile />
         </Protected>
       </Route>
-      <Route path="/app/admin/users">
-        <Protected>
-          <AdminUsers />
-        </Protected>
-      </Route>
-      <Route path="/app/admin/audit">
-        <Protected>
-          <AdminAudit />
-        </Protected>
-      </Route>
-      <Route path="/app/admin/schools">
-        <Protected>
-          <AdminSchools />
-        </Protected>
-      </Route>
-      <Route path="/app/admin/countries">
-        <Protected>
-          <AdminCountries />
-        </Protected>
-      </Route>
-
       <Route path="/advisor">
         <StaffOnly>
           <AdvisorPortfolio />
