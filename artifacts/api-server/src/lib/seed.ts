@@ -269,27 +269,45 @@ export const STEPS: SeedStep[] = [
 ];
 
 export async function seedReferenceData(): Promise<void> {
+  // Each dataset (countries, workflow template, workflow steps, schools,
+  // programs) is checked and inserted independently so that pre-populated
+  // databases still receive newly-added reference data on upgrade. The
+  // function is safe to run on every startup.
   try {
-    const existing = await db.select().from(countriesTable).limit(1);
-    if (existing.length > 0) {
-      logger.info("Seed skipped: data already present");
-      return;
+    // Countries — insert any code that does not already exist.
+    const existingCountries = await db.select().from(countriesTable);
+    const existingCountryCodes = new Set(existingCountries.map((c) => c.code));
+    const newCountries = COUNTRIES.filter((c) => !existingCountryCodes.has(c.code));
+    if (newCountries.length > 0) {
+      await db.insert(countriesTable).values(newCountries);
     }
 
-    await db.insert(countriesTable).values(COUNTRIES);
+    // Workflow template — find the default; create only if missing.
+    let [tpl] = await db
+      .select()
+      .from(workflowTemplatesTable)
+      .where(eq(workflowTemplatesTable.isDefault, true));
+    if (!tpl) {
+      [tpl] = await db
+        .insert(workflowTemplatesTable)
+        .values({
+          name: "Procédure visa étudiant France — Standard",
+          description: "Parcours en 21 étapes pour étudiants africains francophones",
+          isDefault: true,
+          version: 1,
+        })
+        .returning();
+    }
 
-    const [tpl] = await db
-      .insert(workflowTemplatesTable)
-      .values({
-        name: "Procédure visa étudiant France — Standard",
-        description: "Parcours en 21 étapes pour étudiants africains francophones",
-        isDefault: true,
-        version: 1,
-      })
-      .returning();
-
-    await db.insert(workflowStepsTable).values(
-      STEPS.map((s, i) => ({
+    // Workflow steps — insert any name that does not already exist for the
+    // default template (preserves existing step ids / student references).
+    const existingSteps = await db
+      .select()
+      .from(workflowStepsTable)
+      .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
+    const existingStepNames = new Set(existingSteps.map((s) => s.name));
+    const newSteps = STEPS
+      .map((s, i) => ({
         workflowTemplateId: tpl.id,
         name: s.name,
         order: i + 1,
@@ -297,37 +315,71 @@ export async function seedReferenceData(): Promise<void> {
         isRequired: true,
         isActive: true,
         requiredDocumentCategories: s.requiredDocumentCategories,
-      })),
-    );
+      }))
+      .filter((s) => !existingStepNames.has(s.name));
+    if (newSteps.length > 0) {
+      await db.insert(workflowStepsTable).values(newSteps);
+    }
 
-    // Seed schools + programs (idempotent: only when schoolsTable is empty)
+    // Schools — insert any school whose name is not already present, with
+    // its programs attached.
+    const existingSchoolRows = await db.select().from(schoolsTable);
+    const existingSchoolNames = new Set(existingSchoolRows.map((s) => s.name));
     let schoolsSeeded = 0;
     let programsSeeded = 0;
-    const existingSchools = await db.select().from(schoolsTable).limit(1);
-    if (existingSchools.length === 0) {
-      for (const s of SCHOOLS) {
-        const [school] = await db
-          .insert(schoolsTable)
-          .values({ name: s.name, city: s.city, website: s.website ?? null })
-          .returning();
-        if (s.programs.length > 0) {
-          await db.insert(programsTable).values(
-            s.programs.map((p) => ({
-              schoolId: school.id,
-              name: p.name,
-              level: p.level,
-              duration: p.duration ?? null,
-            })),
-          );
-          programsSeeded += s.programs.length;
+    for (const s of SCHOOLS) {
+      if (existingSchoolNames.has(s.name)) {
+        // School exists; backfill any missing programs by name match.
+        const [schoolRow] = await db
+          .select()
+          .from(schoolsTable)
+          .where(eq(schoolsTable.name, s.name));
+        if (!schoolRow) continue;
+        const existingPrograms = await db
+          .select()
+          .from(programsTable)
+          .where(eq(programsTable.schoolId, schoolRow.id));
+        const existingProgramNames = new Set(existingPrograms.map((p) => p.name));
+        const newPrograms = s.programs
+          .filter((p) => !existingProgramNames.has(p.name))
+          .map((p) => ({
+            schoolId: schoolRow.id,
+            name: p.name,
+            level: p.level,
+            duration: p.duration ?? null,
+          }));
+        if (newPrograms.length > 0) {
+          await db.insert(programsTable).values(newPrograms);
+          programsSeeded += newPrograms.length;
         }
-        schoolsSeeded += 1;
+        continue;
+      }
+      const [school] = await db
+        .insert(schoolsTable)
+        .values({ name: s.name, city: s.city, website: s.website ?? null })
+        .returning();
+      schoolsSeeded += 1;
+      if (s.programs.length > 0) {
+        await db.insert(programsTable).values(
+          s.programs.map((p) => ({
+            schoolId: school.id,
+            name: p.name,
+            level: p.level,
+            duration: p.duration ?? null,
+          })),
+        );
+        programsSeeded += s.programs.length;
       }
     }
 
     logger.info(
-      { countries: COUNTRIES.length, steps: STEPS.length, schools: schoolsSeeded, programs: programsSeeded },
-      "Reference data seeded",
+      {
+        countriesAdded: newCountries.length,
+        stepsAdded: newSteps.length,
+        schoolsAdded: schoolsSeeded,
+        programsAdded: programsSeeded,
+      },
+      "Reference data sync complete",
     );
   } catch (err) {
     logger.error({ err }, "Seed failed");

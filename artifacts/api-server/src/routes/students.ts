@@ -20,6 +20,7 @@ import {
   isAdmin,
   canAccessStudent,
   requireStudentAccess,
+  requireRole,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
 import { sendMail } from "../lib/mailer";
@@ -218,9 +219,13 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
 router.post(
   "/students/:studentId/assign",
   requireAuth,
+  requireRole("admin", "superadmin"),
   validateBody(AssignStudentBody),
   async (req, res) => {
-    if (!isStaff(req.currentUser!)) {
+    // Reassignment is an admin-only operation: it changes who owns the
+    // dossier and therefore who can read/write it. Advisors and reviewers —
+    // even those currently assigned to the student — cannot reassign.
+    if (!isAdmin(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
