@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -13,6 +13,13 @@ export const studentStatusEnum = pgEnum("student_status", [
 export const stepStatusEnum = pgEnum("step_status", [
   "not_started", "in_progress", "submitted", "under_review", "blocked", "validated", "rejected"
 ]);
+
+// VLS-TS: visa long séjour valant titre de séjour (>3 month stays, the default
+// for most degree programs). VLS-T: visa long séjour temporaire (3–12 month
+// non-renewable stays, e.g. language schools, exchange semesters). The two
+// downstream workflows differ — only VLS-TS holders must validate via ANEF
+// within 3 months of arrival.
+export const visaTypeEnum = pgEnum("visa_type", ["vls_ts", "vls_t"]);
 
 export const studentsTable = pgTable("students", {
   id: serial("id").primaryKey(),
@@ -37,6 +44,13 @@ export const studentsTable = pgTable("students", {
   intakeDate: text("intake_date"),
   programEndDate: text("program_end_date"),
   monthlyMinimumEur: integer("monthly_minimum_eur"),
+  // Visa type drives the post-arrival workflow (VLS-TS gets ANEF validation
+  // and titre renewal; VLS-T does not).
+  visaType: visaTypeEnum("visa_type"),
+  // Planned arrival in France (drives 14/7/1d pre-arrival reminders).
+  arrivalDate: text("arrival_date"),
+  // Expiry of the current titre de séjour (drives 60d pre-renewal reminder).
+  titreExpiryDate: text("titre_expiry_date"),
   submissionGateOverride: boolean("submission_gate_override").notNull().default(false),
   submissionGateOverrideReason: text("submission_gate_override_reason"),
   status: studentStatusEnum("status").notNull().default("active"),
@@ -74,6 +88,41 @@ export const checklistItemsTable = pgTable("checklist_items", {
   order: integer("order").notNull().default(0),
 });
 
+// Post-arrival workflow steps mirrored on the student-steps pattern.
+// Generated when the student transitions to "visa_obtained" — the dossier
+// is far from over: ANEF VLS-TS validation, OFII medical, CAF, Sécu
+// étudiante, bank account, and the titre-de-séjour renewal must be
+// tracked individually with status, due dates and notes.
+export const postArrivalStepsTable = pgTable(
+  "post_arrival_steps",
+  {
+    id: serial("id").primaryKey(),
+    studentId: integer("student_id").notNull().references(() => studentsTable.id),
+    // Stable code (anef_validation, ofii_medical, caf, secu_etudiante, bank,
+    // titre_renewal, …) so reminders / business rules can target a step
+    // without depending on a translatable label.
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    description: text("description"),
+    status: stepStatusEnum("status").notNull().default("not_started"),
+    dueDate: text("due_date"),
+    completedAt: timestamp("completed_at"),
+    notes: text("notes"),
+    order: integer("order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    // (student, code) is the natural key — a student can never have two
+    // rows for the same workflow step. Backs concurrency-safe upserts in
+    // provisionPostArrivalSteps via onConflictDoNothing.
+    studentCodeUq: uniqueIndex("post_arrival_student_code_uq").on(
+      t.studentId,
+      t.code,
+    ),
+  }),
+);
+
 export const insertStudentSchema = createInsertSchema(studentsTable).omit({ id: true, createdAt: true, updatedAt: true, completionScore: true, lastActivityAt: true });
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
 export type Student = typeof studentsTable.$inferSelect;
@@ -85,3 +134,7 @@ export type StudentStep = typeof studentStepsTable.$inferSelect;
 export const insertChecklistItemSchema = createInsertSchema(checklistItemsTable).omit({ id: true });
 export type InsertChecklistItem = z.infer<typeof insertChecklistItemSchema>;
 export type ChecklistItem = typeof checklistItemsTable.$inferSelect;
+
+export const insertPostArrivalStepSchema = createInsertSchema(postArrivalStepsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPostArrivalStep = z.infer<typeof insertPostArrivalStepSchema>;
+export type PostArrivalStep = typeof postArrivalStepsTable.$inferSelect;

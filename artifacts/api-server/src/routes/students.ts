@@ -247,6 +247,7 @@ router.post("/students", requireAuth, validateBody(CreateStudentBody), async (re
     await applyMatrixToStudent(created.id, {
       nationalityCode: created.nationalityCode,
       programLevel: await loadProgramLevel(created.programId ?? null),
+      visaType: created.visaType,
     });
   } catch (e) {
     // Matrix application must never block dossier creation. Log so an
@@ -351,6 +352,27 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     body.status &&
     body.status !== previousStatus &&
     (body.status === "visa_obtained" || body.status === "visa_refused");
+  // When the student transitions into "visa_obtained", provision the
+  // post-arrival workflow (ANEF, OFII medical, CAF, Sécu étudiante, bank,
+  // titre renewal). Idempotent — replays of the transition are safe.
+  if (
+    body.status === "visa_obtained" &&
+    previousStatus !== "visa_obtained"
+  ) {
+    try {
+      const { provisionPostArrivalSteps } = await import("../lib/postArrival");
+      await provisionPostArrivalSteps(updated.id, {
+        visaType: updated.visaType,
+        arrivalDate: updated.arrivalDate,
+      });
+    } catch (e) {
+      req.log?.warn?.(
+        { err: e, studentId: updated.id },
+        "provisionPostArrivalSteps failed during visa_obtained transition",
+      );
+    }
+  }
+
   if (isVisaDecision) {
     try {
       const recipientIds = new Set<number>();

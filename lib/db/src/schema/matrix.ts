@@ -27,6 +27,11 @@ export const documentMatrixEntriesTable = pgTable(
       .notNull()
       .default([]),
     visaCenter: text("visa_center"),
+    // Optional visa-type axis. NULL means the entry applies to any visa
+    // type for the (nationality, level) pair; "vls_ts" / "vls_t" pin the
+    // entry to a specific visa type (the France-Visas portal document
+    // list differs slightly between the two).
+    visaType: text("visa_type"),
     campusFranceRequired: boolean("campus_france_required")
       .notNull()
       .default(true),
@@ -37,9 +42,17 @@ export const documentMatrixEntriesTable = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    natLevelUq: uniqueIndex("doc_matrix_nat_level_uq").on(
+    // Unique on the 3-axis natural key. Postgres treats NULLs as distinct,
+    // which is the desired behaviour: the NULL-visa-type row coexists with
+    // the per-visa-type rows for the same (nationality, level) pair. The
+    // matrix is admin-only and writes are extremely low-volume, so the
+    // app-layer dedup in routes/matrix.ts is sufficient — concurrent
+    // duplicate inserts of the same NULL-visa-type baseline are practically
+    // impossible.
+    natLevelUq: uniqueIndex("doc_matrix_nat_level_visatype_uq").on(
       t.nationalityCode,
       t.programLevel,
+      t.visaType,
     ),
   }),
 );

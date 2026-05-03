@@ -76,11 +76,13 @@ import type {
   MotivationLetterVersion,
   Notification,
   PortfolioStats,
+  PostArrivalStep,
   PriorSchoolingEntry,
   Program,
   ProjetEtudes,
   ProjetEtudesVersion,
   RefreshChecklistResponse,
+  RegeneratePostArrivalSteps200,
   RequestUploadUrlBody,
   ResolveDocumentMatrixParams,
   ResolvedDocumentMatrix,
@@ -109,6 +111,7 @@ import type {
   UpdateEefWishBody,
   UpdateFinancialProofBody,
   UpdateLanguageTestBody,
+  UpdatePostArrivalStepBody,
   UpdatePriorSchoolingEntryBody,
   UpdateStudentBody,
   UpdateStudentStepBody,
@@ -3967,6 +3970,297 @@ export const useDeleteAppointment = <
   TContext
 > => {
   return useMutation(getDeleteAppointmentMutationOptions(options));
+};
+
+/**
+ * @summary List post-arrival steps for a student
+ */
+export const getListPostArrivalStepsUrl = (studentId: number) => {
+  return `/api/students/${studentId}/post-arrival-steps`;
+};
+
+export const listPostArrivalSteps = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<PostArrivalStep[]> => {
+  return customFetch<PostArrivalStep[]>(getListPostArrivalStepsUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPostArrivalStepsQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/post-arrival-steps`] as const;
+};
+
+export const getListPostArrivalStepsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPostArrivalSteps>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPostArrivalSteps>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListPostArrivalStepsQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPostArrivalSteps>>
+  > = ({ signal }) =>
+    listPostArrivalSteps(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPostArrivalSteps>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPostArrivalStepsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPostArrivalSteps>>
+>;
+export type ListPostArrivalStepsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List post-arrival steps for a student
+ */
+
+export function useListPostArrivalSteps<
+  TData = Awaited<ReturnType<typeof listPostArrivalSteps>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listPostArrivalSteps>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPostArrivalStepsQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Idempotently (re)provision the post-arrival workflow
+ */
+export const getRegeneratePostArrivalStepsUrl = (studentId: number) => {
+  return `/api/students/${studentId}/post-arrival-steps/regenerate`;
+};
+
+export const regeneratePostArrivalSteps = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<RegeneratePostArrivalSteps200> => {
+  return customFetch<RegeneratePostArrivalSteps200>(
+    getRegeneratePostArrivalStepsUrl(studentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getRegeneratePostArrivalStepsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regeneratePostArrivalSteps>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof regeneratePostArrivalSteps>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  const mutationKey = ["regeneratePostArrivalSteps"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof regeneratePostArrivalSteps>>,
+    { studentId: number }
+  > = (props) => {
+    const { studentId } = props ?? {};
+
+    return regeneratePostArrivalSteps(studentId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegeneratePostArrivalStepsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof regeneratePostArrivalSteps>>
+>;
+
+export type RegeneratePostArrivalStepsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Idempotently (re)provision the post-arrival workflow
+ */
+export const useRegeneratePostArrivalSteps = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regeneratePostArrivalSteps>>,
+    TError,
+    { studentId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof regeneratePostArrivalSteps>>,
+  TError,
+  { studentId: number },
+  TContext
+> => {
+  return useMutation(getRegeneratePostArrivalStepsMutationOptions(options));
+};
+
+/**
+ * @summary Update a post-arrival step
+ */
+export const getUpdatePostArrivalStepUrl = (
+  studentId: number,
+  stepId: number,
+) => {
+  return `/api/students/${studentId}/post-arrival-steps/${stepId}`;
+};
+
+export const updatePostArrivalStep = async (
+  studentId: number,
+  stepId: number,
+  updatePostArrivalStepBody: UpdatePostArrivalStepBody,
+  options?: RequestInit,
+): Promise<PostArrivalStep> => {
+  return customFetch<PostArrivalStep>(
+    getUpdatePostArrivalStepUrl(studentId, stepId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updatePostArrivalStepBody),
+    },
+  );
+};
+
+export const getUpdatePostArrivalStepMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePostArrivalStep>>,
+    TError,
+    {
+      studentId: number;
+      stepId: number;
+      data: BodyType<UpdatePostArrivalStepBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePostArrivalStep>>,
+  TError,
+  {
+    studentId: number;
+    stepId: number;
+    data: BodyType<UpdatePostArrivalStepBody>;
+  },
+  TContext
+> => {
+  const mutationKey = ["updatePostArrivalStep"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePostArrivalStep>>,
+    {
+      studentId: number;
+      stepId: number;
+      data: BodyType<UpdatePostArrivalStepBody>;
+    }
+  > = (props) => {
+    const { studentId, stepId, data } = props ?? {};
+
+    return updatePostArrivalStep(studentId, stepId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePostArrivalStepMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePostArrivalStep>>
+>;
+export type UpdatePostArrivalStepMutationBody =
+  BodyType<UpdatePostArrivalStepBody>;
+export type UpdatePostArrivalStepMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a post-arrival step
+ */
+export const useUpdatePostArrivalStep = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePostArrivalStep>>,
+    TError,
+    {
+      studentId: number;
+      stepId: number;
+      data: BodyType<UpdatePostArrivalStepBody>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePostArrivalStep>>,
+  TError,
+  {
+    studentId: number;
+    stepId: number;
+    data: BodyType<UpdatePostArrivalStepBody>;
+  },
+  TContext
+> => {
+  return useMutation(getUpdatePostArrivalStepMutationOptions(options));
 };
 
 /**

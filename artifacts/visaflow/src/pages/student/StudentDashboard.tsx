@@ -24,9 +24,10 @@ import {
   ListChecks,
   MapPin,
   MessageSquare,
+  Plane,
   Stamp,
 } from "lucide-react";
-import type { Appointment } from "@/types";
+import type { Appointment, PostArrivalStep } from "@/types";
 
 export function StudentDashboard() {
   const { data: me } = useGetMe();
@@ -331,6 +332,55 @@ export function StudentDashboard() {
           </Link>
         </CardContent>
       </Card>
+
+      {(data.postArrivalSteps?.length ?? 0) > 0 && (
+        <Card data-testid="card-post-arrival">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Plane className="w-4 h-4 text-blue-600" />
+              Après l'arrivée en France
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(data.postArrivalSteps as PostArrivalStep[])
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .slice(0, 4)
+              .map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-slate-50"
+                  data-testid={`dashboard-post-arrival-${s.code}`}
+                >
+                  {s.status === "validated" ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+                  ) : (
+                    <Plane className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-slate-900">{s.label}</div>
+                    {s.dueDate && (
+                      <div className="text-xs text-slate-600 mt-0.5">
+                        À faire avant le{" "}
+                        {new Date(s.dueDate).toLocaleDateString("fr-FR")}
+                      </div>
+                    )}
+                  </div>
+                  <StatusBadge status={s.status} />
+                </div>
+              ))}
+            <Link href="/student/post-arrival">
+              <a
+                className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
+                data-testid="link-all-post-arrival"
+              >
+                Voir toutes les démarches
+                <ArrowRight className="w-3 h-3" />
+              </a>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-3 gap-4">
         <Card>

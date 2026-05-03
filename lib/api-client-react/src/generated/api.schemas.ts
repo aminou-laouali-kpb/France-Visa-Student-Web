@@ -162,6 +162,18 @@ export interface StudentSummary {
   createdAt: string;
 }
 
+/**
+ * @nullable
+ */
+export type StudentVisaType =
+  | (typeof StudentVisaType)[keyof typeof StudentVisaType]
+  | null;
+
+export const StudentVisaType = {
+  vls_ts: "vls_ts",
+  vls_t: "vls_t",
+} as const;
+
 export interface Student {
   id: number;
   /** @nullable */
@@ -200,6 +212,12 @@ export interface Student {
   /** @nullable */
   financingType?: string | null;
   hasVisaRefusalHistory: boolean;
+  /** @nullable */
+  visaType?: StudentVisaType;
+  /** @nullable */
+  arrivalDate?: string | null;
+  /** @nullable */
+  titreExpiryDate?: string | null;
   createdAt: string;
 }
 
@@ -393,6 +411,10 @@ export type AppointmentType =
 export const AppointmentType = {
   campus_france: "campus_france",
   tls_vfs: "tls_vfs",
+  capago: "capago",
+  prefecture: "prefecture",
+  ofii: "ofii",
+  biometrics: "biometrics",
   other: "other",
 } as const;
 
@@ -416,6 +438,14 @@ export interface Appointment {
   location?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  provider?: string | null;
+  /** @nullable */
+  centre?: string | null;
+  /** @nullable */
+  feeEur?: number | null;
+  /** @nullable */
+  confirmationNumber?: string | null;
   status: AppointmentStatus;
   createdAt: string;
 }
@@ -458,6 +488,14 @@ export interface StudentDossier {
   program?: Program;
 }
 
+export type CreateStudentBodyVisaType =
+  (typeof CreateStudentBodyVisaType)[keyof typeof CreateStudentBodyVisaType];
+
+export const CreateStudentBodyVisaType = {
+  vls_ts: "vls_ts",
+  vls_t: "vls_t",
+} as const;
+
 export interface CreateStudentBody {
   firstName: string;
   lastName: string;
@@ -475,7 +513,22 @@ export interface CreateStudentBody {
   passportExpiry?: string;
   financingType?: string;
   hasVisaRefusalHistory?: boolean;
+  visaType?: CreateStudentBodyVisaType;
+  arrivalDate?: string;
+  titreExpiryDate?: string;
 }
+
+/**
+ * @nullable
+ */
+export type UpdateStudentBodyVisaType =
+  | (typeof UpdateStudentBodyVisaType)[keyof typeof UpdateStudentBodyVisaType]
+  | null;
+
+export const UpdateStudentBodyVisaType = {
+  vls_ts: "vls_ts",
+  vls_t: "vls_t",
+} as const;
 
 export interface UpdateStudentBody {
   firstName?: string;
@@ -498,6 +551,12 @@ export interface UpdateStudentBody {
   financingType?: string;
   hasVisaRefusalHistory?: boolean;
   status?: string;
+  /** @nullable */
+  visaType?: UpdateStudentBodyVisaType;
+  /** @nullable */
+  arrivalDate?: string | null;
+  /** @nullable */
+  titreExpiryDate?: string | null;
 }
 
 export interface AssignStudentBody {
@@ -649,6 +708,10 @@ export type CreateAppointmentBodyType =
 export const CreateAppointmentBodyType = {
   campus_france: "campus_france",
   tls_vfs: "tls_vfs",
+  capago: "capago",
+  prefecture: "prefecture",
+  ofii: "ofii",
+  biometrics: "biometrics",
   other: "other",
 } as const;
 
@@ -658,6 +721,10 @@ export interface CreateAppointmentBody {
   scheduledAt: string;
   location?: string;
   notes?: string;
+  provider?: string;
+  centre?: string;
+  feeEur?: number;
+  confirmationNumber?: string;
 }
 
 export type UpdateAppointmentBodyStatus =
@@ -675,7 +742,64 @@ export interface UpdateAppointmentBody {
   scheduledAt?: string;
   location?: string;
   notes?: string;
+  provider?: string;
+  centre?: string;
+  feeEur?: number;
+  confirmationNumber?: string;
   status?: UpdateAppointmentBodyStatus;
+}
+
+export type PostArrivalStepStatus =
+  (typeof PostArrivalStepStatus)[keyof typeof PostArrivalStepStatus];
+
+export const PostArrivalStepStatus = {
+  not_started: "not_started",
+  in_progress: "in_progress",
+  submitted: "submitted",
+  under_review: "under_review",
+  validated: "validated",
+  rejected: "rejected",
+  blocked: "blocked",
+} as const;
+
+export interface PostArrivalStep {
+  id: number;
+  studentId: number;
+  code: string;
+  label: string;
+  /** @nullable */
+  description?: string | null;
+  status: PostArrivalStepStatus;
+  /** @nullable */
+  dueDate?: string | null;
+  /** @nullable */
+  completedAt?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UpdatePostArrivalStepBodyStatus =
+  (typeof UpdatePostArrivalStepBodyStatus)[keyof typeof UpdatePostArrivalStepBodyStatus];
+
+export const UpdatePostArrivalStepBodyStatus = {
+  not_started: "not_started",
+  in_progress: "in_progress",
+  submitted: "submitted",
+  under_review: "under_review",
+  validated: "validated",
+  rejected: "rejected",
+  blocked: "blocked",
+} as const;
+
+export interface UpdatePostArrivalStepBody {
+  status?: UpdatePostArrivalStepBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  dueDate?: string | null;
 }
 
 export interface Notification {
@@ -720,6 +844,7 @@ export interface StudentDashboard {
   recentComments: Comment[];
   riskScore?: RiskScore;
   alerts: string[];
+  postArrivalSteps?: PostArrivalStep[];
 }
 
 export interface AdvisorDashboard {
@@ -1702,6 +1827,18 @@ export interface FinanceReference {
   cvecAmountByYear: FinanceReferenceCvecAmountByYear;
 }
 
+/**
+ * @nullable
+ */
+export type DocumentMatrixEntryVisaType =
+  | (typeof DocumentMatrixEntryVisaType)[keyof typeof DocumentMatrixEntryVisaType]
+  | null;
+
+export const DocumentMatrixEntryVisaType = {
+  vls_ts: "vls_ts",
+  vls_t: "vls_t",
+} as const;
+
 export interface DocumentMatrixEntry {
   id: number;
   nationalityCode: string;
@@ -1709,6 +1846,8 @@ export interface DocumentMatrixEntry {
   documentCategories: string[];
   /** @nullable */
   visaCenter?: string | null;
+  /** @nullable */
+  visaType?: DocumentMatrixEntryVisaType;
   campusFranceRequired: boolean;
   /** @nullable */
   notes?: string | null;
@@ -1719,12 +1858,26 @@ export interface DocumentMatrixEntry {
   updatedAt: string;
 }
 
+/**
+ * @nullable
+ */
+export type UpsertDocumentMatrixEntryBodyVisaType =
+  | (typeof UpsertDocumentMatrixEntryBodyVisaType)[keyof typeof UpsertDocumentMatrixEntryBodyVisaType]
+  | null;
+
+export const UpsertDocumentMatrixEntryBodyVisaType = {
+  vls_ts: "vls_ts",
+  vls_t: "vls_t",
+} as const;
+
 export interface UpsertDocumentMatrixEntryBody {
   nationalityCode: string;
   programLevel: string;
   documentCategories: string[];
   /** @nullable */
   visaCenter?: string | null;
+  /** @nullable */
+  visaType?: UpsertDocumentMatrixEntryBodyVisaType;
   campusFranceRequired?: boolean;
   /** @nullable */
   notes?: string | null;
@@ -1979,6 +2132,11 @@ export type ListStudentTasksParams = {
 export type ListMyTasksParams = {
   status?: string;
   priority?: string;
+};
+
+export type RegeneratePostArrivalSteps200 = {
+  studentId: number;
+  added: number;
 };
 
 export type ListNotificationsParams = {

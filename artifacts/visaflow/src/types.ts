@@ -43,6 +43,9 @@ export interface Student {
   reviewerId?: number | null;
   lastActivityAt?: string | null;
   updatedAt?: string | null;
+  visaType?: "vls_ts" | "vls_t" | null;
+  arrivalDate?: string | null;
+  titreExpiryDate?: string | null;
 }
 
 export interface Appointment {
@@ -52,6 +55,32 @@ export interface Appointment {
   scheduledAt: string;
   location?: string | null;
   status?: string | null;
+  provider?: string | null;
+  centre?: string | null;
+  feeEur?: string | number | null;
+  confirmationNumber?: string | null;
+}
+
+export interface PostArrivalStep {
+  id: number;
+  studentId: number;
+  code: string;
+  label: string;
+  description?: string | null;
+  status:
+    | "not_started"
+    | "in_progress"
+    | "submitted"
+    | "under_review"
+    | "validated"
+    | "rejected"
+    | "blocked";
+  dueDate?: string | null;
+  completedAt?: string | null;
+  notes?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Step {
@@ -120,6 +149,9 @@ export interface StudentFormData {
   status?: string;
   advisorId?: number | null;
   reviewerId?: number | null;
+  visaType?: "vls_ts" | "vls_t" | null;
+  arrivalDate?: string | null;
+  titreExpiryDate?: string | null;
 }
 
 export interface StudentDashboardData {
@@ -134,6 +166,7 @@ export interface StudentDashboardData {
   currentStep?: Step | null;
   nextActions?: string[];
   recentComments?: Comment[];
+  postArrivalSteps?: PostArrivalStep[];
 }
 
 export interface UploadUrlResponse {

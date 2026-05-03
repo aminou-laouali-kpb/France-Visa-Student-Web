@@ -310,6 +310,9 @@ export const CreateStudentBody = zod.object({
   passportExpiry: zod.string().optional(),
   financingType: zod.string().optional(),
   hasVisaRefusalHistory: zod.boolean().optional(),
+  visaType: zod.enum(["vls_ts", "vls_t"]).optional(),
+  arrivalDate: zod.string().optional(),
+  titreExpiryDate: zod.string().optional(),
 });
 
 /**
@@ -343,6 +346,11 @@ export const GetStudentResponse = zod.object({
     passportExpiry: zod.string().nullish(),
     financingType: zod.string().nullish(),
     hasVisaRefusalHistory: zod.boolean(),
+    visaType: zod
+      .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+      .nullish(),
+    arrivalDate: zod.string().nullish(),
+    titreExpiryDate: zod.string().nullish(),
     createdAt: zod.coerce.date(),
   }),
   steps: zod.array(
@@ -466,11 +474,23 @@ export const GetStudentResponse = zod.object({
     zod.object({
       id: zod.number(),
       studentId: zod.number(),
-      type: zod.enum(["campus_france", "tls_vfs", "other"]),
+      type: zod.enum([
+        "campus_france",
+        "tls_vfs",
+        "capago",
+        "prefecture",
+        "ofii",
+        "biometrics",
+        "other",
+      ]),
       title: zod.string(),
       scheduledAt: zod.coerce.date(),
       location: zod.string().nullish(),
       notes: zod.string().nullish(),
+      provider: zod.string().nullish(),
+      centre: zod.string().nullish(),
+      feeEur: zod.number().nullish(),
+      confirmationNumber: zod.string().nullish(),
       status: zod.enum(["upcoming", "completed", "cancelled", "missed"]),
       createdAt: zod.coerce.date(),
     }),
@@ -560,6 +580,11 @@ export const UpdateStudentBody = zod.object({
   financingType: zod.string().optional(),
   hasVisaRefusalHistory: zod.boolean().optional(),
   status: zod.string().optional(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
+  arrivalDate: zod.string().nullish(),
+  titreExpiryDate: zod.string().nullish(),
 });
 
 export const UpdateStudentResponse = zod.object({
@@ -585,6 +610,11 @@ export const UpdateStudentResponse = zod.object({
   passportExpiry: zod.string().nullish(),
   financingType: zod.string().nullish(),
   hasVisaRefusalHistory: zod.boolean(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
+  arrivalDate: zod.string().nullish(),
+  titreExpiryDate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -623,6 +653,11 @@ export const AssignStudentResponse = zod.object({
   passportExpiry: zod.string().nullish(),
   financingType: zod.string().nullish(),
   hasVisaRefusalHistory: zod.boolean(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
+  arrivalDate: zod.string().nullish(),
+  titreExpiryDate: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -1247,11 +1282,23 @@ export const ListAppointmentsParams = zod.object({
 export const ListAppointmentsResponseItem = zod.object({
   id: zod.number(),
   studentId: zod.number(),
-  type: zod.enum(["campus_france", "tls_vfs", "other"]),
+  type: zod.enum([
+    "campus_france",
+    "tls_vfs",
+    "capago",
+    "prefecture",
+    "ofii",
+    "biometrics",
+    "other",
+  ]),
   title: zod.string(),
   scheduledAt: zod.coerce.date(),
   location: zod.string().nullish(),
   notes: zod.string().nullish(),
+  provider: zod.string().nullish(),
+  centre: zod.string().nullish(),
+  feeEur: zod.number().nullish(),
+  confirmationNumber: zod.string().nullish(),
   status: zod.enum(["upcoming", "completed", "cancelled", "missed"]),
   createdAt: zod.coerce.date(),
 });
@@ -1265,11 +1312,23 @@ export const CreateAppointmentParams = zod.object({
 });
 
 export const CreateAppointmentBody = zod.object({
-  type: zod.enum(["campus_france", "tls_vfs", "other"]),
+  type: zod.enum([
+    "campus_france",
+    "tls_vfs",
+    "capago",
+    "prefecture",
+    "ofii",
+    "biometrics",
+    "other",
+  ]),
   title: zod.string(),
   scheduledAt: zod.coerce.date(),
   location: zod.string().optional(),
   notes: zod.string().optional(),
+  provider: zod.string().optional(),
+  centre: zod.string().optional(),
+  feeEur: zod.number().optional(),
+  confirmationNumber: zod.string().optional(),
 });
 
 /**
@@ -1284,17 +1343,33 @@ export const UpdateAppointmentBody = zod.object({
   scheduledAt: zod.coerce.date().optional(),
   location: zod.string().optional(),
   notes: zod.string().optional(),
+  provider: zod.string().optional(),
+  centre: zod.string().optional(),
+  feeEur: zod.number().optional(),
+  confirmationNumber: zod.string().optional(),
   status: zod.enum(["upcoming", "completed", "cancelled", "missed"]).optional(),
 });
 
 export const UpdateAppointmentResponse = zod.object({
   id: zod.number(),
   studentId: zod.number(),
-  type: zod.enum(["campus_france", "tls_vfs", "other"]),
+  type: zod.enum([
+    "campus_france",
+    "tls_vfs",
+    "capago",
+    "prefecture",
+    "ofii",
+    "biometrics",
+    "other",
+  ]),
   title: zod.string(),
   scheduledAt: zod.coerce.date(),
   location: zod.string().nullish(),
   notes: zod.string().nullish(),
+  provider: zod.string().nullish(),
+  centre: zod.string().nullish(),
+  feeEur: zod.number().nullish(),
+  confirmationNumber: zod.string().nullish(),
   status: zod.enum(["upcoming", "completed", "cancelled", "missed"]),
   createdAt: zod.coerce.date(),
 });
@@ -1304,6 +1379,98 @@ export const UpdateAppointmentResponse = zod.object({
  */
 export const DeleteAppointmentParams = zod.object({
   appointmentId: zod.coerce.number(),
+});
+
+/**
+ * @summary List post-arrival steps for a student
+ */
+export const ListPostArrivalStepsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListPostArrivalStepsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  code: zod.string(),
+  label: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum([
+    "not_started",
+    "in_progress",
+    "submitted",
+    "under_review",
+    "validated",
+    "rejected",
+    "blocked",
+  ]),
+  dueDate: zod.string().nullish(),
+  completedAt: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  order: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListPostArrivalStepsResponse = zod.array(
+  ListPostArrivalStepsResponseItem,
+);
+
+/**
+ * @summary Idempotently (re)provision the post-arrival workflow
+ */
+export const RegeneratePostArrivalStepsParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const RegeneratePostArrivalStepsResponse = zod.object({
+  studentId: zod.number(),
+  added: zod.number(),
+});
+
+/**
+ * @summary Update a post-arrival step
+ */
+export const UpdatePostArrivalStepParams = zod.object({
+  studentId: zod.coerce.number(),
+  stepId: zod.coerce.number(),
+});
+
+export const UpdatePostArrivalStepBody = zod.object({
+  status: zod
+    .enum([
+      "not_started",
+      "in_progress",
+      "submitted",
+      "under_review",
+      "validated",
+      "rejected",
+      "blocked",
+    ])
+    .optional(),
+  notes: zod.string().nullish(),
+  dueDate: zod.string().nullish(),
+});
+
+export const UpdatePostArrivalStepResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  code: zod.string(),
+  label: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum([
+    "not_started",
+    "in_progress",
+    "submitted",
+    "under_review",
+    "validated",
+    "rejected",
+    "blocked",
+  ]),
+  dueDate: zod.string().nullish(),
+  completedAt: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  order: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
 });
 
 /**
@@ -1460,11 +1627,23 @@ export const GetStudentDashboardResponse = zod.object({
     zod.object({
       id: zod.number(),
       studentId: zod.number(),
-      type: zod.enum(["campus_france", "tls_vfs", "other"]),
+      type: zod.enum([
+        "campus_france",
+        "tls_vfs",
+        "capago",
+        "prefecture",
+        "ofii",
+        "biometrics",
+        "other",
+      ]),
       title: zod.string(),
       scheduledAt: zod.coerce.date(),
       location: zod.string().nullish(),
       notes: zod.string().nullish(),
+      provider: zod.string().nullish(),
+      centre: zod.string().nullish(),
+      feeEur: zod.number().nullish(),
+      confirmationNumber: zod.string().nullish(),
       status: zod.enum(["upcoming", "completed", "cancelled", "missed"]),
       createdAt: zod.coerce.date(),
     }),
@@ -1499,6 +1678,32 @@ export const GetStudentDashboardResponse = zod.object({
     })
     .optional(),
   alerts: zod.array(zod.string()),
+  postArrivalSteps: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        studentId: zod.number(),
+        code: zod.string(),
+        label: zod.string(),
+        description: zod.string().nullish(),
+        status: zod.enum([
+          "not_started",
+          "in_progress",
+          "submitted",
+          "under_review",
+          "validated",
+          "rejected",
+          "blocked",
+        ]),
+        dueDate: zod.string().nullish(),
+        completedAt: zod.coerce.date().nullish(),
+        notes: zod.string().nullish(),
+        order: zod.number(),
+        createdAt: zod.coerce.date(),
+        updatedAt: zod.coerce.date(),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -2863,6 +3068,9 @@ export const ListDocumentMatrixEntriesResponseItem = zod.object({
   programLevel: zod.string(),
   documentCategories: zod.array(zod.string()),
   visaCenter: zod.string().nullish(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
   campusFranceRequired: zod.boolean(),
   notes: zod.string().nullish(),
   version: zod.number(),
@@ -2882,6 +3090,9 @@ export const CreateDocumentMatrixEntryBody = zod.object({
   programLevel: zod.string(),
   documentCategories: zod.array(zod.string()),
   visaCenter: zod.string().nullish(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
   campusFranceRequired: zod.boolean().optional(),
   notes: zod.string().nullish(),
 });
@@ -2898,6 +3109,9 @@ export const UpdateDocumentMatrixEntryBody = zod.object({
   programLevel: zod.string(),
   documentCategories: zod.array(zod.string()),
   visaCenter: zod.string().nullish(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
   campusFranceRequired: zod.boolean().optional(),
   notes: zod.string().nullish(),
 });
@@ -2908,6 +3122,9 @@ export const UpdateDocumentMatrixEntryResponse = zod.object({
   programLevel: zod.string(),
   documentCategories: zod.array(zod.string()),
   visaCenter: zod.string().nullish(),
+  visaType: zod
+    .union([zod.literal("vls_ts"), zod.literal("vls_t"), zod.literal(null)])
+    .nullish(),
   campusFranceRequired: zod.boolean(),
   notes: zod.string().nullish(),
   version: zod.number(),
@@ -2943,6 +3160,13 @@ export const ResolveDocumentMatrixResponse = zod.object({
         programLevel: zod.string(),
         documentCategories: zod.array(zod.string()),
         visaCenter: zod.string().nullish(),
+        visaType: zod
+          .union([
+            zod.literal("vls_ts"),
+            zod.literal("vls_t"),
+            zod.literal(null),
+          ])
+          .nullish(),
         campusFranceRequired: zod.boolean(),
         notes: zod.string().nullish(),
         version: zod.number(),

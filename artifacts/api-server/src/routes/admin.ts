@@ -14,7 +14,7 @@ import {
   countriesTable,
   schoolsTable,
 } from "@workspace/db";
-import { eq, and, desc, sql, gte, lt, inArray } from "drizzle-orm";
+import { eq, and, asc, desc, sql, gte, lt, inArray } from "drizzle-orm";
 import {
   GetAdvisorDashboardResponse,
   GetAdminDashboardResponse,
@@ -101,7 +101,17 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     res.json({ student: null });
     return;
   }
-  const [steps, docs, apts, unreadNotifs, comments] = await Promise.all([
+  // Fire the lazy reminder sweep before reading notifications so any
+  // arrival / titre-renewal reminder due today is materialised in this
+  // very response (best-effort, never block the dashboard).
+  try {
+    const { runReminderSweepForStudent } = await import("../lib/postArrival");
+    await runReminderSweepForStudent(student.id);
+  } catch {
+    /* best-effort */
+  }
+  const { postArrivalStepsTable } = await import("@workspace/db");
+  const [steps, docs, apts, unreadNotifs, comments, postArrivalSteps] = await Promise.all([
     db.select().from(studentStepsTable).where(eq(studentStepsTable.studentId, student.id)),
     db.select().from(documentsTable).where(eq(documentsTable.studentId, student.id)),
     db
@@ -137,6 +147,11 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
       )
       .orderBy(desc(commentsTable.createdAt))
       .limit(10),
+    db
+      .select()
+      .from(postArrivalStepsTable)
+      .where(eq(postArrivalStepsTable.studentId, student.id))
+      .orderBy(asc(postArrivalStepsTable.order)),
   ]);
   const currentStep = steps
     .sort((a, b) => a.stepOrder - b.stepOrder)
@@ -175,6 +190,7 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     unreadNotifications: unreadNotifs.length,
     nextActions,
     recentComments,
+    postArrivalSteps,
   });
 });
 

@@ -1013,6 +1013,79 @@ paths:
         "204":
           description: Deleted
 
+  # ─── POST-ARRIVAL STEPS ─────────────────────────────────────────────────────
+  /students/{studentId}/post-arrival-steps:
+    get:
+      operationId: listPostArrivalSteps
+      tags: [students]
+      summary: List post-arrival steps for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Post-arrival steps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PostArrivalStep"
+  /students/{studentId}/post-arrival-steps/regenerate:
+    post:
+      operationId: regeneratePostArrivalSteps
+      tags: [students]
+      summary: Idempotently (re)provision the post-arrival workflow
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Number of steps added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  studentId: { type: integer }
+                  added: { type: integer }
+                required: [studentId, added]
+  /students/{studentId}/post-arrival-steps/{stepId}:
+    patch:
+      operationId: updatePostArrivalStep
+      tags: [students]
+      summary: Update a post-arrival step
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostArrivalStepBody"
+      responses:
+        "200":
+          description: Updated post-arrival step
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostArrivalStep"
+
   # ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
   /notifications:
     get:
@@ -2615,6 +2688,13 @@ components:
           type: ["string", "null"]
         hasVisaRefusalHistory:
           type: boolean
+        visaType:
+          type: ["string", "null"]
+          enum: [vls_ts, vls_t, null]
+        arrivalDate:
+          type: ["string", "null"]
+        titreExpiryDate:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -2706,6 +2786,13 @@ components:
           type: string
         hasVisaRefusalHistory:
           type: boolean
+        visaType:
+          type: string
+          enum: [vls_ts, vls_t]
+        arrivalDate:
+          type: string
+        titreExpiryDate:
+          type: string
       required:
         - firstName
         - lastName
@@ -2751,6 +2838,13 @@ components:
           type: boolean
         status:
           type: string
+        visaType:
+          type: ["string", "null"]
+          enum: [vls_ts, vls_t, null]
+        arrivalDate:
+          type: ["string", "null"]
+        titreExpiryDate:
+          type: ["string", "null"]
 
     AssignStudentBody:
       type: object
@@ -3188,7 +3282,7 @@ components:
           type: integer
         type:
           type: string
-          enum: [campus_france, tls_vfs, other]
+          enum: [campus_france, tls_vfs, capago, prefecture, ofii, biometrics, other]
         title:
           type: string
         scheduledAt:
@@ -3197,6 +3291,14 @@ components:
         location:
           type: ["string", "null"]
         notes:
+          type: ["string", "null"]
+        provider:
+          type: ["string", "null"]
+        centre:
+          type: ["string", "null"]
+        feeEur:
+          type: ["integer", "null"]
+        confirmationNumber:
           type: ["string", "null"]
         status:
           type: string
@@ -3218,7 +3320,7 @@ components:
       properties:
         type:
           type: string
-          enum: [campus_france, tls_vfs, other]
+          enum: [campus_france, tls_vfs, capago, prefecture, ofii, biometrics, other]
         title:
           type: string
         scheduledAt:
@@ -3227,6 +3329,14 @@ components:
         location:
           type: string
         notes:
+          type: string
+        provider:
+          type: string
+        centre:
+          type: string
+        feeEur:
+          type: integer
+        confirmationNumber:
           type: string
       required:
         - type
@@ -3245,9 +3355,56 @@ components:
           type: string
         notes:
           type: string
+        provider:
+          type: string
+        centre:
+          type: string
+        feeEur:
+          type: integer
+        confirmationNumber:
+          type: string
         status:
           type: string
           enum: [upcoming, completed, cancelled, missed]
+
+    # ── Post-arrival step ─────────────────────────────────────────────────────
+    PostArrivalStep:
+      type: object
+      properties:
+        id: { type: integer }
+        studentId: { type: integer }
+        code: { type: string }
+        label: { type: string }
+        description: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [not_started, in_progress, submitted, under_review, validated, rejected, blocked]
+        dueDate: { type: ["string", "null"] }
+        completedAt: { type: ["string", "null"], format: date-time }
+        notes: { type: ["string", "null"] }
+        order: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required:
+        - id
+        - studentId
+        - code
+        - label
+        - status
+        - order
+        - createdAt
+        - updatedAt
+
+    UpdatePostArrivalStepBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [not_started, in_progress, submitted, under_review, validated, rejected, blocked]
+        notes:
+          type: ["string", "null"]
+        dueDate:
+          type: ["string", "null"]
 
     # ── Notification ──────────────────────────────────────────────────────────
     Notification:
@@ -3390,6 +3547,10 @@ components:
           type: array
           items:
             type: string
+        postArrivalSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/PostArrivalStep"
       required:
         - studentId
         - completionScore
@@ -4445,6 +4606,7 @@ components:
           type: array
           items: { type: string }
         visaCenter: { type: ["string", "null"] }
+        visaType: { type: ["string", "null"], enum: [vls_ts, vls_t, null] }
         campusFranceRequired: { type: boolean }
         notes: { type: ["string", "null"] }
         version: { type: integer }
@@ -4470,6 +4632,7 @@ components:
           type: array
           items: { type: string }
         visaCenter: { type: ["string", "null"] }
+        visaType: { type: ["string", "null"], enum: [vls_ts, vls_t, null] }
         campusFranceRequired: { type: boolean }
         notes: { type: ["string", "null"] }
       required: [nationalityCode, programLevel, documentCategories]

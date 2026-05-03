@@ -303,7 +303,17 @@ router.post(
   validateBody(CreateAppointmentBody),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
-    const { type, title, scheduledAt, location, notes } = req.body ?? {};
+    const {
+      type,
+      title,
+      scheduledAt,
+      location,
+      notes,
+      provider,
+      centre,
+      feeEur,
+      confirmationNumber,
+    } = req.body ?? {};
     const [created] = await db
       .insert(appointmentsTable)
       .values({
@@ -313,6 +323,10 @@ router.post(
         scheduledAt: new Date(scheduledAt),
         location: location ?? null,
         notes: notes ?? null,
+        provider: provider ?? null,
+        centre: centre ?? null,
+        feeEur: typeof feeEur === "number" ? feeEur : null,
+        confirmationNumber: confirmationNumber ?? null,
       })
       .returning();
     const student = req.targetStudent!;

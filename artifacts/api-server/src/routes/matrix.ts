@@ -107,11 +107,12 @@ router.get("/document-matrix/resolve", requireAuth, async (req, res) => {
   }
   const nationalityCode = (req.query.nationalityCode as string | undefined)?.trim();
   const programLevel = (req.query.programLevel as string | undefined)?.trim();
+  const visaType = (req.query.visaType as string | undefined)?.trim() || null;
   if (!nationalityCode || !programLevel) {
     res.status(400).json({ error: "nationalityCode and programLevel are required" });
     return;
   }
-  const resolved = await resolveMatrixEntry(nationalityCode, programLevel);
+  const resolved = await resolveMatrixEntry(nationalityCode, programLevel, visaType);
   res.json(resolved);
 });
 
@@ -124,10 +125,15 @@ router.post(
       res.status(403).json({ error: "Forbidden" });
       return;
     }
-    const body = req.body as typeof CreateDocumentMatrixEntryBody._type;
-    // Enforce uniqueness on (nationalityCode, programLevel)
-    const [existing] = await db
-      .select({ id: documentMatrixEntriesTable.id })
+    const body = req.body as typeof CreateDocumentMatrixEntryBody._type & {
+      visaType?: string | null;
+    };
+    const visaType = body.visaType ?? null;
+    // Enforce uniqueness on the (nationalityCode, programLevel, visaType)
+    // triple — Postgres treats NULL as distinct so the NULL-visa-type row
+    // can coexist with per-visa-type variants.
+    const sameKey = await db
+      .select()
       .from(documentMatrixEntriesTable)
       .where(
         and(
@@ -135,10 +141,13 @@ router.post(
           eq(documentMatrixEntriesTable.programLevel, body.programLevel),
         ),
       );
-    if (existing) {
+    if (sameKey.some((e) => (e.visaType ?? null) === visaType)) {
       res
         .status(409)
-        .json({ error: "An entry already exists for this nationality and program level" });
+        .json({
+          error:
+            "An entry already exists for this nationality, program level and visa type",
+        });
       return;
     }
     const [row] = await db
@@ -148,6 +157,7 @@ router.post(
         programLevel: body.programLevel,
         documentCategories: body.documentCategories ?? [],
         visaCenter: body.visaCenter ?? null,
+        visaType,
         campusFranceRequired: body.campusFranceRequired ?? true,
         notes: body.notes ?? null,
         version: 1,
@@ -191,15 +201,20 @@ router.patch(
       res.status(404).json({ error: "Not found" });
       return;
     }
-    const body = req.body as typeof UpdateDocumentMatrixEntryBody._type;
-    // If the natural key changes, ensure the new (nationality, level) pair
-    // is still unique so we don't silently shadow a sibling entry.
-    if (
+    const body = req.body as typeof UpdateDocumentMatrixEntryBody._type & {
+      visaType?: string | null;
+    };
+    const visaType = body.visaType ?? null;
+    // If the natural key changes, ensure the new triple
+    // (nationality, level, visaType) is still unique so we don't silently
+    // shadow a sibling entry.
+    const keyChanged =
       body.nationalityCode !== prev.nationalityCode ||
-      body.programLevel !== prev.programLevel
-    ) {
-      const [conflict] = await db
-        .select({ id: documentMatrixEntriesTable.id })
+      body.programLevel !== prev.programLevel ||
+      visaType !== (prev.visaType ?? null);
+    if (keyChanged) {
+      const conflicts = await db
+        .select()
         .from(documentMatrixEntriesTable)
         .where(
           and(
@@ -207,10 +222,16 @@ router.patch(
             eq(documentMatrixEntriesTable.programLevel, body.programLevel),
           ),
         );
-      if (conflict && conflict.id !== entryId) {
+      const dup = conflicts.find(
+        (e) => e.id !== entryId && (e.visaType ?? null) === visaType,
+      );
+      if (dup) {
         res
           .status(409)
-          .json({ error: "Another entry already exists for this nationality and program level" });
+          .json({
+            error:
+              "Another entry already exists for this nationality, program level and visa type",
+          });
         return;
       }
     }
@@ -221,6 +242,7 @@ router.patch(
         programLevel: body.programLevel,
         documentCategories: body.documentCategories ?? [],
         visaCenter: body.visaCenter ?? null,
+        visaType,
         campusFranceRequired: body.campusFranceRequired ?? true,
         notes: body.notes ?? null,
         version: prev.version + 1,
@@ -466,6 +488,7 @@ router.post(
     const result = await applyMatrixToStudent(studentId, {
       nationalityCode: student.nationalityCode,
       programLevel: await loadProgramLevel(student.programId),
+      visaType: student.visaType,
     });
     // Recompute completionScore so the UI reflects the refreshed plan
     // immediately, without waiting for the next step-status update.
@@ -515,11 +538,13 @@ export async function loadProgramLevel(
 export async function resolveMatrixEntry(
   nationalityCode: string | null | undefined,
   programLevel: string | null | undefined,
+  visaType: string | null | undefined = null,
 ) {
   if (!nationalityCode || !programLevel) {
     return {
       nationalityCode: nationalityCode ?? "",
       programLevel: programLevel ?? "",
+      visaType: visaType ?? null,
       entry: null,
       fallbackUsed: true,
       documentCategories: [],
@@ -527,53 +552,43 @@ export async function resolveMatrixEntry(
       campusFranceRequired: true,
     };
   }
-  // Exact match first; if none, fall back to a wildcard "*" program-level
-  // entry for the same nationality (admins can publish a one-row-per-country
-  // baseline). Visa center / Campus France flag fall back to the country's
-  // own configuration.
-  const [exact] = await db
+  // Resolution preference (most specific first):
+  //   1. Exact (nationality, level, visaType)
+  //   2. (nationality, level, NULL visaType)  ← visa-type-agnostic baseline
+  //   3. (nationality, "*",   visaType)       ← wildcard level + visa-type
+  //   4. (nationality, "*",   NULL visaType)  ← wildcard level baseline
+  const all = await db
     .select()
     .from(documentMatrixEntriesTable)
-    .where(
-      and(
-        eq(documentMatrixEntriesTable.nationalityCode, nationalityCode),
-        eq(documentMatrixEntriesTable.programLevel, programLevel),
-      ),
+    .where(eq(documentMatrixEntriesTable.nationalityCode, nationalityCode));
+  const vt = visaType ?? null;
+  const pickFor = (level: string, vtFilter: string | null) =>
+    all.find(
+      (e) => e.programLevel === level && (e.visaType ?? null) === vtFilter,
     );
-  if (exact) {
+  const candidates = [
+    { entry: pickFor(programLevel, vt), fallback: false },
+    ...(vt ? [{ entry: pickFor(programLevel, null), fallback: true }] : []),
+    { entry: pickFor("*", vt), fallback: true },
+    ...(vt ? [{ entry: pickFor("*", null), fallback: true }] : []),
+  ];
+  for (const c of candidates) {
+    if (!c.entry) continue;
     return {
       nationalityCode,
       programLevel,
-      entry: exact,
-      fallbackUsed: false,
-      documentCategories: exact.documentCategories,
-      visaCenter: exact.visaCenter,
-      campusFranceRequired: exact.campusFranceRequired,
-    };
-  }
-  const [wildcard] = await db
-    .select()
-    .from(documentMatrixEntriesTable)
-    .where(
-      and(
-        eq(documentMatrixEntriesTable.nationalityCode, nationalityCode),
-        eq(documentMatrixEntriesTable.programLevel, "*"),
-      ),
-    );
-  if (wildcard) {
-    return {
-      nationalityCode,
-      programLevel,
-      entry: wildcard,
-      fallbackUsed: true,
-      documentCategories: wildcard.documentCategories,
-      visaCenter: wildcard.visaCenter,
-      campusFranceRequired: wildcard.campusFranceRequired,
+      visaType: vt,
+      entry: c.entry,
+      fallbackUsed: c.fallback,
+      documentCategories: c.entry.documentCategories,
+      visaCenter: c.entry.visaCenter,
+      campusFranceRequired: c.entry.campusFranceRequired,
     };
   }
   return {
     nationalityCode,
     programLevel,
+    visaType: vt,
     entry: null,
     fallbackUsed: true,
     documentCategories: [],
@@ -601,9 +616,14 @@ export async function applyMatrixToStudent(
   ctx: {
     nationalityCode: string | null | undefined;
     programLevel: string | null | undefined;
+    visaType?: string | null | undefined;
   },
 ) {
-  const resolved = await resolveMatrixEntry(ctx.nationalityCode, ctx.programLevel);
+  const resolved = await resolveMatrixEntry(
+    ctx.nationalityCode,
+    ctx.programLevel,
+    ctx.visaType ?? null,
+  );
   const matrixCats = new Set(resolved.documentCategories);
   // When no matrix entry resolves, leave the generic template untouched so
   // we never silently strip requirements for nationalities admins haven't

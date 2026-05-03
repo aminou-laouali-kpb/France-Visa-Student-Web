@@ -16,6 +16,7 @@ import {
   ListChecks,
   FileText,
   Calendar,
+  Plane,
   MessageSquare,
   Wallet,
   BarChart3,
@@ -55,6 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/student/projet", icon: ScrollText, label: "Projet & motivation" },
           { href: "/student/finance", icon: Wallet, label: "Finances & logement" },
           { href: "/student/appointments", icon: Calendar, label: "Rendez-vous" },
+          { href: "/student/post-arrival", icon: Plane, label: "Après l'arrivée" },
           { href: "/student/messages", icon: MessageSquare, label: "Messages" },
         ]
       : []),
