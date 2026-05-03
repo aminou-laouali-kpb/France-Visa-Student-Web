@@ -19,11 +19,39 @@ export interface MailMessage {
     | "step.blocked"
     | "task.assigned"
     | "appointment.created"
-    | "student.assigned";
+    | "student.assigned"
+    | "visa.obtained"
+    | "visa.refused";
   meta?: Record<string, unknown>;
 }
 
 const FROM = process.env["MAIL_FROM"] ?? "VisaFlow <noreply@visaflow.test>";
+
+// Public-facing URL for the VisaFlow web app. Used to build deep links inside
+// notification emails. Falls back to the Replit dev domain when present so
+// that links in dev still resolve to the running preview.
+export function appBaseUrl(): string {
+  const explicit = process.env["APP_URL"];
+  if (explicit) return explicit.replace(/\/+$/, "");
+  const dev = process.env["REPLIT_DEV_DOMAIN"];
+  if (dev) return `https://${dev}`;
+  return "https://visaflow.test";
+}
+
+// Staff-facing dossier URL — `/app/students/:id` is the canonical detail page
+// for advisors / reviewers / admins (see visaflow/src/App.tsx routes).
+export function staffStudentLink(studentId: number): string {
+  return `${appBaseUrl()}/app/students/${studentId}`;
+}
+
+// Student-facing section URL. The student-side app lives under `/student/*`
+// with sub-pages: notifications, steps, documents, appointments, messages.
+export function studentSelfLink(
+  section?: "documents" | "appointments" | "steps" | "notifications" | "messages",
+): string {
+  const tail = section ? `/${section}` : "";
+  return `${appBaseUrl()}/student${tail}`;
+}
 
 async function deliverViaResend(msg: MailMessage): Promise<boolean> {
   const apiKey = process.env["RESEND_API_KEY"];

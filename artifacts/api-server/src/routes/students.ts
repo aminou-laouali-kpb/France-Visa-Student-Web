@@ -29,7 +29,7 @@ import {
   requireRole,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
-import { sendMail } from "../lib/mailer";
+import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateStudentBody,
@@ -281,11 +281,62 @@ router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody
     delete body.reviewerId;
     delete body.status;
   }
+  const previousStatus = student.status;
   const [updated] = await db
     .update(studentsTable)
     .set({ ...body, updatedAt: new Date(), lastActivityAt: new Date() })
     .where(eq(studentsTable.id, id))
     .returning();
+
+  // Visa decision notifications — fire when status transitions into a
+  // visa_obtained or visa_refused state. Best-effort; never block.
+  const isVisaDecision =
+    body.status &&
+    body.status !== previousStatus &&
+    (body.status === "visa_obtained" || body.status === "visa_refused");
+  if (isVisaDecision) {
+    try {
+      const recipientIds = new Set<number>();
+      if (updated.userId) recipientIds.add(updated.userId);
+      if (updated.advisorId) recipientIds.add(updated.advisorId);
+      if (recipientIds.size > 0) {
+        const recipients = await db
+          .select()
+          .from(usersTable)
+          .where(inArray(usersTable.id, Array.from(recipientIds)));
+        const obtained = body.status === "visa_obtained";
+        const subject = obtained
+          ? `Visa obtenu — ${updated.firstName} ${updated.lastName}`
+          : `Visa refusé — ${updated.firstName} ${updated.lastName}`;
+        for (const r of recipients) {
+          if (!r.email) continue;
+          const isStudent = r.id === updated.userId;
+          const link = isStudent ? studentSelfLink() : staffStudentLink(id);
+          const text = obtained
+            ? `Bonjour ${r.firstName ?? ""},\n\n${
+                isStudent
+                  ? "Excellente nouvelle : votre visa étudiant a été obtenu."
+                  : `Le visa de ${updated.firstName} ${updated.lastName} a été obtenu.`
+              }\n\nConsulter le dossier : ${link}`
+            : `Bonjour ${r.firstName ?? ""},\n\n${
+                isStudent
+                  ? "Votre demande de visa a été refusée. Votre conseiller vous accompagnera sur les prochaines étapes (recours, nouveau dépôt, etc.)."
+                  : `Le visa de ${updated.firstName} ${updated.lastName} a été refusé. Un suivi est requis (recours / nouveau dépôt).`
+              }\n\nConsulter le dossier : ${link}`;
+          await sendMail({
+            to: r.email,
+            subject,
+            text,
+            event: obtained ? "visa.obtained" : "visa.refused",
+            meta: { studentId: id },
+          });
+        }
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
+
   await logAudit({
     userId: req.currentUser!.id,
     studentId: id,
@@ -339,10 +390,11 @@ router.patch(
           .from(usersTable)
           .where(eq(usersTable.id, advisorId));
         if (advisor?.email) {
+          const link = staffStudentLink(id);
           await sendMail({
             to: advisor.email,
             subject: `Nouveau dossier assigné: ${updated.firstName} ${updated.lastName}`,
-            text: `Bonjour ${advisor.firstName ?? ""},\n\nLe dossier de ${updated.firstName} ${updated.lastName} vous a été assigné. Connectez-vous à VisaFlow pour le consulter.`,
+            text: `Bonjour ${advisor.firstName ?? ""},\n\nLe dossier de ${updated.firstName} ${updated.lastName} vous a été assigné.\n\nOuvrir le dossier : ${link}`,
             event: "student.assigned",
             meta: { studentId: id },
           });

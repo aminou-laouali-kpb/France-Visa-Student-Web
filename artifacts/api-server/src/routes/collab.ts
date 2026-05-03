@@ -8,7 +8,7 @@ import {
   studentsTable,
   usersTable,
 } from "@workspace/db";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, inArray } from "drizzle-orm";
 import {
   requireAuth,
   isStaff,
@@ -16,7 +16,7 @@ import {
   canAccessStudent,
 } from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
-import { sendMail } from "../lib/mailer";
+import { sendMail, staffStudentLink, studentSelfLink } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateCommentBody,
@@ -194,12 +194,14 @@ router.post(
           .from(usersTable)
           .where(eq(usersTable.id, assignedToId));
         if (assignee?.email) {
+          const isStudent = assignee.role === "student";
+          const link = isStudent ? studentSelfLink() : staffStudentLink(studentId);
           await sendMail({
             to: assignee.email,
             subject: `Nouvelle tâche: ${title}`,
-            text: `Bonjour ${assignee.firstName ?? ""},\n\nUne nouvelle tâche vous a été assignée: ${title}${
+            text: `Bonjour ${assignee.firstName ?? ""},\n\nUne nouvelle tâche vous a été assignée : ${title}${
               description ? "\n\n" + description : ""
-            }${priority ? "\n\nPriorité: " + priority : ""}`,
+            }${priority ? "\n\nPriorité : " + priority : ""}\n\nVoir la tâche : ${link}`,
             event: "task.assigned",
             meta: { studentId, taskId: created.id },
           });
@@ -322,6 +324,44 @@ router.post(
         message: `${title} — ${new Date(scheduledAt).toLocaleString("fr-FR")}`,
         type: "info",
       });
+    }
+    // Email notification — best-effort; never block the request.
+    try {
+      const recipientIds = new Set<number>();
+      if (student.userId && student.userId !== req.currentUser!.id) {
+        recipientIds.add(student.userId);
+      }
+      if (student.advisorId && student.advisorId !== req.currentUser!.id) {
+        recipientIds.add(student.advisorId);
+      }
+      if (recipientIds.size > 0) {
+        const recipients = await db
+          .select()
+          .from(usersTable)
+          .where(inArray(usersTable.id, Array.from(recipientIds)));
+        const when = new Date(scheduledAt).toLocaleString("fr-FR", {
+          dateStyle: "full",
+          timeStyle: "short",
+        });
+        for (const r of recipients) {
+          if (!r.email) continue;
+          const isStudent = r.id === student.userId;
+          const link = isStudent
+            ? studentSelfLink("appointments")
+            : staffStudentLink(studentId);
+          await sendMail({
+            to: r.email,
+            subject: `Rendez-vous planifié : ${title}`,
+            text: `Bonjour ${r.firstName ?? ""},\n\nUn rendez-vous a été planifié pour ${student.firstName} ${student.lastName}.\n\nObjet : ${title}\nDate : ${when}${
+              location ? "\nLieu : " + location : ""
+            }${notes ? "\n\nNotes : " + notes : ""}\n\nVoir le rendez-vous : ${link}`,
+            event: "appointment.created",
+            meta: { studentId, appointmentId: created.id },
+          });
+        }
+      }
+    } catch {
+      /* best-effort */
     }
     await logAudit({
       userId: req.currentUser!.id,

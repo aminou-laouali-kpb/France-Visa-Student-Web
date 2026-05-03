@@ -17,7 +17,7 @@ import {
 import { ObjectStorageService } from "../lib/objectStorage";
 import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { sendMail } from "../lib/mailer";
+import { sendMail, studentSelfLink } from "../lib/mailer";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateDocumentBody,
@@ -325,10 +325,11 @@ router.post(
             decision === "validated"
               ? `Votre document "${updated.name}" a été validé`
               : `Votre document "${updated.name}" a été rejeté`;
+          const link = studentSelfLink("documents");
           const text =
             decision === "validated"
-              ? `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été validé par votre conseiller.`
-              : `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été rejeté.\n\nMotif: ${comment ?? "(non précisé)"}`;
+              ? `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été validé par votre conseiller.\n\nConsulter votre dossier : ${link}`
+              : `Bonjour ${studentUser.firstName ?? ""},\n\nVotre document "${updated.name}" a été rejeté.\n\nMotif: ${comment ?? "(non précisé)"}\n\nMettez à jour votre document : ${link}`;
           await sendMail({
             to: studentUser.email,
             subject,
