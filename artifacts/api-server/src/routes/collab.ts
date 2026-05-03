@@ -29,21 +29,45 @@ import {
 const router: IRouter = Router();
 
 // COMMENTS
+function decorateComment(
+  c: typeof commentsTable.$inferSelect,
+  author: { firstName: string | null; lastName: string | null; role: string } | undefined,
+) {
+  const fullName = [author?.firstName, author?.lastName]
+    .filter((p) => !!p)
+    .join(" ")
+    .trim();
+  return {
+    ...c,
+    authorName: fullName || "Utilisateur",
+    authorRole: author?.role ?? "student",
+  };
+}
+
 router.get(
   "/students/:studentId/comments",
   requireAuth,
   requireStudentAccess("studentId", "read"),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
-    let q = await db
-      .select()
+    const rows = await db
+      .select({
+        comment: commentsTable,
+        author: {
+          firstName: usersTable.firstName,
+          lastName: usersTable.lastName,
+          role: usersTable.role,
+        },
+      })
       .from(commentsTable)
+      .leftJoin(usersTable, eq(usersTable.id, commentsTable.authorId))
       .where(eq(commentsTable.studentId, studentId))
       .orderBy(desc(commentsTable.createdAt));
+    let mapped = rows.map((r) => decorateComment(r.comment, r.author ?? undefined));
     if (req.currentUser!.role === "student") {
-      q = q.filter((c) => !c.isInternal);
+      mapped = mapped.filter((c) => !c.isInternal);
     }
-    res.json(q);
+    res.json(mapped);
   },
 );
 
@@ -87,7 +111,7 @@ router.post(
       entityType: "comment",
       entityId: created.id,
     });
-    res.status(201).json(created);
+    res.status(201).json(decorateComment(created, req.currentUser!));
   },
 );
 

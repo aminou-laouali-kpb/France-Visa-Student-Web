@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ProgressRing } from "@/components/ProgressRing";
 import { formatDateTime, formatDate, ROLE_LABELS } from "@/lib/utils";
 import {
   GraduationCap,
@@ -72,14 +73,25 @@ function StudentDashboard() {
 
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="text-sm text-slate-600">Progression du dossier</div>
-              <div className="text-2xl font-bold text-slate-900">{data.completionScore}%</div>
+          <div className="flex items-center justify-between gap-6">
+            <ProgressRing value={data.completionScore} label="complété" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-sm text-slate-600">Statut du dossier</div>
+                <StatusBadge status={data.student.status} />
+              </div>
+              <div className="text-lg font-semibold text-slate-900">
+                {data.completedSteps} / {data.totalSteps} étapes validées
+              </div>
+              <Progress value={data.completionScore} className="h-2 mt-2" />
+              {data.pendingDocuments > 0 && (
+                <div className="text-sm text-amber-700 mt-3 flex items-center gap-1">
+                  <AlertTriangle className="w-4 h-4" />
+                  {data.pendingDocuments} document(s) à corriger
+                </div>
+              )}
             </div>
-            <StatusBadge status={data.student.status} />
           </div>
-          <Progress value={data.completionScore} className="h-2" />
         </CardContent>
       </Card>
 

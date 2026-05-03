@@ -41,6 +41,9 @@ export interface Comment {
   id: number;
   content: string;
   createdAt: string;
+  authorId: number;
+  authorName: string;
+  authorRole: string;
   isInternal?: boolean;
   isCorrectionRequest?: boolean;
 }

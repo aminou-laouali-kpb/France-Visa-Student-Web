@@ -30,6 +30,8 @@ import {
   useUpdateStudent,
   useListStudentSteps,
   useUpdateStudentStep,
+  useGetStepChecklist,
+  useUpdateChecklistItem,
   useListDocuments,
   useReviewDocument,
   useListComments,
@@ -47,6 +49,7 @@ import {
   useListCountries,
   useListSchools,
 } from "@workspace/api-client-react";
+import type { ChecklistItem } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,10 +114,14 @@ export function StudentDetail() {
         <TabsList>
           <TabsTrigger value="steps" data-testid="tab-steps">Parcours</TabsTrigger>
           <TabsTrigger value="documents" data-testid="tab-documents">Documents</TabsTrigger>
-          <TabsTrigger value="comments" data-testid="tab-comments">Commentaires</TabsTrigger>
-          <TabsTrigger value="tasks" data-testid="tab-tasks">Tâches</TabsTrigger>
+          <TabsTrigger value="comments" data-testid="tab-comments">Messages</TabsTrigger>
+          {isStaff && (
+            <TabsTrigger value="tasks" data-testid="tab-tasks">Tâches</TabsTrigger>
+          )}
           <TabsTrigger value="appointments" data-testid="tab-appointments">Rendez-vous</TabsTrigger>
-          <TabsTrigger value="risk" data-testid="tab-risk">Risque</TabsTrigger>
+          {isStaff && (
+            <TabsTrigger value="risk" data-testid="tab-risk">Risque</TabsTrigger>
+          )}
           <TabsTrigger value="profile" data-testid="tab-profile">Profil</TabsTrigger>
         </TabsList>
 
@@ -125,17 +132,21 @@ export function StudentDetail() {
           <DocumentsTab studentId={studentId} isStaff={!!isStaff} />
         </TabsContent>
         <TabsContent value="comments" className="mt-4">
-          <CommentsTab studentId={studentId} isStaff={!!isStaff} />
+          <CommentsTab studentId={studentId} isStaff={!!isStaff} currentUserId={me?.id ?? 0} />
         </TabsContent>
-        <TabsContent value="tasks" className="mt-4">
-          <TasksTab studentId={studentId} isStaff={!!isStaff} />
-        </TabsContent>
+        {isStaff && (
+          <TabsContent value="tasks" className="mt-4">
+            <TasksTab studentId={studentId} isStaff={!!isStaff} />
+          </TabsContent>
+        )}
         <TabsContent value="appointments" className="mt-4">
           <AppointmentsTab studentId={studentId} isStaff={!!isStaff} />
         </TabsContent>
-        <TabsContent value="risk" className="mt-4">
-          <RiskTab studentId={studentId} />
-        </TabsContent>
+        {isStaff && (
+          <TabsContent value="risk" className="mt-4">
+            <RiskTab studentId={studentId} />
+          </TabsContent>
+        )}
         <TabsContent value="profile" className="mt-4">
           <ProfileTab studentId={studentId} student={student} isStaff={!!isStaff} onUpdate={refetch} />
         </TabsContent>
@@ -147,6 +158,7 @@ export function StudentDetail() {
 function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean }) {
   const { data: steps = [], refetch } = useListStudentSteps(studentId);
   const update = useUpdateStudentStep();
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const handleStatus = async (stepId: number, status: string) => {
     await update.mutateAsync({
@@ -164,55 +176,76 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
             {(steps as unknown as Step[]).map((step) => {
             const isCompleted = step.status === "validated";
             const isBlocked = step.status === "blocked" || step.status === "rejected";
+            const isExpanded = expandedId === step.id;
             return (
-              <div
-                key={step.id}
-                className="flex items-start gap-4 p-4 hover:bg-slate-50"
-                data-testid={`step-${step.id}`}
-              >
-                <div className="mt-1">
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                  ) : isBlocked ? (
-                    <AlertCircle className="w-6 h-6 text-rose-500" />
-                  ) : (
-                    <Circle className="w-6 h-6 text-slate-300" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500">Étape {step.stepOrder}</span>
-                    {step.isCampusFranceStep && (
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                        Campus France
-                      </span>
+              <div key={step.id} data-testid={`step-${step.id}`}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={`step-checklist-${step.id}`}
+                  className="flex items-start gap-4 p-4 hover:bg-slate-50 cursor-pointer focus:outline-none focus:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500"
+                  onClick={() => setExpandedId(isExpanded ? null : step.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setExpandedId(isExpanded ? null : step.id);
+                    }
+                  }}
+                >
+                  <div className="mt-1">
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    ) : isBlocked ? (
+                      <AlertCircle className="w-6 h-6 text-rose-500" />
+                    ) : (
+                      <Circle className="w-6 h-6 text-slate-300" />
                     )}
                   </div>
-                  <div className="font-medium text-slate-900">{step.stepName}</div>
-                  {step.notes && <div className="text-sm text-slate-600 mt-1">{step.notes}</div>}
-                  {step.blockedReason && (
-                    <div className="text-sm text-rose-600 mt-1">⚠️ {step.blockedReason}</div>
-                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500">Étape {step.stepOrder}</span>
+                      {step.isCampusFranceStep && (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                          Campus France
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-medium text-slate-900">{step.stepName}</div>
+                    {step.notes && <div className="text-sm text-slate-600 mt-1">{step.notes}</div>}
+                    {step.blockedReason && (
+                      <div className="text-sm text-rose-600 mt-1">⚠️ {step.blockedReason}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <StatusBadge status={step.status} />
+                    {canEdit && !isCompleted && (
+                      <select
+                        className="text-xs border rounded px-2 py-1"
+                        value={step.status}
+                        onChange={(e) => handleStatus(step.id, e.target.value)}
+                        data-testid={`select-step-status-${step.id}`}
+                      >
+                        <option value="not_started">À faire</option>
+                        <option value="in_progress">En cours</option>
+                        <option value="submitted">Soumis</option>
+                        <option value="under_review">En revue</option>
+                        <option value="blocked">Bloqué</option>
+                        <option value="validated">Validé</option>
+                        <option value="rejected">Rejeté</option>
+                      </select>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={step.status} />
-                  {canEdit && !isCompleted && (
-                    <select
-                      className="text-xs border rounded px-2 py-1"
-                      value={step.status}
-                      onChange={(e) => handleStatus(step.id, e.target.value)}
-                      data-testid={`select-step-status-${step.id}`}
-                    >
-                      <option value="not_started">À faire</option>
-                      <option value="in_progress">En cours</option>
-                      <option value="submitted">Soumis</option>
-                      <option value="under_review">En revue</option>
-                      <option value="blocked">Bloqué</option>
-                      <option value="validated">Validé</option>
-                      <option value="rejected">Rejeté</option>
-                    </select>
-                  )}
-                </div>
+                {isExpanded && (
+                  <div id={`step-checklist-${step.id}`}>
+                    <StepChecklist
+                      studentId={studentId}
+                      stepId={step.id}
+                      canEdit={canEdit}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -222,6 +255,66 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function StepChecklist({
+  studentId,
+  stepId,
+  canEdit,
+}: {
+  studentId: number;
+  stepId: number;
+  canEdit: boolean;
+}) {
+  const { data: items = [], refetch } = useGetStepChecklist(studentId, stepId);
+  const update = useUpdateChecklistItem();
+  const list = items as unknown as ChecklistItem[];
+
+  const toggle = async (itemId: number, isChecked: boolean) => {
+    await update.mutateAsync({ studentId, itemId, data: { isChecked } });
+    refetch();
+  };
+
+  if (list.length === 0) {
+    return (
+      <div className="px-14 pb-4 text-sm text-slate-500">
+        Aucune sous-tâche pour cette étape.
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-14 pb-4 space-y-2 bg-slate-50/40">
+      {list.map((it) => (
+        <label
+          key={it.id}
+          className="flex items-start gap-3 text-sm cursor-pointer"
+          data-testid={`checklist-${it.id}`}
+        >
+          <input
+            type="checkbox"
+            checked={it.isChecked}
+            disabled={!canEdit}
+            onChange={(e) => toggle(it.id, e.target.checked)}
+            className="mt-1"
+            data-testid={`checkbox-checklist-${it.id}`}
+          />
+          <span
+            className={
+              it.isChecked
+                ? "line-through text-slate-400"
+                : "text-slate-700"
+            }
+          >
+            {it.label}
+            {it.isRequired && (
+              <span className="text-rose-600 ml-1">*</span>
+            )}
+          </span>
+        </label>
+      ))}
+    </div>
   );
 }
 
@@ -406,7 +499,15 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
   );
 }
 
-function CommentsTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
+function CommentsTab({
+  studentId,
+  isStaff,
+  currentUserId,
+}: {
+  studentId: number;
+  isStaff: boolean;
+  currentUserId: number;
+}) {
   const { data: comments = [], refetch } = useListComments(studentId);
   const create = useCreateComment();
   const [content, setContent] = useState("");
@@ -429,12 +530,16 @@ function CommentsTab({ studentId, isStaff }: { studentId: number; isStaff: boole
     refetch();
   };
 
+  const list = (comments as unknown as Comment[]).filter(
+    (c) => isStaff || !c.isInternal,
+  );
+
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="p-4 space-y-3">
           <Textarea
-            placeholder="Écrire un commentaire…"
+            placeholder="Écrire un message…"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
@@ -472,36 +577,64 @@ function CommentsTab({ studentId, isStaff }: { studentId: number; isStaff: boole
         </CardContent>
       </Card>
 
-      <div className="space-y-2">
-        {(comments as unknown as Comment[]).map((c) => (
-          <Card key={c.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-500">
-                    {formatDateTime(c.createdAt)}
-                  </span>
-                  {c.isInternal && (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                      Interne
+      <div className="space-y-3">
+        {list.map((c) => {
+          const mine = c.authorId === currentUserId;
+          return (
+            <div
+              key={c.id}
+              className={`flex ${mine ? "justify-end" : "justify-start"}`}
+              data-testid={`comment-${c.id}`}
+            >
+              <div className="max-w-[75%]">
+                <div
+                  className={`text-xs text-slate-500 mb-1 flex items-center gap-2 ${mine ? "justify-end" : ""}`}
+                >
+                  {!mine && (
+                    <span className="font-medium text-slate-700">
+                      {c.authorName}
                     </span>
                   )}
-                  {c.isCorrectionRequest && (
-                    <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded">
-                      Correction
-                    </span>
+                  <span>{formatDateTime(c.createdAt)}</span>
+                  {mine && (
+                    <span className="font-medium text-slate-700">Moi</span>
                   )}
                 </div>
+                <div
+                  className={`rounded-2xl px-4 py-2.5 shadow-sm whitespace-pre-wrap ${
+                    c.isCorrectionRequest
+                      ? "bg-rose-50 border border-rose-200 text-rose-900"
+                      : c.isInternal
+                        ? "bg-amber-50 border border-amber-200 text-amber-900"
+                        : mine
+                          ? "bg-blue-600 text-white"
+                          : "bg-white border border-slate-200 text-slate-800"
+                  }`}
+                >
+                  {(c.isCorrectionRequest || c.isInternal) && (
+                    <div className="flex items-center gap-1 text-xs font-semibold mb-1 uppercase tracking-wide">
+                      {c.isCorrectionRequest && (
+                        <>
+                          <AlertCircle className="w-3 h-3" />
+                          Correction demandée
+                        </>
+                      )}
+                      {c.isInternal && !c.isCorrectionRequest && (
+                        <span>Note interne</span>
+                      )}
+                    </div>
+                  )}
+                  {c.content}
+                </div>
               </div>
-              <p className="text-slate-800 whitespace-pre-wrap">{c.content}</p>
-            </CardContent>
-          </Card>
-        ))}
-        {comments.length === 0 && (
+            </div>
+          );
+        })}
+        {list.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center text-slate-500">
-              Aucun commentaire
+              <MessageSquare className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+              Aucun message pour l'instant
             </CardContent>
           </Card>
         )}
