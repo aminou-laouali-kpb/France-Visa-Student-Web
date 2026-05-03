@@ -12,18 +12,35 @@ import {
   type User,
 } from "@workspace/db";
 import { eq, and, asc, desc, or } from "drizzle-orm";
-import { requireAuth, isStaff, isAdmin } from "../middlewares/auth";
+import {
+  requireAuth,
+  isStaff,
+  isAdmin,
+  canAccessStudent,
+  requireStudentAccess,
+} from "../middlewares/auth";
 import { logAudit } from "../lib/audit";
 
 const router: IRouter = Router();
 
-async function canAccessStudent(user: User, student: Student): Promise<boolean> {
-  if (isAdmin(user)) return true;
-  if (user.role === "advisor" && student.advisorId === user.id) return true;
-  if (user.role === "reviewer" && student.reviewerId === user.id) return true;
-  if (user.role === "student" && student.userId === user.id) return true;
-  return false;
-}
+const STEP_STATUSES = [
+  "not_started",
+  "in_progress",
+  "submitted",
+  "validated",
+  "rejected",
+  "blocked",
+] as const;
+type StepStatus = (typeof STEP_STATUSES)[number];
+
+const ALLOWED_TRANSITIONS: Record<StepStatus, StepStatus[]> = {
+  not_started: ["in_progress", "blocked"],
+  in_progress: ["submitted", "blocked", "not_started"],
+  submitted: ["validated", "rejected", "blocked", "in_progress"],
+  validated: ["in_progress"],
+  rejected: ["in_progress", "submitted", "blocked"],
+  blocked: ["in_progress", "not_started"],
+};
 
 async function provisionWorkflowForStudent(studentId: number, countryId: number | null) {
   // Find default template (or country-specific)
@@ -240,23 +257,23 @@ router.get(
 router.patch(
   "/students/:studentId/steps/:stepId",
   requireAuth,
+  requireStudentAccess("studentId", "read"),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const stepId = Number(req.params.stepId);
-    const [student] = await db
+    const [existingStep] = await db
       .select()
-      .from(studentsTable)
-      .where(eq(studentsTable.id, studentId));
-    if (!student) {
-      res.status(404).json({ error: "Student not found" });
-      return;
-    }
-    if (!(await canAccessStudent(req.currentUser!, student))) {
-      res.status(403).json({ error: "Forbidden" });
+      .from(studentStepsTable)
+      .where(
+        and(eq(studentStepsTable.id, stepId), eq(studentStepsTable.studentId, studentId)),
+      );
+    if (!existingStep) {
+      res.status(404).json({ error: "Step not found for student" });
       return;
     }
     const { status, blockedReason, overrideJustification, notes } = req.body ?? {};
-    // Students can only mark their own steps in_progress/submitted; staff can do anything
+
+    // Students can only mark their own steps in_progress/submitted; staff broader access.
     if (
       req.currentUser!.role === "student" &&
       status &&
@@ -265,6 +282,52 @@ router.patch(
       res.status(403).json({ error: "Students can only mark steps in_progress or submitted" });
       return;
     }
+
+    if (status !== undefined) {
+      if (!STEP_STATUSES.includes(status)) {
+        res.status(400).json({ error: "Invalid status" });
+        return;
+      }
+      const current = existingStep.status as StepStatus;
+      const allowed = ALLOWED_TRANSITIONS[current] ?? [];
+      const isOverride = isAdmin(req.currentUser!) && !allowed.includes(status);
+      if (!allowed.includes(status) && !isOverride) {
+        res.status(409).json({
+          error: `Invalid transition ${current} → ${status}`,
+        });
+        return;
+      }
+      if (isOverride && !overrideJustification) {
+        res.status(400).json({
+          error: "overrideJustification is required for admin override transitions",
+        });
+        return;
+      }
+      // Dependency: cannot validate a step if a prior required step is unfinished.
+      if (status === "validated") {
+        const priorRequired = await db
+          .select()
+          .from(studentStepsTable)
+          .where(eq(studentStepsTable.studentId, studentId));
+        const blocking = priorRequired.find(
+          (s) =>
+            s.isRequired &&
+            s.stepOrder < existingStep.stepOrder &&
+            s.status !== "validated",
+        );
+        if (blocking && !isOverride) {
+          res.status(409).json({
+            error: `Cannot validate: previous required step "${blocking.stepName}" is not validated`,
+          });
+          return;
+        }
+      }
+      if (status === "blocked" && !blockedReason) {
+        res.status(400).json({ error: "blockedReason is required when status is blocked" });
+        return;
+      }
+    }
+
     const [updated] = await db
       .update(studentStepsTable)
       .set({
@@ -275,7 +338,9 @@ router.patch(
         ...(status === "validated" && { completedAt: new Date() }),
         updatedAt: new Date(),
       })
-      .where(eq(studentStepsTable.id, stepId))
+      .where(
+        and(eq(studentStepsTable.id, stepId), eq(studentStepsTable.studentId, studentId)),
+      )
       .returning();
     // Update student completion score
     const allSteps = await db
@@ -304,15 +369,18 @@ router.patch(
 router.get(
   "/students/:studentId/steps/:stepId/checklist",
   requireAuth,
+  requireStudentAccess("studentId", "read"),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
     const stepId = Number(req.params.stepId);
     const [studentStep] = await db
       .select()
       .from(studentStepsTable)
-      .where(eq(studentStepsTable.id, stepId));
+      .where(
+        and(eq(studentStepsTable.id, stepId), eq(studentStepsTable.studentId, studentId)),
+      );
     if (!studentStep) {
-      res.status(404).json({ error: "Step not found" });
+      res.status(404).json({ error: "Step not found for student" });
       return;
     }
     const items = await db
@@ -332,9 +400,26 @@ router.get(
 router.patch(
   "/students/:studentId/checklist-items/:itemId",
   requireAuth,
+  requireStudentAccess("studentId", "read"),
   async (req, res) => {
+    const studentId = Number(req.params.studentId);
     const itemId = Number(req.params.itemId);
+    const [existing] = await db
+      .select()
+      .from(checklistItemsTable)
+      .where(
+        and(
+          eq(checklistItemsTable.id, itemId),
+          eq(checklistItemsTable.studentId, studentId),
+        ),
+      );
+    if (!existing) {
+      res.status(404).json({ error: "Checklist item not found for student" });
+      return;
+    }
     const { isChecked, label } = req.body ?? {};
+    // Students may toggle isChecked but not relabel items.
+    const isStudentCaller = req.currentUser!.role === "student";
     const [updated] = await db
       .update(checklistItemsTable)
       .set({
@@ -343,9 +428,14 @@ router.patch(
           checkedAt: isChecked ? new Date() : null,
           checkedBy: isChecked ? req.currentUser!.id : null,
         }),
-        ...(label !== undefined && { label }),
+        ...(label !== undefined && !isStudentCaller && { label }),
       })
-      .where(eq(checklistItemsTable.id, itemId))
+      .where(
+        and(
+          eq(checklistItemsTable.id, itemId),
+          eq(checklistItemsTable.studentId, studentId),
+        ),
+      )
       .returning();
     res.json(updated);
   },

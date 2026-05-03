@@ -168,6 +168,10 @@ router.post(
       res.status(400).json({ error: "Invalid decision" });
       return;
     }
+    if (decision === "rejected" && (!comment || String(comment).trim().length < 3)) {
+      res.status(400).json({ error: "A rejection reason (comment) is required" });
+      return;
+    }
     await db.insert(documentReviewsTable).values({
       documentId,
       reviewerId: req.currentUser!.id,
