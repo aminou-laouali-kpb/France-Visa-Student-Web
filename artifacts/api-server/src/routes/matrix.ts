@@ -465,6 +465,22 @@ router.post(
       nationalityCode: student.nationalityCode,
       programLevel: await loadProgramLevel(student.programId),
     });
+    // Recompute completionScore so the UI reflects the refreshed plan
+    // immediately, without waiting for the next step-status update.
+    const allSteps = await db
+      .select()
+      .from(studentStepsTable)
+      .where(eq(studentStepsTable.studentId, studentId));
+    const requiredSteps = allSteps.filter((s) => s.isRequired);
+    const denomList = requiredSteps.length > 0 ? requiredSteps : allSteps;
+    const validated = denomList.filter((s) => s.status === "validated").length;
+    const score = denomList.length > 0
+      ? Math.round((validated / denomList.length) * 100)
+      : 0;
+    await db
+      .update(studentsTable)
+      .set({ completionScore: score, lastActivityAt: new Date() })
+      .where(eq(studentsTable.id, studentId));
     await logAudit({
       userId: u.id,
       studentId: studentId,
