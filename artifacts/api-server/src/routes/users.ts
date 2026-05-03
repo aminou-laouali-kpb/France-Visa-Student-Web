@@ -44,11 +44,16 @@ router.get("/users", requireAuth, async (req, res) => {
     return;
   }
   const role = req.query.role as string | undefined;
-  // Tenant scoping: every non-superadmin caller sees only their tenant.
+  // Tenant scoping (fail-closed): superadmin sees the global directory,
+  // every other role is restricted to their own tenant. Callers with no
+  // tenantId resolve to the default tenant (id=1) rather than "all".
   const all =
-    me.role === "superadmin" || !me.tenantId
+    me.role === "superadmin"
       ? await db.select().from(usersTable)
-      : await db.select().from(usersTable).where(eq(usersTable.tenantId, me.tenantId));
+      : await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.tenantId, me.tenantId ?? 1));
   const filtered = role ? all.filter((u) => u.role === role) : all;
   if (isAdmin(me)) {
     res.json(filtered);
@@ -82,15 +87,14 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
     return;
   }
   // Cross-tenant lookups are blocked unless the caller is the user
-  // themselves or a superadmin.
-  if (
-    u.id !== req.currentUser!.id &&
-    req.currentUser!.role !== "superadmin" &&
-    req.currentUser!.tenantId &&
-    u.tenantId !== req.currentUser!.tenantId
-  ) {
-    res.status(404).json({ error: "User not found" });
-    return;
+  // themselves or a superadmin. Fail-closed for null tenantIds.
+  if (u.id !== req.currentUser!.id && req.currentUser!.role !== "superadmin") {
+    const callerTenant = req.currentUser!.tenantId ?? 1;
+    const targetTenant = u.tenantId ?? 1;
+    if (callerTenant !== targetTenant) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
   }
   // Non-admins get a limited public projection
   if (!isAdmin(req.currentUser!) && id !== req.currentUser!.id) {
@@ -123,12 +127,13 @@ router.patch(
       res.status(404).json({ error: "User not found" });
       return;
     }
-    if (
-      req.currentUser!.role !== "superadmin" &&
-      target.tenantId !== req.currentUser!.tenantId
-    ) {
-      res.status(403).json({ error: "cross_tenant_forbidden" });
-      return;
+    if (req.currentUser!.role !== "superadmin") {
+      const callerTenant = req.currentUser!.tenantId ?? 1;
+      const targetTenant = target.tenantId ?? 1;
+      if (callerTenant !== targetTenant) {
+        res.status(403).json({ error: "cross_tenant_forbidden" });
+        return;
+      }
     }
     const [updated] = await db
       .update(usersTable)

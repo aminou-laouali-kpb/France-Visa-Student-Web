@@ -198,13 +198,40 @@ export const stripeWebhookHandler = [
       }
       const item = sub.items.data[0];
       const price = item?.price;
-      const planFromMeta = (price?.metadata?.plan_tier ?? sub.metadata?.plan_tier) as
-        | string
-        | undefined;
-      const planTier: PlanTierKey =
-        planFromMeta && planFromMeta in PLAN_TIERS
-          ? (planFromMeta as PlanTierKey)
-          : "pro";
+      // Deterministic tier resolution. Order:
+      //   1. Match price.id against the configured STRIPE_PRICE_PRO /
+      //      STRIPE_PRICE_AGENCY env vars (single source of truth, no client
+      //      input).
+      //   2. Fall back to explicit `plan_tier` metadata on price/subscription
+      //      (must be one of the known tiers).
+      //   3. Otherwise refuse to apply: do NOT default unknown subscriptions
+      //      to "pro" — that would silently mis-grant Agency limits.
+      const proPrice = process.env.STRIPE_PRICE_PRO;
+      const agencyPrice = process.env.STRIPE_PRICE_AGENCY;
+      let planTier: PlanTierKey | null = null;
+      if (price?.id && proPrice && price.id === proPrice) planTier = "pro";
+      else if (price?.id && agencyPrice && price.id === agencyPrice) planTier = "agency";
+      else {
+        const planFromMeta = (price?.metadata?.plan_tier ?? sub.metadata?.plan_tier) as
+          | string
+          | undefined;
+        if (planFromMeta && planFromMeta in PLAN_TIERS) {
+          planTier = planFromMeta as PlanTierKey;
+        }
+      }
+      if (!planTier) {
+        logger.error(
+          { subId: sub.id, priceId: price?.id },
+          "stripe webhook: unknown plan tier — subscription not applied",
+        );
+        await logAudit({
+          action: "billing.subscription_unknown_tier",
+          entityType: "tenant",
+          entityId: tenantId,
+          details: `priceId=${price?.id ?? "?"}`,
+        });
+        return;
+      }
       const limits = PLAN_TIERS[planTier];
       const periodEnd =
         typeof (sub as unknown as { current_period_end?: number }).current_period_end === "number"

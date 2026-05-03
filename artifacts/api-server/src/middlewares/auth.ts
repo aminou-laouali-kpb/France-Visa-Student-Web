@@ -72,6 +72,10 @@ export async function getOrCreateUser(clerkId: string): Promise<User | null> {
         lastName: lastName || "",
         avatarUrl: clerkUser.imageUrl ?? null,
         role: resolvedRole,
+        // Default every new user to the platform tenant. Tenant invitation
+        // logic (subdomain, invite token) can override this later — see
+        // follow-up #39.
+        tenantId: 1,
       })
       .returning();
     return created;
@@ -135,18 +139,19 @@ export function isAdmin(user: User): boolean {
   return ["admin", "superadmin"].includes(user.role);
 }
 
+// Default tenant — every legacy/null tenant id resolves to this. Backfilled
+// at migration time so this branch should be effectively unreachable, but we
+// fail closed if the data ever drifts.
+const DEFAULT_TENANT_ID = 1;
+
 export function canAccessStudent(user: User, student: Student): boolean {
-  // Tenant boundary: only superadmin can read across tenants. Everyone else
-  // — including tenant admins — is restricted to their own tenant. A null
-  // tenantId on either side means the row predates multi-tenancy and is
-  // treated as the default tenant.
-  if (
-    user.role !== "superadmin" &&
-    user.tenantId &&
-    student.tenantId &&
-    student.tenantId !== user.tenantId
-  ) {
-    return false;
+  // Tenant boundary, fail-closed: only superadmin may cross tenants.
+  // Null tenantId on either row is normalised to DEFAULT_TENANT_ID so a
+  // stray null cannot create an "anything goes" bypass.
+  if (user.role !== "superadmin") {
+    const userTenant = user.tenantId ?? DEFAULT_TENANT_ID;
+    const studentTenant = student.tenantId ?? DEFAULT_TENANT_ID;
+    if (userTenant !== studentTenant) return false;
   }
   if (isAdmin(user)) return true;
   if (user.role === "advisor" && student.advisorId === user.id) return true;

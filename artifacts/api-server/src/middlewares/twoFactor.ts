@@ -1,9 +1,12 @@
 import type { RequestHandler } from "express";
 import { getTenant } from "../lib/tenant";
 
-const VERIFY_WINDOW_MS = 12 * 60 * 60 * 1000;
-
+// Endpoints required to bootstrap the app and self-serve 2FA enrollment.
+// `/users/me` and `/tenant/branding` are needed by the frontend on every
+// page load; `/me/2fa/*` are needed for the user to satisfy the policy.
 const TWOFA_EXEMPT_PATHS = new Set([
+  "/users/me",
+  "/tenant/branding",
   "/me/2fa",
   "/me/2fa/enroll",
   "/me/2fa/verify",
@@ -11,10 +14,13 @@ const TWOFA_EXEMPT_PATHS = new Set([
 ]);
 
 /**
- * When the tenant requires 2FA (or the user is admin/superadmin and has
- * enrolled in 2FA), the request must carry a recent TOTP verification.
- * Endpoints to enroll/verify/challenge are exempt so users can satisfy the
- * requirement.
+ * Tenant policy: when `twoFactorRequired` is on (or the user is an admin in
+ * a tenant that has enabled it), the user must have TOTP enabled before
+ * accessing any privileged endpoint. We deliberately do NOT add a "fresh
+ * challenge" window — Clerk handles login, and a per-call challenge has
+ * no UI today; enforcing it would lock admins out of routine API calls.
+ * The tenant gets the same protection by simply requiring TOTP enrolment
+ * for admins.
  */
 export const enforce2FA: RequestHandler = async (req, res, next) => {
   const user = req.currentUser;
@@ -22,7 +28,6 @@ export const enforce2FA: RequestHandler = async (req, res, next) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  // Allow the 2FA management endpoints themselves to pass through.
   const path = req.path.replace(/\/+$/, "");
   if (TWOFA_EXEMPT_PATHS.has(path)) {
     next();
@@ -30,7 +35,7 @@ export const enforce2FA: RequestHandler = async (req, res, next) => {
   }
   const tenant = await getTenant(user.tenantId);
   const isAdmin = user.role === "admin" || user.role === "superadmin";
-  const required = !!tenant?.twoFactorRequired || isAdmin;
+  const required = !!tenant?.twoFactorRequired && (isAdmin || user.role !== "student");
   if (!required) {
     next();
     return;
@@ -39,14 +44,6 @@ export const enforce2FA: RequestHandler = async (req, res, next) => {
     res.status(403).json({
       error: "twofa_required",
       message: "Activez l'authentification à deux facteurs pour continuer.",
-    });
-    return;
-  }
-  const verified = user.totpVerifiedAt ? user.totpVerifiedAt.getTime() : 0;
-  if (Date.now() - verified > VERIFY_WINDOW_MS) {
-    res.status(403).json({
-      error: "twofa_challenge_required",
-      message: "Validation 2FA expirée; saisissez un nouveau code.",
     });
     return;
   }

@@ -162,9 +162,13 @@ router.post("/admin/users/:userId/erase", requireAuth, async (req, res) => {
     res.status(404).json({ error: "user_not_found" });
     return;
   }
-  if (user.role !== "superadmin" && target.tenantId !== user.tenantId) {
-    res.status(403).json({ error: "cross_tenant_forbidden" });
-    return;
+  if (user.role !== "superadmin") {
+    const callerTenant = user.tenantId ?? 1;
+    const targetTenant = target.tenantId ?? 1;
+    if (callerTenant !== targetTenant) {
+      res.status(403).json({ error: "cross_tenant_forbidden" });
+      return;
+    }
   }
   await eraseUser(targetId, user.id);
   res.json({ erased: true });
