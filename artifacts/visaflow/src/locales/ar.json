@@ -269,7 +269,11 @@
     "nTasks": "{{n}} مهمة",
     "nTasksPlural": "{{n}} مهام",
     "dueOn": "الموعد: {{date}}",
-    "completedSection": "منجزة ({{n}})"
+    "completedSection": "منجزة ({{n}})",
+    "unblockSteps": "فتح {{n}} خطوة(خطوات)",
+    "advanceStep": "المتابعة في: {{name}}",
+    "prepareAppts": "التحضير لـ {{n}} موعد(مواعيد)",
+    "completed": "مكتمل"
   },
   "stepDetail": {
     "back": "العودة إلى القائمة",
@@ -430,7 +434,9 @@
     "subscribe": "اشتراك",
     "loading": "جارٍ التحميل…",
     "paymentError": "خطأ في الدفع: {{msg}}",
-    "portalError": "خطأ في البوابة: {{msg}}"
+    "portalError": "خطأ في البوابة: {{msg}}",
+    "aiCredit": "رصيد الذكاء الاصطناعي الشهري",
+    "priceNotConfigured": "السعر غير مُهيأ"
   },
   "branding": {
     "title": "التخصيص والأمان",
@@ -463,7 +469,8 @@
     "deleteConfirmLabel": "اكتب DELETE للتأكيد",
     "deleteBtn": "حذف حسابي نهائياً",
     "deleting": "جارٍ الحذف…",
-    "confirmDeletion": "هل تؤكد الحذف النهائي لحسابك؟"
+    "confirmDeletion": "هل تؤكد الحذف النهائي لحسابك؟",
+    "eraseKeyword": "حذف"
   },
   "detail": {
     "back": "العودة إلى القائمة",

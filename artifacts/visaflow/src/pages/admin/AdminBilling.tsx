@@ -100,7 +100,7 @@ export function AdminBilling() {
               <span>{settings.studentLimit ?? "—"}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Crédit IA mensuel</span>
+              <span className="text-slate-600">{t("billing.aiCredit")}</span>
               <span>{settings.aiMonthlyBudgetUsd ?? "0"} USD</span>
             </div>
             {settings.stripeCustomerId ? (
@@ -161,7 +161,7 @@ export function AdminBilling() {
                         onClick={() => onSubscribe(plan.priceId)}
                         data-testid={`btn-subscribe-${plan.tier}`}
                       >
-                        {plan.priceId ? t("billing.subscribe") : "Prix non configuré"}
+                        {plan.priceId ? t("billing.subscribe") : t("billing.priceNotConfigured")}
                       </Button>
                     ) : null}
                   </CardContent>

@@ -269,7 +269,11 @@
     "nTasks": "{{n}} task",
     "nTasksPlural": "{{n}} tasks",
     "dueOn": "Due: {{date}}",
-    "completedSection": "Completed ({{n}})"
+    "completedSection": "Completed ({{n}})",
+    "unblockSteps": "Unlock {{n}} step(s)",
+    "advanceStep": "Advance on: {{name}}",
+    "prepareAppts": "Prepare {{n}} appointment(s)",
+    "completed": "completed"
   },
   "stepDetail": {
     "back": "Back to list",
@@ -430,7 +434,9 @@
     "subscribe": "Subscribe",
     "loading": "Loading…",
     "paymentError": "Payment error: {{msg}}",
-    "portalError": "Portal error: {{msg}}"
+    "portalError": "Portal error: {{msg}}",
+    "aiCredit": "Monthly AI credit",
+    "priceNotConfigured": "Price not configured"
   },
   "branding": {
     "title": "Customization & security",
@@ -463,7 +469,8 @@
     "deleteConfirmLabel": "Type DELETE to confirm",
     "deleteBtn": "Permanently delete my account",
     "deleting": "Deleting…",
-    "confirmDeletion": "Do you confirm the permanent deletion of your account?"
+    "confirmDeletion": "Do you confirm the permanent deletion of your account?",
+    "eraseKeyword": "DELETE"
   },
   "detail": {
     "back": "Back to list",

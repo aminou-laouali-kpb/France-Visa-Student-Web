@@ -88,21 +88,21 @@ export function StudentDashboard() {
   }
   if (blockedSteps.length > 0) {
     derivedActions.push({
-      label: `Débloquer ${blockedSteps.length} étape(s)`,
+      label: t("dash.unblockSteps", { n: blockedSteps.length }),
       href: "/student/steps",
       icon: ListChecks,
     });
   }
   if (nextStep) {
     derivedActions.push({
-      label: `Avancer sur : ${nextStep.stepName}`,
+      label: t("dash.advanceStep", { name: nextStep.stepName }),
       href: "/student/steps",
       icon: ArrowRight,
     });
   }
   if ((data.upcomingAppointments?.length ?? 0) > 0) {
     derivedActions.push({
-      label: `Préparer ${data.upcomingAppointments!.length} rendez-vous`,
+      label: t("dash.prepareAppts", { n: data.upcomingAppointments!.length }),
       href: "/student/appointments",
       icon: Calendar,
     });
@@ -124,7 +124,7 @@ export function StudentDashboard() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between gap-6">
-            <ProgressRing value={data.completionScore} label="complété" />
+            <ProgressRing value={data.completionScore} label={t("dash.completed")} />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="text-sm text-slate-600">{t("dash.dossierStatus")}</div>

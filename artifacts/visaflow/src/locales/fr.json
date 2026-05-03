@@ -269,7 +269,11 @@
     "nTasks": "{{n}} tâche",
     "nTasksPlural": "{{n}} tâches",
     "dueOn": "Échéance : {{date}}",
-    "completedSection": "Terminées ({{n}})"
+    "completedSection": "Terminées ({{n}})",
+    "unblockSteps": "Débloquer {{n}} étape(s)",
+    "advanceStep": "Avancer sur : {{name}}",
+    "prepareAppts": "Préparer {{n}} rendez-vous",
+    "completed": "complété"
   },
   "stepDetail": {
     "back": "Retour à la liste",
@@ -430,7 +434,9 @@
     "subscribe": "S'abonner",
     "loading": "Chargement…",
     "paymentError": "Erreur de paiement: {{msg}}",
-    "portalError": "Erreur portail: {{msg}}"
+    "portalError": "Erreur portail: {{msg}}",
+    "aiCredit": "Crédit IA mensuel",
+    "priceNotConfigured": "Prix non configuré"
   },
   "branding": {
     "title": "Personnalisation & sécurité",
@@ -463,7 +469,8 @@
     "deleteConfirmLabel": "Tapez SUPPRIMER pour confirmer",
     "deleteBtn": "Supprimer définitivement mon compte",
     "deleting": "Suppression…",
-    "confirmDeletion": "Confirmez-vous la suppression définitive de votre compte ?"
+    "confirmDeletion": "Confirmez-vous la suppression définitive de votre compte ?",
+    "eraseKeyword": "SUPPRIMER"
   },
   "detail": {
     "back": "Retour à la liste",

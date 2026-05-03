@@ -11,7 +11,7 @@ export function PrivacySettings() {
   const [erasing, setErasing] = useState(false);
   const [eraseConfirm, setEraseConfirm] = useState("");
 
-  const ERASE_KEYWORD = "SUPPRIMER";
+  const ERASE_KEYWORD = t("privacy.eraseKeyword");
 
   const onExport = async () => {
     setExporting(true);
@@ -33,7 +33,7 @@ export function PrivacySettings() {
   };
 
   const onErase = async () => {
-    if (eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD) return;
+    if (eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD.toUpperCase()) return;
     if (!confirm(t("privacy.confirmDeletion"))) return;
     setErasing(true);
     try {
@@ -98,7 +98,7 @@ export function PrivacySettings() {
           </div>
           <Button
             variant="destructive"
-            disabled={erasing || eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD}
+            disabled={erasing || eraseConfirm.trim().toUpperCase() !== ERASE_KEYWORD.toUpperCase()}
             onClick={onErase}
             data-testid="btn-erase"
           >
