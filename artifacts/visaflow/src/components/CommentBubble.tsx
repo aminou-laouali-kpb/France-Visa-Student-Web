@@ -37,9 +37,19 @@ export function CommentBody({
   const otherLang = showOriginal
     ? comment.translatedToLanguage
     : comment.originalLanguage;
+  const showingTranslation = hasTranslation && !showOriginal;
   return (
     <>
       <div>{body}</div>
+      {showingTranslation && (
+        <div
+          className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-wide font-semibold text-purple-600/80"
+          data-testid={`comment-ai-translation-${comment.id}`}
+        >
+          <Languages className="w-3 h-3" />
+          Traduit par IA
+        </div>
+      )}
       {hasTranslation && (
         <button
           type="button"
