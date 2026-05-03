@@ -126,7 +126,8 @@
     "dossierStatus": "حالة الملف",
     "dob": "تاريخ الميلاد",
     "passportNumber": "رقم جواز السفر",
-    "passportExpiry": "تاريخ انتهاء صلاحية جواز السفر"
+    "passportExpiry": "تاريخ انتهاء صلاحية جواز السفر",
+    "whatsapp": "واتساب"
   },
   "calendar": {
     "title": "الاشتراك في التقويم",
@@ -415,7 +416,9 @@
     "actionLabel": "الإجراء",
     "studentIdLabel": "معرف الطالب",
     "noEntries": "لا توجد سجلات لهذه الفلاتر.",
-    "system": "النظام"
+    "system": "النظام",
+    "actionPlaceholder": "مثال: student.update",
+    "studentIdPlaceholder": "مثال: 42"
   },
   "billing": {
     "title": "الفوترة",
@@ -524,7 +527,14 @@
     "priorityCritical": "حرجة",
     "unassigned": "غير مُعيَّنة",
     "create": "إنشاء",
-    "noMessages": "لا توجد رسائل بعد"
+    "noMessages": "لا توجد رسائل بعد",
+    "checklistUpdated": "تم تحديث القائمة:\n+ {{added}} وثيقة(وثائق) مضافة\n- {{removed}} محذوفة\n{{skipped}} خطوة(خطوات) غير مطلوبة\n{{restored}} خطوة(خطوات) مستعادة",
+    "checklistRefreshError": "خطأ أثناء التحديث.",
+    "campusFranceStep": "Campus France",
+    "aptCampusFrance": "Campus France",
+    "aptTlsVfs": "TLS / VFS",
+    "cannotSubmit": "لا يمكن تقديم الملف.",
+    "campusFranceRequired": "(Campus France مطلوب)"
   },
   "docCategory": {
     "passeport": "جواز السفر",

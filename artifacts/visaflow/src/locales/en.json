@@ -126,7 +126,8 @@
     "dossierStatus": "Application status",
     "dob": "Date of birth",
     "passportNumber": "Passport number",
-    "passportExpiry": "Passport expiry date"
+    "passportExpiry": "Passport expiry date",
+    "whatsapp": "WhatsApp"
   },
   "calendar": {
     "title": "Calendar subscription",
@@ -415,7 +416,9 @@
     "actionLabel": "Action",
     "studentIdLabel": "Student ID",
     "noEntries": "No entries for these filters.",
-    "system": "System"
+    "system": "System",
+    "actionPlaceholder": "e.g. student.update",
+    "studentIdPlaceholder": "e.g. 42"
   },
   "billing": {
     "title": "Billing",
@@ -524,7 +527,14 @@
     "priorityCritical": "Critical",
     "unassigned": "Unassigned",
     "create": "Create",
-    "noMessages": "No messages yet"
+    "noMessages": "No messages yet",
+    "checklistUpdated": "Checklist updated:\n+ {{added}} document(s) added\n- {{removed}} removed\n{{skipped}} step(s) not required\n{{restored}} step(s) restored",
+    "checklistRefreshError": "Error refreshing checklist.",
+    "campusFranceStep": "Campus France",
+    "aptCampusFrance": "Campus France",
+    "aptTlsVfs": "TLS / VFS",
+    "cannotSubmit": "The file cannot be submitted.",
+    "campusFranceRequired": "(Campus France required)"
   },
   "docCategory": {
     "passeport": "Passport",

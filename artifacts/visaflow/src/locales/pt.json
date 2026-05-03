@@ -126,7 +126,8 @@
     "dossierStatus": "Estado da candidatura",
     "dob": "Data de nascimento",
     "passportNumber": "Número de passaporte",
-    "passportExpiry": "Data de validade do passaporte"
+    "passportExpiry": "Data de validade do passaporte",
+    "whatsapp": "WhatsApp"
   },
   "calendar": {
     "title": "Subscrição do calendário",
@@ -415,7 +416,9 @@
     "actionLabel": "Ação",
     "studentIdLabel": "ID estudante",
     "noEntries": "Nenhuma entrada para estes filtros.",
-    "system": "Sistema"
+    "system": "Sistema",
+    "actionPlaceholder": "ex. student.update",
+    "studentIdPlaceholder": "ex. 42"
   },
   "billing": {
     "title": "Faturação",
@@ -524,7 +527,14 @@
     "priorityCritical": "Crítica",
     "unassigned": "Não atribuída",
     "create": "Criar",
-    "noMessages": "Sem mensagens por enquanto"
+    "noMessages": "Sem mensagens por enquanto",
+    "checklistUpdated": "Lista atualizada:\n+ {{added}} documento(s) adicionado(s)\n- {{removed}} removido(s)\n{{skipped}} etapa(s) não obrigatória(s)\n{{restored}} etapa(s) restaurada(s)",
+    "checklistRefreshError": "Erro ao atualizar a lista.",
+    "campusFranceStep": "Campus France",
+    "aptCampusFrance": "Campus France",
+    "aptTlsVfs": "TLS / VFS",
+    "cannotSubmit": "O processo não pode ser submetido.",
+    "campusFranceRequired": "(Campus France obrigatório)"
   },
   "docCategory": {
     "passeport": "Passaporte",

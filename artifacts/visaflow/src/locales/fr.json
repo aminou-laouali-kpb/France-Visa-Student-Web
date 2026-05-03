@@ -126,7 +126,8 @@
     "dossierStatus": "Statut du dossier",
     "dob": "Date de naissance",
     "passportNumber": "Numéro de passeport",
-    "passportExpiry": "Date d'expiration du passeport"
+    "passportExpiry": "Date d'expiration du passeport",
+    "whatsapp": "WhatsApp"
   },
   "calendar": {
     "title": "Abonnement calendrier",
@@ -415,7 +416,9 @@
     "actionLabel": "Action",
     "studentIdLabel": "ID étudiant",
     "noEntries": "Aucune entrée pour ces filtres.",
-    "system": "Système"
+    "system": "Système",
+    "actionPlaceholder": "ex. student.update",
+    "studentIdPlaceholder": "ex. 42"
   },
   "billing": {
     "title": "Facturation",
@@ -524,7 +527,14 @@
     "priorityCritical": "Critique",
     "unassigned": "Non assignée",
     "create": "Créer",
-    "noMessages": "Aucun message pour l'instant"
+    "noMessages": "Aucun message pour l'instant",
+    "checklistUpdated": "Liste mise à jour :\n+ {{added}} document(s) ajouté(s)\n- {{removed}} retiré(s)\n{{skipped}} étape(s) non requises\n{{restored}} étape(s) restaurée(s)",
+    "checklistRefreshError": "Erreur lors du rafraîchissement.",
+    "campusFranceStep": "Campus France",
+    "aptCampusFrance": "Campus France",
+    "aptTlsVfs": "TLS / VFS",
+    "cannotSubmit": "Le dossier ne peut pas être soumis.",
+    "campusFranceRequired": "(Campus France requis)"
   },
   "docCategory": {
     "passeport": "Passeport",

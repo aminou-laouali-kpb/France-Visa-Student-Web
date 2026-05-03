@@ -85,7 +85,7 @@ export function AdminAuditLogs() {
           <div>
             <label className="text-xs text-slate-500">{t("audit.actionLabel")}</label>
             <Input
-              placeholder="ex. student.update"
+              placeholder={t("audit.actionPlaceholder")}
               value={action}
               onChange={(e) => onFilterChange(setAction)(e.target.value)}
               data-testid="filter-action"
@@ -95,7 +95,7 @@ export function AdminAuditLogs() {
             <label className="text-xs text-slate-500">{t("audit.studentIdLabel")}</label>
             <Input
               type="number"
-              placeholder="ex. 42"
+              placeholder={t("audit.studentIdPlaceholder")}
               value={studentId}
               onChange={(e) => onFilterChange(setStudentId)(e.target.value)}
               data-testid="filter-student"

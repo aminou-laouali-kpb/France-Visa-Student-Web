@@ -142,16 +142,15 @@ export function StudentDetail() {
               onClick={async () => {
                 try {
                   const r = await refreshChecklist.mutateAsync({ studentId });
-                  alert(
-                    `Liste mise à jour selon la matrice nationalité :\n` +
-                      `+ ${r.checklistItemsAdded} document(s) ajouté(s)\n` +
-                      `- ${r.checklistItemsRemoved} retiré(s)\n` +
-                      `${r.stepsSkipped} étape(s) marquée(s) non requises\n` +
-                      `${r.stepsAdded} étape(s) restaurée(s)`,
-                  );
+                  alert(t("detail.checklistUpdated", {
+                    added: r.checklistItemsAdded,
+                    removed: r.checklistItemsRemoved,
+                    skipped: r.stepsSkipped,
+                    restored: r.stepsAdded,
+                  }));
                   await refetch();
                 } catch (e) {
-                  alert("Erreur lors du rafraîchissement.");
+                  alert(t("detail.checklistRefreshError"));
                 }
               }}
             >
@@ -300,7 +299,7 @@ function StepsTab({ studentId, canEdit }: { studentId: number; canEdit: boolean 
                       <span className="text-sm text-slate-500">{t("stepDetail.stepN", { n: step.stepOrder })}</span>
                       {step.isCampusFranceStep && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                          Campus France
+                          {t("detail.campusFranceStep")}
                         </span>
                       )}
                     </div>
@@ -456,19 +455,19 @@ function StepChecklist({
   );
 }
 
-const DOCUMENT_CATEGORIES = [
-  { value: "passeport", label: "Passeport" },
-  { value: "piece_identite", label: "Pièce d'identité" },
-  { value: "diplome", label: "Diplôme" },
-  { value: "releve_notes", label: "Relevé de notes" },
-  { value: "test_langue", label: "Test de langue" },
-  { value: "lettre_admission", label: "Lettre d'admission" },
-  { value: "attestation_campus_france", label: "Attestation Campus France" },
-  { value: "justificatif_financier", label: "Justificatif financier" },
-  { value: "justificatif_hebergement", label: "Justificatif d'hébergement" },
-  { value: "assurance", label: "Assurance santé" },
-  { value: "billet_avion", label: "Billet d'avion" },
-  { value: "autre", label: "Autre" },
+const DOCUMENT_CATEGORY_VALUES = [
+  "passeport",
+  "piece_identite",
+  "diplome",
+  "releve_notes",
+  "test_langue",
+  "lettre_admission",
+  "attestation_campus_france",
+  "justificatif_financier",
+  "justificatif_hebergement",
+  "assurance",
+  "billet_avion",
+  "autre",
 ];
 
 function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: boolean }) {
@@ -595,9 +594,9 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                 onChange={(e) => setCategory(e.target.value)}
                 data-testid="select-doc-category"
               >
-                {DOCUMENT_CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
+                {DOCUMENT_CATEGORY_VALUES.map((c) => (
+                  <option key={c} value={c}>
+                    {t(`docCategory.${c}`, { defaultValue: c })}
                   </option>
                 ))}
               </select>
@@ -643,7 +642,7 @@ function DocumentsTab({ studentId, isStaff }: { studentId: number; isStaff: bool
                   <div className="flex-1">
                     <div className="font-medium">{d.name}</div>
                     <div className="text-sm text-slate-500">
-                      {DOCUMENT_CATEGORIES.find((c) => c.value === d.category)?.label ?? d.category} ·
+                      {t(`docCategory.${d.category}`, { defaultValue: d.category })} ·
                       v{d.version} · {formatDate(d.uploadedAt)}
                     </div>
                     {rejectionReason && (
@@ -1238,8 +1237,8 @@ function AppointmentsTab({ studentId, isStaff }: { studentId: number; isStaff: b
                 onChange={(e) => setType(e.target.value)}
                 data-testid="select-apt-type"
               >
-                <option value="campus_france">Campus France</option>
-                <option value="tls_vfs">TLS / VFS</option>
+                <option value="campus_france">{t("detail.aptCampusFrance")}</option>
+                <option value="tls_vfs">{t("detail.aptTlsVfs")}</option>
                 <option value="other">{t("status.other")}</option>
               </select>
               <Input
@@ -1421,12 +1420,6 @@ function ProfileTab({
       });
       onUpdate();
     } catch (err: unknown) {
-      // Surface server-side submission-gate block (409) with the
-      // explicit blocking reasons so the staff/student understands why
-      // the transition to "submitted" was refused. ApiError exposes the
-      // parsed body on `.data` (the underlying fetch Response sits on
-      // `.response`), so we read both `status` and `data` directly off
-      // the error instance.
       const e = err as {
         status?: number;
         data?: { message?: string; blockingReasons?: string[] } | null;
@@ -1435,7 +1428,7 @@ function ProfileTab({
         const reasons = e.data.blockingReasons ?? [];
         alert(
           [
-            e.data.message ?? "Le dossier ne peut pas être soumis.",
+            e.data.message ?? t("detail.cannotSubmit"),
             ...reasons.map((r) => `• ${r}`),
           ].join("\n"),
         );
@@ -1484,7 +1477,7 @@ function ProfileTab({
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
           </Field>
-          <Field label="WhatsApp">
+          <Field label={t("profile.whatsapp")}>
             <Input
               value={form.whatsapp ?? ""}
               onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
@@ -1532,7 +1525,7 @@ function ProfileTab({
               <option value="">—</option>
               {(countries as unknown as Country[]).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} {c.requiresCampusFrance ? "(Campus France requis)" : ""}
+                  {c.name} {c.requiresCampusFrance ? t("detail.campusFranceRequired") : ""}
                 </option>
               ))}
             </select>
