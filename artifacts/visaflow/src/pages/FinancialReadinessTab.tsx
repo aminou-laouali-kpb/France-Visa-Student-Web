@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/react";
 import {
   useListFinancialProofs,
@@ -239,9 +239,18 @@ export function FinancialReadinessTab({
   });
 
   const [cvecForm, setCvecForm] = useState<UpsertCvecPaymentBody>({
-    amountEur: "103.00",
+    amountEur: "",
     status: CvecPaymentStatus.pending,
   });
+  // Seed the CVEC amount once from /finance-reference so the default
+  // tracks the latest yearly tariff (e.g. 113 € for 2026-2027) instead
+  // of a stale client-side constant. Only fills if the user hasn't
+  // already typed a value.
+  useEffect(() => {
+    if (ref?.cvecAmountEur != null) {
+      setCvecForm((f) => (f.amountEur ? f : { ...f, amountEur: String(ref.cvecAmountEur) }));
+    }
+  }, [ref?.cvecAmountEur]);
 
   const [overrideReason, setOverrideReason] = useState("");
 
