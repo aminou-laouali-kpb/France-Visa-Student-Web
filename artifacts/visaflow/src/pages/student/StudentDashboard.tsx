@@ -290,7 +290,7 @@ export function StudentDashboard() {
               const Icon =
                 apt.type === "campus_france"
                   ? Building2
-                  : apt.type === "tls" || apt.type === "vfs"
+                  : apt.type === "tls" || apt.type === "vfs" || apt.type === "tls_vfs"
                     ? Stamp
                     : Calendar;
               return (
