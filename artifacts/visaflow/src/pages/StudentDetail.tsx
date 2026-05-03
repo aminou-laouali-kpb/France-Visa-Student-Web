@@ -916,6 +916,8 @@ function CommentsTab({
   isStaff: boolean;
   currentUserId: number;
 }) {
+  const { data: me } = useGetMe();
+  const viewerLang = (me as { preferredLanguage?: string } | undefined)?.preferredLanguage ?? "fr";
   const { data: comments = [], refetch } = useListComments(studentId);
   const create = useCreateComment();
   const [content, setContent] = useState("");
@@ -1035,7 +1037,7 @@ function CommentsTab({
                   )}
                   <CommentBody
                     comment={c}
-                    viewerLanguage={isStaff ? "fr" : "fr"}
+                    viewerLanguage={viewerLang}
                   />
                 </div>
               </div>
