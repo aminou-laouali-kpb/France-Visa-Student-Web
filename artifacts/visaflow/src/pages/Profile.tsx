@@ -11,13 +11,7 @@ type UpdateMeBody = {
   preferredLanguage?: string;
 };
 
-const LANGUAGES: { value: string; label: string }[] = [
-  { value: "fr", label: "Français" },
-  { value: "en", label: "Anglais" },
-  { value: "wo", label: "Wolof" },
-  { value: "ln", label: "Lingala" },
-  { value: "ar", label: "العربية" },
-];
+const LANGUAGE_VALUES = ["fr", "en", "wo", "ln", "ar"];
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -266,9 +260,9 @@ function ProfileBody({
               }
               data-testid="select-preferred-language"
             >
-              {LANGUAGES.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
+              {LANGUAGE_VALUES.map((l) => (
+                <option key={l} value={l}>
+                  {t(`language.${l}`, { defaultValue: l })}
                 </option>
               ))}
             </select>

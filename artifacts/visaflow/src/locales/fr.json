@@ -64,8 +64,10 @@
   "language": {
     "fr": "Français",
     "en": "Anglais",
-    "ar": "العربية",
-    "pt": "Português"
+    "ar": "Arabe",
+    "pt": "Português",
+    "wo": "Wolof",
+    "ln": "Lingala"
   },
   "notifications": {
     "title": "Notifications",
@@ -815,5 +817,17 @@
     "reviewer": "Examinateur",
     "admin": "Administrateur",
     "superadmin": "Super-admin"
+  },
+  "comment": {
+    "translatedByAI": "Traduit par IA",
+    "viewTranslation": "Voir la traduction ({{lang}})",
+    "viewOriginal": "Voir l'original ({{lang}})"
+  },
+  "score": {
+    "coherence": "Cohérence",
+    "french": "Français",
+    "specificity": "Spécificité",
+    "returnPlan": "Plan de retour",
+    "overall": "Note globale"
   }
 }

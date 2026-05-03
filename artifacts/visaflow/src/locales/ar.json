@@ -65,7 +65,9 @@
     "fr": "الفرنسية",
     "en": "الإنجليزية",
     "ar": "العربية",
-    "pt": "البرتغالية"
+    "pt": "البرتغالية",
+    "wo": "الولوف",
+    "ln": "اللينغالا"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -815,5 +817,17 @@
     "reviewer": "مراجع",
     "admin": "مدير",
     "superadmin": "مدير عام"
+  },
+  "comment": {
+    "translatedByAI": "مترجَم بالذكاء الاصطناعي",
+    "viewTranslation": "عرض الترجمة ({{lang}})",
+    "viewOriginal": "عرض الأصل ({{lang}})"
+  },
+  "score": {
+    "coherence": "التماسك",
+    "french": "مستوى الفرنسية",
+    "specificity": "التحديد",
+    "returnPlan": "خطة العودة",
+    "overall": "النتيجة الإجمالية"
   }
 }

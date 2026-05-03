@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { Languages } from "lucide-react";
 import type { Comment } from "@/types";
-
-const LANG_LABELS: Record<string, string> = {
-  fr: "Français",
-  en: "Anglais",
-  wo: "Wolof",
-  ln: "Lingala",
-  ar: "Arabe",
-};
+import { useTranslation } from "react-i18next";
 
 /**
  * Renders the body of a chat bubble with optional translation toggle.
@@ -23,6 +16,7 @@ export function CommentBody({
   comment: Comment;
   viewerLanguage: string | null | undefined;
 }) {
+  const { t } = useTranslation();
   const myLang = viewerLanguage || "fr";
   const hasTranslation =
     !!comment.translatedContent &&
@@ -47,7 +41,7 @@ export function CommentBody({
           data-testid={`comment-ai-translation-${comment.id}`}
         >
           <Languages className="w-3 h-3" />
-          Traduit par IA
+          {t("comment.translatedByAI")}
         </div>
       )}
       {hasTranslation && (
@@ -59,8 +53,8 @@ export function CommentBody({
         >
           <Languages className="w-3 h-3" />
           {showOriginal
-            ? `Voir la traduction (${LANG_LABELS[otherLang ?? ""] ?? otherLang})`
-            : `Voir l'original (${LANG_LABELS[otherLang ?? ""] ?? otherLang})`}
+            ? t("comment.viewTranslation", { lang: t(`language.${otherLang ?? ""}`, { defaultValue: otherLang ?? "" }) })
+            : t("comment.viewOriginal", { lang: t(`language.${otherLang ?? ""}`, { defaultValue: otherLang ?? "" }) })}
         </button>
       )}
     </>

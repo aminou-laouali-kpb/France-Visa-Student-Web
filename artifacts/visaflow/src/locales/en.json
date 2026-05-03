@@ -65,7 +65,9 @@
     "fr": "French",
     "en": "English",
     "ar": "Arabic",
-    "pt": "Portuguese"
+    "pt": "Portuguese",
+    "wo": "Wolof",
+    "ln": "Lingala"
   },
   "notifications": {
     "title": "Notifications",
@@ -815,5 +817,17 @@
     "reviewer": "Reviewer",
     "admin": "Administrator",
     "superadmin": "Super-admin"
+  },
+  "comment": {
+    "translatedByAI": "AI translated",
+    "viewTranslation": "View translation ({{lang}})",
+    "viewOriginal": "View original ({{lang}})"
+  },
+  "score": {
+    "coherence": "Coherence",
+    "french": "French level",
+    "specificity": "Specificity",
+    "returnPlan": "Return plan",
+    "overall": "Overall score"
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetProjetEtudes,
@@ -82,15 +83,16 @@ function ScoreBar({ label, value }: { label: string; value?: number | null }) {
 }
 
 export function ScorePanel({ score }: { score?: RubricScore | null }) {
+  const { t } = useTranslation();
   const s = score ?? {};
   return (
     <div className="space-y-3">
-      <ScoreBar label="Cohérence" value={s.coherence} />
-      <ScoreBar label="Français" value={s.french} />
-      <ScoreBar label="Spécificité" value={s.specificity} />
-      <ScoreBar label="Plan de retour" value={s.returnPlan} />
+      <ScoreBar label={t("score.coherence")} value={s.coherence} />
+      <ScoreBar label={t("score.french")} value={s.french} />
+      <ScoreBar label={t("score.specificity")} value={s.specificity} />
+      <ScoreBar label={t("score.returnPlan")} value={s.returnPlan} />
       <div className="pt-2 border-t">
-        <ScoreBar label="Note globale" value={s.overall} />
+        <ScoreBar label={t("score.overall")} value={s.overall} />
       </div>
     </div>
   );
