@@ -27,6 +27,7 @@ const STEP_STATUSES = [
   "not_started",
   "in_progress",
   "submitted",
+  "under_review",
   "validated",
   "rejected",
   "blocked",
@@ -36,7 +37,8 @@ type StepStatus = (typeof STEP_STATUSES)[number];
 const ALLOWED_TRANSITIONS: Record<StepStatus, StepStatus[]> = {
   not_started: ["in_progress", "blocked"],
   in_progress: ["submitted", "blocked", "not_started"],
-  submitted: ["validated", "rejected", "blocked", "in_progress"],
+  submitted: ["under_review", "validated", "rejected", "blocked", "in_progress"],
+  under_review: ["validated", "rejected", "blocked", "in_progress"],
   validated: ["in_progress"],
   rejected: ["in_progress", "submitted", "blocked"],
   blocked: ["in_progress", "not_started"],

@@ -128,17 +128,31 @@ router.patch(
       res.status(404).json({ error: "Document not found" });
       return;
     }
-    if (
-      !isStaff(req.currentUser!) &&
-      existing.uploadedById !== req.currentUser!.id
-    ) {
+    const isUploader = existing.uploadedById === req.currentUser!.id;
+    if (!isStaff(req.currentUser!) && !isUploader) {
       res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    // Whitelist allowed fields per role; review fields go through /review only.
+    const body = req.body ?? {};
+    const patch: Record<string, unknown> = {};
+    if (isStaff(req.currentUser!)) {
+      if (body.name !== undefined) patch.name = body.name;
+      if (body.category !== undefined) patch.category = body.category;
+      if (body.status !== undefined && ["received", "under_review"].includes(body.status)) {
+        patch.status = body.status;
+      }
+    } else {
+      if (body.name !== undefined) patch.name = body.name;
+    }
+    if (Object.keys(patch).length === 0) {
+      res.status(400).json({ error: "No updatable fields provided" });
       return;
     }
     const [doc] = await db
       .update(documentsTable)
-      .set(req.body ?? {})
-      .where(eq(documentsTable.id, id))
+      .set(patch)
+      .where(and(eq(documentsTable.id, id), eq(documentsTable.studentId, studentId)))
       .returning();
     res.json(doc);
   },
@@ -213,9 +227,32 @@ router.post(
   },
 );
 
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15 MB
+
 router.post("/storage/upload-url", requireAuth, async (req, res) => {
   try {
-    const { name, contentType } = req.body ?? {};
+    const { name, contentType, sizeBytes } = req.body ?? {};
+    if (contentType && !ALLOWED_MIME_TYPES.includes(contentType)) {
+      res.status(400).json({
+        error: `Unsupported file type: ${contentType}. Allowed: PDF, JPEG, PNG, WEBP, HEIC, DOC, DOCX.`,
+      });
+      return;
+    }
+    if (typeof sizeBytes === "number" && sizeBytes > MAX_UPLOAD_BYTES) {
+      res.status(400).json({
+        error: `File too large: ${sizeBytes} bytes (max ${MAX_UPLOAD_BYTES}).`,
+      });
+      return;
+    }
     const uploadURL = await storage.getObjectEntityUploadURL();
     const objectPath = storage.normalizeObjectEntityPath(uploadURL);
     res.json({ uploadURL, objectPath, metadata: { name, contentType } });
@@ -225,8 +262,52 @@ router.post("/storage/upload-url", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/storage/objects/:objectPath", requireAuth, async (req, res) => {
-  res.json({ objectPath: req.params.objectPath });
+// Secure signed download — only users who can access the parent student may stream the file.
+router.get("/storage/objects/*splat", requireAuth, async (req, res) => {
+  try {
+    const splat = (req.params as Record<string, string | string[]>).splat;
+    const tail = Array.isArray(splat) ? splat.join("/") : String(splat ?? "");
+    const fullObjectPath = `/objects/${tail}`;
+    const [doc] = await db
+      .select()
+      .from(documentsTable)
+      .where(eq(documentsTable.objectPath, fullObjectPath));
+    if (!doc) {
+      res.status(404).json({ error: "Object not found" });
+      return;
+    }
+    const [student] = await db
+      .select()
+      .from(studentsTable)
+      .where(eq(studentsTable.id, doc.studentId));
+    if (!student) {
+      res.status(404).json({ error: "Object not found" });
+      return;
+    }
+    const { canAccessStudent } = await import("../middlewares/auth");
+    if (!canAccessStudent(req.currentUser!, student)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    const file = await storage.getObjectEntityFile(fullObjectPath);
+    const response = await storage.downloadObject(file, 60);
+    response.headers.forEach((v, k) => res.setHeader(k, v));
+    if (!response.body) {
+      res.status(404).end();
+      return;
+    }
+    const reader = response.body.getReader();
+    res.status(response.status);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      res.write(Buffer.from(value));
+    }
+    res.end();
+  } catch (err) {
+    req.log.error({ err }, "object download error");
+    res.status(404).json({ error: "Object not found" });
+  }
 });
 
 export default router;
