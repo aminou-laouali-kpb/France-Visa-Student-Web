@@ -124,7 +124,12 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
 // LIST students (filtered by role)
 router.get("/students", requireAuth, async (req, res) => {
   const u = req.currentUser!;
-  const baseFilter =
+  // Tenant scoping (fail-closed): only superadmin sees rows across tenants.
+  // Every other role — including tenant admins — is restricted to their own
+  // tenant. Combined with the per-role ownership filter below.
+  const tenantFilter =
+    u.role === "superadmin" ? undefined : eq(studentsTable.tenantId, u.tenantId ?? 1);
+  const ownershipFilter =
     u.role === "student"
       ? eq(studentsTable.userId, u.id)
       : u.role === "advisor"
@@ -132,6 +137,10 @@ router.get("/students", requireAuth, async (req, res) => {
         : u.role === "reviewer"
           ? eq(studentsTable.reviewerId, u.id)
           : undefined;
+  const baseFilter =
+    tenantFilter && ownershipFilter
+      ? and(tenantFilter, ownershipFilter)
+      : (tenantFilter ?? ownershipFilter);
   const query = db
     .select({
       id: studentsTable.id,
@@ -237,6 +246,10 @@ router.post("/students", requireAuth, validateBody(CreateStudentBody), async (re
     userId: u.role === "student" ? u.id : body.userId ?? null,
     advisorId: body.advisorId ?? null,
     reviewerId: body.reviewerId ?? null,
+    // Tenant propagation: every new student inherits the creator's tenant.
+    // Superadmin (no tenant) falls back to the default tenant id=1 so the
+    // row is never created with a null tenantId.
+    tenantId: u.tenantId ?? 1,
   };
   const [created] = await db.insert(studentsTable).values(data).returning();
   await provisionWorkflowForStudent(created.id, created.countryId ?? null);

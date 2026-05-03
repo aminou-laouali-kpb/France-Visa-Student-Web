@@ -101,19 +101,18 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
   }
   req.currentUser = user;
   // Globally enforce per-tenant admin IP allowlist + tenant 2FA policy on
-  // every authenticated request. The middlewares short-circuit for
-  // non-admin/non-required cases, so non-privileged routes are unaffected,
-  // and we no longer rely on path-prefix matching to apply these guards.
-  // Imports are deferred to avoid a circular module load.
+  // every authenticated request. Direct callback chaining (NOT a Promise
+  // wrapper) so that when a guard denies and writes a response, the chain
+  // simply terminates — no hanging async handlers. Imports are deferred to
+  // avoid a circular module load.
   const { requireAdminIp } = await import("./ipAllowlist");
   const { enforce2FA } = await import("./twoFactor");
-  await new Promise<void>((resolve) => {
-    requireAdminIp(req, res, () => {
-      enforce2FA(req, res, () => {
-        resolve();
-        next();
-      });
-    });
+  requireAdminIp(req, res, (ipErr?: unknown) => {
+    if (ipErr) {
+      next(ipErr);
+      return;
+    }
+    enforce2FA(req, res, next);
   });
 };
 

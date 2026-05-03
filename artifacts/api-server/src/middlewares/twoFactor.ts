@@ -35,7 +35,13 @@ export const enforce2FA: RequestHandler = async (req, res, next) => {
   }
   const tenant = await getTenant(user.tenantId);
   const isAdmin = user.role === "admin" || user.role === "superadmin";
-  const required = !!tenant?.twoFactorRequired && (isAdmin || user.role !== "student");
+  // 2FA policy:
+  //   - Admins/superadmins must always have TOTP enabled. They wield
+  //     tenant-wide power, so a hard requirement is non-negotiable
+  //     regardless of per-tenant config.
+  //   - Other roles must have TOTP enabled when their tenant has
+  //     `twoFactorRequired` on (e.g. enterprise/regulated tenants).
+  const required = isAdmin || !!tenant?.twoFactorRequired;
   if (!required) {
     next();
     return;
