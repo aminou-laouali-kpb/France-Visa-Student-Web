@@ -3,7 +3,12 @@ import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 import { sendMail, type MailMessage } from "./mailer";
 
-export type NotifyEvent = MailMessage["event"] | "bulk_import.completed" | "generic";
+export type NotifyEvent =
+  | MailMessage["event"]
+  | "bulk_import.completed"
+  | "comment.added"
+  | "document.review.requested"
+  | "generic";
 
 export interface NotifyInput {
   userId: number;
@@ -105,8 +110,12 @@ export async function notify(input: NotifyInput): Promise<void> {
   // opts in by passing `event` — call sites that already drive their own
   // richer email via sendMail() omit `event` so we don't double-send.
   if (user.notifyEmail && user.email && input.event && input.event !== "generic") {
+    // Map non-mail-tag notify events to the closest existing mail event tag
+    // (purely an observability label).
     const evt: MailMessage["event"] =
-      input.event === "bulk_import.completed"
+      input.event === "bulk_import.completed" ||
+      input.event === "comment.added" ||
+      input.event === "document.review.requested"
         ? "task.assigned"
         : (input.event as MailMessage["event"]);
     await sendMail({

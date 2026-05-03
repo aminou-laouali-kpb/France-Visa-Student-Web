@@ -99,7 +99,8 @@
     "lastName": "Nom",
     "phone": "Téléphone",
     "preferredLanguage": "Langue préférée pour la messagerie",
-    "messageTranslateHint": "Vos messages seront automatiquement traduits dans cette langue."
+    "messageTranslateHint": "Vos messages seront automatiquement traduits dans cette langue.",
+    "notificationPrefs": "Préférences de notification"
   },
   "calendar": {
     "title": "Abonnement calendrier",
@@ -123,5 +124,8 @@
     "welcome": "Bienvenue sur VisaFlow !",
     "myJourney": "Mon parcours",
     "controlCenter": "Centre de pilotage"
+  },
+  "appointments": {
+    "title": "Mes rendez-vous"
   }
 }

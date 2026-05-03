@@ -172,6 +172,7 @@ router.post(
         title: isCorrectionRequest ? "Demande de correction" : "Nouveau commentaire",
         message: content.slice(0, 200),
         type: isCorrectionRequest ? "warning" : "info",
+        event: "comment.added",
       });
     }
     await logAudit({

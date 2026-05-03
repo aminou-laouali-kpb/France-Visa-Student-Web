@@ -398,6 +398,7 @@ interface NotifyPrefs {
 }
 
 function NotificationPrefsSection() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data: prefs, refetch } = useQuery({
     queryKey: ["me", "notify-prefs"],
@@ -437,7 +438,7 @@ function NotificationPrefsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Préférences de notification</CardTitle>
+        <CardTitle className="text-base">{t("profile.notificationPrefs")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-slate-600">

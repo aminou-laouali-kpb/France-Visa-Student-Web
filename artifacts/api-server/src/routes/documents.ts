@@ -183,6 +183,7 @@ router.post(
         title: "Nouveau document à examiner",
         message: `${student.firstName} ${student.lastName} a téléversé "${name}"`,
         type: "info",
+        event: "document.review.requested",
       });
     }
     await logAudit({

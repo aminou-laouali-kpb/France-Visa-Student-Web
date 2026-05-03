@@ -99,7 +99,8 @@
     "lastName": "اللقب",
     "phone": "الهاتف",
     "preferredLanguage": "اللغة المفضلة للمراسلة",
-    "messageTranslateHint": "ستتم ترجمة رسائلك تلقائياً إلى هذه اللغة."
+    "messageTranslateHint": "ستتم ترجمة رسائلك تلقائياً إلى هذه اللغة.",
+    "notificationPrefs": "تفضيلات الإشعارات"
   },
   "calendar": {
     "title": "الاشتراك في التقويم",
@@ -123,5 +124,8 @@
     "welcome": "مرحباً بك في VisaFlow!",
     "myJourney": "مساري",
     "controlCenter": "مركز التحكم"
+  },
+  "appointments": {
+    "title": "مواعيدي"
   }
 }

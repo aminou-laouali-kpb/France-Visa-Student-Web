@@ -17,6 +17,7 @@ import {
   Euro,
 } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
+import { useTranslation } from "react-i18next";
 
 export function StudentAppointments() {
   return (
@@ -82,6 +83,7 @@ function typeChipColor(type: string) {
 }
 
 function Inner() {
+  const { t: tr } = useTranslation();
   const { student } = useMyStudent();
   const studentId = student!.id;
   const { data: apts = [] } = useListAppointments(studentId);
@@ -104,7 +106,7 @@ function Inner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mes rendez-vous</h1>
+        <h1 className="text-3xl font-bold text-slate-900">{tr("appointments.title")}</h1>
         <p className="text-slate-600 mt-1">
           Vos entretiens Campus France et dépôts consulaires.
         </p>
