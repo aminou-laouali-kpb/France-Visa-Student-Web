@@ -132,7 +132,7 @@ async function rowsFromBody(body: {
   return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, raw: false, defval: "" });
 }
 
-async function buildPreview(
+export async function buildPreview(
   rawRows: string[][],
   tenantId: number,
 ): Promise<{
@@ -196,24 +196,21 @@ async function buildPreview(
 
     let duplicate = false;
     if (parsed.email) {
-      // The `students.email` column has a global unique constraint at the
-      // DB level, so we have to check cross-tenant existence here in preview
-      // to avoid surprise rollbacks at commit time. We surface the conflict
-      // as an error WITHOUT revealing which tenant holds the row — only the
-      // tenancy state of "this tenant" vs "elsewhere".
+      // Duplicate check is deliberately scoped to the importing admin's own
+      // tenant: a student email that exists in another tenant must not be
+      // surfaced here (it would leak cross-tenant data-existence information).
       const [existing] = await db
-        .select({ id: studentsTable.id, tenantId: studentsTable.tenantId })
+        .select({ id: studentsTable.id })
         .from(studentsTable)
-        .where(ilike(studentsTable.email, parsed.email));
+        .where(
+          and(
+            ilike(studentsTable.email, parsed.email),
+            eq(studentsTable.tenantId, tenantId),
+          ),
+        );
       if (existing) {
-        if (existing.tenantId === tenantId) {
-          duplicate = true;
-          warnings.push("email déjà existant — sera ignoré");
-        } else {
-          // Cross-tenant: this row would fail the unique constraint at
-          // insert time. Reject up front so preview totals match commit.
-          errors.push("email déjà utilisé par une autre organisation");
-        }
+        duplicate = true;
+        warnings.push("email déjà existant — sera ignoré");
       }
     }
 
@@ -300,23 +297,37 @@ router.post("/admin/import/commit", requireAuth, async (req, res) => {
       preview.rows.length - insertable.length - errors.length;
 
     let created = 0;
+    // Tracks rows silently dropped by the unique-email conflict guard below.
+    let conflictSkipped = 0;
     try {
       await db.transaction(async (tx) => {
         for (const r of insertable) {
-          await tx.insert(studentsTable).values({
-            tenantId,
-            firstName: r.parsed.firstName!,
-            lastName: r.parsed.lastName!,
-            email: r.parsed.email!,
-            phone: r.parsed.phone ?? null,
-            nationalityCode: r.parsed.nationalityCode ?? null,
-            intakeDate: r.parsed.intakeDate ?? null,
-            countryId: r.resolved.countryId ?? null,
-            schoolId: r.resolved.schoolId ?? null,
-            programId: r.resolved.programId ?? null,
-            status: "active",
-          });
-          created++;
+          // onConflictDoNothing guards against the global students.email unique
+          // constraint: preview scopes duplicate detection to the current
+          // tenant, so a cross-tenant collision that slipped through will be
+          // silently skipped here rather than rolling back the entire batch.
+          const [inserted] = await tx
+            .insert(studentsTable)
+            .values({
+              tenantId,
+              firstName: r.parsed.firstName!,
+              lastName: r.parsed.lastName!,
+              email: r.parsed.email!,
+              phone: r.parsed.phone ?? null,
+              nationalityCode: r.parsed.nationalityCode ?? null,
+              intakeDate: r.parsed.intakeDate ?? null,
+              countryId: r.resolved.countryId ?? null,
+              schoolId: r.resolved.schoolId ?? null,
+              programId: r.resolved.programId ?? null,
+              status: "active",
+            })
+            .onConflictDoNothing()
+            .returning({ id: studentsTable.id });
+          if (inserted) {
+            created++;
+          } else {
+            conflictSkipped++;
+          }
         }
       });
     } catch (err) {
@@ -336,7 +347,7 @@ router.post("/admin/import/commit", requireAuth, async (req, res) => {
     }
     res.json({
       created,
-      skipped: skippedFromValidation + errors.length,
+      skipped: skippedFromValidation + errors.length + conflictSkipped,
       errors,
     });
   } catch (err) {
