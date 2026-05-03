@@ -2559,6 +2559,7 @@ export const GetFinancialReadinessResponse = zod.object({
   financeReady: zod.boolean(),
   accommodationReady: zod.boolean(),
   cvecReady: zod.boolean(),
+  targetAcademicYear: zod.string(),
   ready: zod.boolean(),
   overrideActive: zod.boolean(),
   overrideReason: zod.string().nullish(),

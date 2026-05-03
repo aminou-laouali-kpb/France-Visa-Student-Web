@@ -1617,6 +1617,7 @@ export interface FinancialReadiness {
   financeReady: boolean;
   accommodationReady: boolean;
   cvecReady: boolean;
+  targetAcademicYear: string;
   ready: boolean;
   overrideActive: boolean;
   /** @nullable */

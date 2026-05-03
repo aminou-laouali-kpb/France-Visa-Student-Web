@@ -116,7 +116,10 @@ function deriveProofStatus(row: {
   status: string;
 }): string {
   if (row.status === "rejected") return "rejected";
-  if (isExpired(row.expiryDate)) return "expired";
+  // Honour an explicit "expired" status set by staff even if the
+  // computed expiry date hasn't yet been crossed, then layer the
+  // date-based expiry check on top of any other stored status.
+  if (row.status === "expired" || isExpired(row.expiryDate)) return "expired";
   return row.status === "valid" ? "valid" : "pending";
 }
 
@@ -574,6 +577,7 @@ export async function computeFinancialReadiness(studentId: number) {
     financeReady,
     accommodationReady,
     cvecReady,
+    targetAcademicYear,
     ready,
     overrideActive: !!student.submissionGateOverride,
     overrideReason: student.submissionGateOverrideReason,

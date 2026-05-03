@@ -336,7 +336,7 @@ export function FinancialReadinessTab({
                   >
                     {readiness.cvecReady
                       ? "Validé"
-                      : `Non validé (${ref?.currentAcademicYear ?? ""})`}
+                      : `Non validé (${readiness.targetAcademicYear ?? ref?.currentAcademicYear ?? ""})`}
                   </div>
                 </div>
               </div>
@@ -933,7 +933,7 @@ export function FinancialReadinessTab({
             <div>
               <Label className="text-xs">Année académique</Label>
               <Input
-                placeholder={ref?.currentAcademicYear ?? "2025-2026"}
+                placeholder={readiness?.targetAcademicYear ?? ref?.currentAcademicYear ?? "2025-2026"}
                 value={cvecForm.academicYear ?? ""}
                 onChange={(e) =>
                   setCvecForm((f) => ({

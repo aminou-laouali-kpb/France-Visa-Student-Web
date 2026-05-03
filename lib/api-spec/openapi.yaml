@@ -3858,6 +3858,7 @@ components:
         financeReady: { type: boolean }
         accommodationReady: { type: boolean }
         cvecReady: { type: boolean }
+        targetAcademicYear: { type: string }
         ready: { type: boolean }
         overrideActive: { type: boolean }
         overrideReason: { type: ["string", "null"] }
@@ -3884,6 +3885,7 @@ components:
         - financeReady
         - accommodationReady
         - cvecReady
+        - targetAcademicYear
         - ready
         - overrideActive
         - blockingReasons
