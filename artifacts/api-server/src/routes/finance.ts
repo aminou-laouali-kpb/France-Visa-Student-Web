@@ -89,10 +89,16 @@ function computeProofExpiry(
   issueDate: string | null | undefined,
   explicit: string | null | undefined,
 ): string | null {
-  if (explicit) return explicit;
-  if (proofType === "bank_attestation" && issueDate) {
-    return addMonthsIso(issueDate, BANK_ATTESTATION_VALIDITY_MONTHS);
+  // Bank attestations always expire 3 months after the issue date.
+  // We deliberately ignore any client-supplied `expiryDate` here so an
+  // API caller cannot extend the validity window past the legally
+  // mandated 3 months by sending a custom value.
+  if (proofType === "bank_attestation") {
+    return issueDate
+      ? addMonthsIso(issueDate, BANK_ATTESTATION_VALIDITY_MONTHS)
+      : null;
   }
+  if (explicit) return explicit;
   return null;
 }
 
@@ -116,10 +122,18 @@ function deriveProofStatus(row: {
   status: string;
 }): string {
   if (row.status === "rejected") return "rejected";
+  // For bank attestations, fall back to issueDate + 3 months when no
+  // expiryDate is stored (legacy rows imported before auto-expiry was
+  // wired up still need to expire automatically).
+  const effectiveExpiry =
+    row.expiryDate ??
+    (row.proofType === "bank_attestation" && row.issueDate
+      ? addMonthsIso(row.issueDate, BANK_ATTESTATION_VALIDITY_MONTHS)
+      : null);
   // Honour an explicit "expired" status set by staff even if the
   // computed expiry date hasn't yet been crossed, then layer the
   // date-based expiry check on top of any other stored status.
-  if (row.status === "expired" || isExpired(row.expiryDate)) return "expired";
+  if (row.status === "expired" || isExpired(effectiveExpiry)) return "expired";
   return row.status === "valid" ? "valid" : "pending";
 }
 
