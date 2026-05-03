@@ -2,7 +2,14 @@ export { chat, chatStream } from "./chat";
 export { vision } from "./vision";
 export { transcribe } from "./transcribe";
 export { checkAiHealth } from "./health";
-export { getMonthSpendUsd, getMonthlyBudgetUsd, BudgetExceededError } from "./quota";
+export {
+  getMonthSpendUsd,
+  getMonthlyBudgetUsd,
+  getDefaultMonthlyBudgetUsd,
+  setTenantBudgetResolver,
+  BudgetExceededError,
+} from "./quota";
+export type { TenantBudgetResolver } from "./quota";
 export {
   DEFAULT_CHAT_MODEL,
   DEFAULT_VISION_MODEL,

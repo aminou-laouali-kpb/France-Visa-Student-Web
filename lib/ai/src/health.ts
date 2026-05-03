@@ -13,7 +13,7 @@ export interface AiHealthReport {
 
 export async function checkAiHealth(tenantId?: number | null): Promise<AiHealthReport> {
   const configured = isGroqConfigured();
-  const monthlyBudgetUsd = getMonthlyBudgetUsd();
+  const monthlyBudgetUsd = await getMonthlyBudgetUsd(tenantId);
   let monthSpentUsd = 0;
   try {
     monthSpentUsd = await getMonthSpendUsd(tenantId);
