@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ShieldOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function TwoFactorSection() {
   const qc = useQueryClient();
@@ -205,27 +206,41 @@ export function Profile() {
     refetch();
   };
 
-  if (!me) return <div>Chargement…</div>;
+  return <ProfileBody me={me} form={form} setForm={setForm} save={save} />;
+}
 
+function ProfileBody({
+  me,
+  form,
+  setForm,
+  save,
+}: {
+  me: { email: string; role: string } | null | undefined;
+  form: { firstName: string; lastName: string; phone: string; preferredLanguage: string };
+  setForm: (f: { firstName: string; lastName: string; phone: string; preferredLanguage: string }) => void;
+  save: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  if (!me) return <div>{t("common.loading")}</div>;
   return (
     <div className="max-w-xl space-y-6">
-      <h1 className="text-3xl font-bold text-slate-900">Mon profil</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{t("profile.title")}</h1>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center justify-between">
-            <span>Informations</span>
+            <span>{t("profile.info")}</span>
             <Badge variant="outline">{ROLE_LABELS[me.role]}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>Email</Label>
+            <Label>{t("profile.email")}</Label>
             <Input value={me.email} disabled />
           </div>
           <div className="grid md:grid-cols-2 gap-3">
             <div>
-              <Label>Prénom</Label>
+              <Label>{t("profile.firstName")}</Label>
               <Input
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
@@ -233,7 +248,7 @@ export function Profile() {
               />
             </div>
             <div>
-              <Label>Nom</Label>
+              <Label>{t("profile.lastName")}</Label>
               <Input
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
@@ -242,7 +257,7 @@ export function Profile() {
             </div>
           </div>
           <div>
-            <Label>Téléphone</Label>
+            <Label>{t("profile.phone")}</Label>
             <Input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -250,7 +265,7 @@ export function Profile() {
             />
           </div>
           <div>
-            <Label>Langue préférée pour la messagerie</Label>
+            <Label>{t("profile.preferredLanguage")}</Label>
             <select
               className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
               value={form.preferredLanguage}
@@ -266,18 +281,110 @@ export function Profile() {
               ))}
             </select>
             <p className="text-xs text-slate-500 mt-1">
-              Vos messages seront automatiquement traduits dans cette langue.
+              {t("profile.messageTranslateHint")}
             </p>
           </div>
           <Button onClick={save} data-testid="button-save-profile">
-            Enregistrer
+            {t("common.save")}
           </Button>
         </CardContent>
       </Card>
 
       <TwoFactorSection />
       <NotificationPrefsSection />
+      <CalendarFeedSection />
     </div>
+  );
+}
+
+function CalendarFeedSection() {
+  const { t } = useTranslation();
+  const [url, setUrl] = useState<string | null>(null);
+  const [webcal, setWebcal] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const generate = async () => {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/me/calendar/feed-token", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (r.ok) {
+        const j = await r.json();
+        setUrl(j.httpsUrl);
+        setWebcal(j.webcalUrl);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t("calendar.title")}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-slate-600">{t("calendar.subtitle")}</p>
+        <Button
+          variant="outline"
+          onClick={generate}
+          disabled={busy}
+          data-testid="button-mint-calendar-feed"
+        >
+          {url ? t("calendar.rotate") : t("calendar.generate")}
+        </Button>
+        {url && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Input value={url} readOnly className="font-mono text-xs" data-testid="input-calendar-feed-url" />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  navigator.clipboard.writeText(url).then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  });
+                }}
+              >
+                {copied ? t("common.saved") : t("common.copy")}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {webcal && (
+                <a
+                  href={webcal}
+                  className="text-xs px-3 py-1.5 rounded-md border bg-white hover:bg-slate-50"
+                  data-testid="link-webcal-subscribe"
+                >
+                  📅 {t("calendar.subscribe")}
+                </a>
+              )}
+              <a
+                href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(url)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs px-3 py-1.5 rounded-md border bg-white hover:bg-slate-50"
+              >
+                🅖 {t("calendar.subscribeGoogle")}
+              </a>
+              <a
+                href={`https://outlook.live.com/owa?path=/calendar/action/compose&rru=addsubscription&url=${encodeURIComponent(url)}&name=VisaFlow`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs px-3 py-1.5 rounded-md border bg-white hover:bg-slate-50"
+              >
+                📨 {t("calendar.subscribeOutlook")}
+              </a>
+            </div>
+            <p className="text-xs text-slate-500">{t("calendar.tokenWarning")}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

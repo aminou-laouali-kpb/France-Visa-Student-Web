@@ -44,7 +44,8 @@
     "preview": "معاينة",
     "commit": "تأكيد",
     "search": "بحث",
-    "saved": "تم الحفظ"
+    "saved": "تم الحفظ",
+    "copy": "نسخ"
   },
   "language": {
     "fr": "الفرنسية",
@@ -89,5 +90,25 @@
   "pwa": {
     "installable": "تثبيت VisaFlow كتطبيق",
     "install": "تثبيت"
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "info": "المعلومات",
+    "email": "البريد الإلكتروني",
+    "firstName": "الاسم",
+    "lastName": "اللقب",
+    "phone": "الهاتف",
+    "preferredLanguage": "اللغة المفضلة للمراسلة",
+    "messageTranslateHint": "ستتم ترجمة رسائلك تلقائياً إلى هذه اللغة."
+  },
+  "calendar": {
+    "title": "الاشتراك في التقويم",
+    "subtitle": "أنشئ رابطاً خاصاً لمزامنة مواعيدك مع Google Calendar أو Outlook أو Apple Calendar.",
+    "generate": "إنشاء رابط الاشتراك",
+    "rotate": "إعادة الإنشاء (يلغي الرابط السابق)",
+    "subscribe": "الفتح في التقويم",
+    "subscribeGoogle": "الاشتراك عبر Google",
+    "subscribeOutlook": "الاشتراك عبر Outlook",
+    "tokenWarning": "يمنح هذا الرابط حق الوصول للقراءة فقط لتقويمك. لا تشاركه."
   }
 }

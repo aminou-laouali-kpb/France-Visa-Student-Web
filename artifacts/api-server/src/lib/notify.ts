@@ -101,13 +101,20 @@ export async function notify(input: NotifyInput): Promise<void> {
 
   const body = `${input.title}\n\n${input.message}`;
 
+  // Email fan-out: gated on the per-user `notifyEmail` preference. Caller
+  // opts in by passing `event` — call sites that already drive their own
+  // richer email via sendMail() omit `event` so we don't double-send.
   if (user.notifyEmail && user.email && input.event && input.event !== "generic") {
+    const evt: MailMessage["event"] =
+      input.event === "bulk_import.completed"
+        ? "task.assigned"
+        : (input.event as MailMessage["event"]);
     await sendMail({
       to: user.email,
       subject: input.emailSubject ?? input.title,
       text: body,
       html: input.emailHtml,
-      event: input.event === "bulk_import.completed" ? "task.assigned" : input.event,
+      event: evt,
     });
   }
   if (user.notifySms && user.phone) {

@@ -44,7 +44,8 @@
     "preview": "Preview",
     "commit": "Confirm",
     "search": "Search",
-    "saved": "Saved"
+    "saved": "Saved",
+    "copy": "Copy"
   },
   "language": {
     "fr": "French",
@@ -89,5 +90,25 @@
   "pwa": {
     "installable": "Install VisaFlow as an app",
     "install": "Install"
+  },
+  "profile": {
+    "title": "My profile",
+    "info": "Information",
+    "email": "Email",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "preferredLanguage": "Preferred language for messaging",
+    "messageTranslateHint": "Your messages will be automatically translated into this language."
+  },
+  "calendar": {
+    "title": "Calendar subscription",
+    "subtitle": "Generate a private URL to sync your appointments with Google Calendar, Outlook, or Apple Calendar.",
+    "generate": "Generate subscription URL",
+    "rotate": "Regenerate (revokes the previous URL)",
+    "subscribe": "Open in calendar",
+    "subscribeGoogle": "Subscribe with Google",
+    "subscribeOutlook": "Subscribe with Outlook",
+    "tokenWarning": "This link grants read-only access to your calendar. Do not share it."
   }
 }
