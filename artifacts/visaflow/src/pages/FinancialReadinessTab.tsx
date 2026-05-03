@@ -243,11 +243,6 @@ export function FinancialReadinessTab({
     status: CvecPaymentStatus.pending,
   });
 
-  // Sync defaults from reference data once it loads
-  if (ref && cvecForm.amountEur === "103.00" && cvecList?.length === 0) {
-    // no-op — handled at render via placeholder/value
-  }
-
   const [overrideReason, setOverrideReason] = useState("");
 
   const requiredPct = readiness

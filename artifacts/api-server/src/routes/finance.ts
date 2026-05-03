@@ -119,14 +119,19 @@ function deriveProofStatus(row: {
   return row.status === "valid" ? "valid" : "pending";
 }
 
+// Whole-month delta from start to end, rounding ANY partial month UP so
+// the required financial amount is conservative (a student staying e.g.
+// 9 months and 1 day must show proof for 10 months). Returns 0 for
+// invalid or inverted ranges.
 function diffMonths(startIso: string, endIso: string): number {
   const s = new Date(startIso);
   const e = new Date(endIso);
   if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 0;
-  const months =
+  if (e.getTime() <= s.getTime()) return 0;
+  const wholeMonths =
     (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
-  // partial month rounded up if the end day >= start day
-  return Math.max(months, 0);
+  const hasPartial = e.getDate() > s.getDate();
+  return Math.max(wholeMonths + (hasPartial ? 1 : 0), 1);
 }
 
 function currentAcademicYear(today = new Date()): string {
