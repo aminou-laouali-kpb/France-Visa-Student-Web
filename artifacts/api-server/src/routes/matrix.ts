@@ -10,7 +10,7 @@ import {
   checklistItemsTable,
   countriesTable,
 } from "@workspace/db";
-import { and, asc, desc, eq, gte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray } from "drizzle-orm";
 import {
   requireAuth,
   isAdmin,
@@ -599,7 +599,10 @@ export async function applyMatrixToStudent(
     .orderBy(asc(studentStepsTable.stepOrder));
   const wfStepIds = existingSteps.map((s) => s.workflowStepId);
   const wfSteps = wfStepIds.length
-    ? await db.select().from(workflowStepsTable)
+    ? await db
+        .select()
+        .from(workflowStepsTable)
+        .where(inArray(workflowStepsTable.id, wfStepIds))
     : [];
   const wfById = new Map(wfSteps.map((s) => [s.id, s]));
 

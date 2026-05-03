@@ -249,7 +249,12 @@ router.post("/students", requireAuth, validateBody(CreateStudentBody), async (re
       programLevel: await loadProgramLevel(created.programId ?? null),
     });
   } catch (e) {
-    // Matrix application must never block dossier creation
+    // Matrix application must never block dossier creation. Log so an
+    // operator can see when matrix reconciliation silently failed.
+    req.log?.warn?.(
+      { err: e, studentId: created.id },
+      "applyMatrixToStudent failed during student.create",
+    );
   }
   await logAudit({
     userId: u.id,

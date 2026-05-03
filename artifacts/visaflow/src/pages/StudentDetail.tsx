@@ -48,6 +48,7 @@ import {
   useGetMe,
   useListCountries,
   useListSchools,
+  useRefreshStudentChecklist,
 } from "@workspace/api-client-react";
 import type { ChecklistItem } from "@workspace/api-client-react";
 import { ProfileDepthTab } from "./ProfileDepthTab";
@@ -71,6 +72,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate, formatDateTime, ROLE_LABELS } from "@/lib/utils";
 import {
   ArrowLeft,
+  RefreshCw,
   CheckCircle2,
   Circle,
   AlertCircle,
@@ -91,6 +93,7 @@ export function StudentDetail() {
   const student = studentRaw as unknown as Student | undefined;
   const { data: me } = useGetMe();
   const isStaff = me && ["advisor", "reviewer", "admin", "superadmin"].includes(me.role);
+  const refreshChecklist = useRefreshStudentChecklist();
 
   if (!student) return <div className="p-8">Chargement…</div>;
 
@@ -113,10 +116,45 @@ export function StudentDetail() {
             <StatusBadge status={student.status} />
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-slate-500">Progression</div>
-          <div className="text-3xl font-bold text-blue-700">{student.completionScore}%</div>
-          <Progress value={student.completionScore} className="w-32 h-2 mt-1" />
+        <div className="text-right space-y-2">
+          <div>
+            <div className="text-sm text-slate-500">Progression</div>
+            <div className="text-3xl font-bold text-blue-700">{student.completionScore}%</div>
+            <Progress value={student.completionScore} className="w-32 h-2 mt-1" />
+          </div>
+          {isStaff && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              data-testid="button-refresh-matrix-checklist"
+              disabled={refreshChecklist.isPending}
+              onClick={async () => {
+                try {
+                  const res = await refreshChecklist.mutateAsync({ studentId });
+                  const r = res as unknown as {
+                    stepsAdded?: number;
+                    stepsSkipped?: number;
+                    checklistItemsAdded?: number;
+                    checklistItemsRemoved?: number;
+                  };
+                  alert(
+                    `Liste mise à jour selon la matrice nationalité :\n` +
+                      `+ ${r.checklistItemsAdded ?? 0} document(s) ajouté(s)\n` +
+                      `- ${r.checklistItemsRemoved ?? 0} retiré(s)\n` +
+                      `${r.stepsSkipped ?? 0} étape(s) marquée(s) non requises\n` +
+                      `${r.stepsAdded ?? 0} étape(s) restaurée(s)`,
+                  );
+                  await refetch();
+                } catch (e) {
+                  alert("Erreur lors du rafraîchissement.");
+                }
+              }}
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              Rafraîchir selon la matrice
+            </Button>
+          )}
         </div>
       </div>
 
