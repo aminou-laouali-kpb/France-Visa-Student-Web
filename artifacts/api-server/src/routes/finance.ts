@@ -71,11 +71,17 @@ function computeProofExpiry(
   return null;
 }
 
+function todayIsoDate(today = new Date()): string {
+  return today.toISOString().slice(0, 10);
+}
+
+// Date-only comparison: a proof remains valid through the entire expiry day
+// and only becomes "expired" the day *after*. Compares YYYY-MM-DD strings.
 function isExpired(expiryDate: string | null | undefined, today = new Date()): boolean {
   if (!expiryDate) return false;
-  const d = new Date(expiryDate);
-  if (Number.isNaN(d.getTime())) return false;
-  return d.getTime() < today.getTime();
+  const expiryIso = expiryDate.length >= 10 ? expiryDate.slice(0, 10) : expiryDate;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryIso)) return false;
+  return expiryIso < todayIsoDate(today);
 }
 
 function deriveProofStatus(row: {
@@ -105,6 +111,44 @@ function currentAcademicYear(today = new Date()): string {
   // CVEC year runs Jul–Aug; treat July as start of new academic year
   return m >= 6 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
 }
+
+// ─── REFERENCE: STATIC ENUMS ────────────────────────────────────────────────
+const PROOF_TYPES_REF = [
+  { value: "bank_attestation", label: "Attestation bancaire", validityMonths: 3 },
+  { value: "scholarship_letter", label: "Lettre de bourse", validityMonths: null },
+  { value: "guarantor_declaration", label: "Déclaration de garant", validityMonths: null },
+  { value: "avi_certificate", label: "Certificat AVI", validityMonths: null },
+  { value: "other", label: "Autre", validityMonths: null },
+];
+const ACCOMMODATION_TYPES_REF = [
+  { value: "crous", label: "CROUS" },
+  { value: "private_lease", label: "Bail privé" },
+  { value: "host_attestation", label: "Attestation d'hébergement (hôte)" },
+  { value: "student_residence", label: "Résidence étudiante" },
+  { value: "hotel_temporary", label: "Hôtel temporaire" },
+  { value: "other", label: "Autre" },
+];
+const CVEC_AMOUNT_BY_YEAR: Record<string, number> = {
+  // Tarif officiel publié chaque année par le CROUS / MESR
+  "2024-2025": 103,
+  "2025-2026": 103,
+  "2026-2027": 113,
+};
+const DEFAULT_CVEC_AMOUNT_EUR = 113;
+
+router.get("/finance-reference", requireAuth, (_req, res) => {
+  const academicYear = currentAcademicYear();
+  res.json({
+    proofTypes: PROOF_TYPES_REF,
+    accommodationTypes: ACCOMMODATION_TYPES_REF,
+    bankAttestationValidityMonths: BANK_ATTESTATION_VALIDITY_MONTHS,
+    monthlyMinimumEur: DEFAULT_MONTHLY_MIN_EUR,
+    currentAcademicYear: academicYear,
+    cvecAmountEur:
+      CVEC_AMOUNT_BY_YEAR[academicYear] ?? DEFAULT_CVEC_AMOUNT_EUR,
+    cvecAmountByYear: CVEC_AMOUNT_BY_YEAR,
+  });
+});
 
 // ─── REFERENCE: SCHOLARSHIPS ────────────────────────────────────────────────
 router.get("/scholarships", requireAuth, async (_req, res) => {

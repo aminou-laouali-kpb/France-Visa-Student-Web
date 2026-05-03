@@ -1546,6 +1546,19 @@ paths:
                 $ref: "#/components/schemas/EefWish"
 
   # ─── FINANCE / ACCOMMODATION / CVEC ──────────────────────────────────────
+  /finance-reference:
+    get:
+      operationId: getFinanceReference
+      tags: [finance]
+      summary: Static reference for proof types, accommodation types, CVEC amounts
+      responses:
+        "200":
+          description: Reference data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceReference"
+
   /scholarships:
     get:
       operationId: listScholarships
@@ -3880,3 +3893,43 @@ components:
       properties:
         enable: { type: boolean }
         reason: { type: ["string", "null"] }
+
+    FinanceReferenceProofType:
+      type: object
+      properties:
+        value: { type: string }
+        label: { type: string }
+        validityMonths: { type: ["integer", "null"] }
+      required: [value, label]
+
+    FinanceReferenceAccommodationType:
+      type: object
+      properties:
+        value: { type: string }
+        label: { type: string }
+      required: [value, label]
+
+    FinanceReference:
+      type: object
+      properties:
+        proofTypes:
+          type: array
+          items: { $ref: "#/components/schemas/FinanceReferenceProofType" }
+        accommodationTypes:
+          type: array
+          items: { $ref: "#/components/schemas/FinanceReferenceAccommodationType" }
+        bankAttestationValidityMonths: { type: integer }
+        monthlyMinimumEur: { type: integer }
+        currentAcademicYear: { type: string }
+        cvecAmountEur: { type: integer }
+        cvecAmountByYear:
+          type: object
+          additionalProperties: { type: integer }
+      required:
+        - proofTypes
+        - accommodationTypes
+        - bankAttestationValidityMonths
+        - monthlyMinimumEur
+        - currentAcademicYear
+        - cvecAmountEur
+        - cvecAmountByYear

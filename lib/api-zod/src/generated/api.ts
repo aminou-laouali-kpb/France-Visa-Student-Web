@@ -2201,6 +2201,30 @@ export const CreateEefWishBody = zod.object({
 });
 
 /**
+ * @summary Static reference for proof types, accommodation types, CVEC amounts
+ */
+export const GetFinanceReferenceResponse = zod.object({
+  proofTypes: zod.array(
+    zod.object({
+      value: zod.string(),
+      label: zod.string(),
+      validityMonths: zod.number().nullish(),
+    }),
+  ),
+  accommodationTypes: zod.array(
+    zod.object({
+      value: zod.string(),
+      label: zod.string(),
+    }),
+  ),
+  bankAttestationValidityMonths: zod.number(),
+  monthlyMinimumEur: zod.number(),
+  currentAcademicYear: zod.string(),
+  cvecAmountEur: zod.number(),
+  cvecAmountByYear: zod.record(zod.string(), zod.number()),
+});
+
+/**
  * @summary List active scholarships (reference data)
  */
 export const ListScholarshipsResponseItem = zod.object({

@@ -49,6 +49,7 @@ import type {
   DocumentReview,
   DownloadUrlResponse,
   EefWish,
+  FinanceReference,
   FinancialProof,
   FinancialReadiness,
   ForbiddenResponse,
@@ -6613,6 +6614,81 @@ export const useCreateEefWish = <
 > => {
   return useMutation(getCreateEefWishMutationOptions(options));
 };
+
+/**
+ * @summary Static reference for proof types, accommodation types, CVEC amounts
+ */
+export const getGetFinanceReferenceUrl = () => {
+  return `/api/finance-reference`;
+};
+
+export const getFinanceReference = async (
+  options?: RequestInit,
+): Promise<FinanceReference> => {
+  return customFetch<FinanceReference>(getGetFinanceReferenceUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFinanceReferenceQueryKey = () => {
+  return [`/api/finance-reference`] as const;
+};
+
+export const getGetFinanceReferenceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFinanceReference>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFinanceReference>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFinanceReferenceQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getFinanceReference>>
+  > = ({ signal }) => getFinanceReference({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFinanceReference>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFinanceReferenceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFinanceReference>>
+>;
+export type GetFinanceReferenceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Static reference for proof types, accommodation types, CVEC amounts
+ */
+
+export function useGetFinanceReference<
+  TData = Awaited<ReturnType<typeof getFinanceReference>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFinanceReference>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFinanceReferenceQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List active scholarships (reference data)

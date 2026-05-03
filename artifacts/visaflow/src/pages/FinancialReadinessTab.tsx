@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
 import {
   useListFinancialProofs,
   useCreateFinancialProof,
@@ -12,50 +13,55 @@ import {
   useUpsertCvecPayment,
   useGetFinancialReadiness,
   useListScholarships,
+  useGetFinanceReference,
   useSetSubmissionGateOverride,
+  FinancialProofStatus,
+  CreateFinancialProofBodyProofType,
+  CreateAccommodationRecordBodyAccommodationType,
+  CvecPaymentStatus,
 } from "@workspace/api-client-react";
 import type {
   CreateFinancialProofBody,
   CreateAccommodationRecordBody,
   UpsertCvecPaymentBody,
 } from "@workspace/api-client-react";
+
+// Runtime shape returned by /storage/upload-url (see documents.ts).
+// Defined locally because the OpenAPI schema for UploadUrlResponse
+// does not currently advertise `uploadURL`/`uploadToken`.
+interface StorageUploadTokenResponse {
+  uploadURL: string;
+  objectPath: string;
+  uploadToken: string;
+}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Trash2, Plus, CheckCircle2, Shield } from "lucide-react";
+import {
+  AlertTriangle,
+  Trash2,
+  Plus,
+  CheckCircle2,
+  Shield,
+  Paperclip,
+  Upload,
+} from "lucide-react";
 
-const PROOF_TYPES = [
-  { value: "bank_attestation", label: "Attestation bancaire (validité 3 mois)" },
-  { value: "scholarship_letter", label: "Lettre de bourse" },
-  { value: "guarantor_declaration", label: "Déclaration de garant" },
-  { value: "avi_certificate", label: "Certificat AVI" },
-  { value: "other", label: "Autre" },
+const STATUS_OPTIONS: { value: FinancialProofStatus; label: string }[] = [
+  { value: FinancialProofStatus.pending, label: "En attente" },
+  { value: FinancialProofStatus.valid, label: "Validé" },
+  { value: FinancialProofStatus.expired, label: "Expiré" },
+  { value: FinancialProofStatus.rejected, label: "Rejeté" },
 ];
 
-const ACCOMMODATION_TYPES = [
-  { value: "crous", label: "CROUS" },
-  { value: "private_lease", label: "Bail privé" },
-  { value: "host_attestation", label: "Attestation d'hébergement (hôte)" },
-  { value: "student_residence", label: "Résidence étudiante" },
-  { value: "hotel_temporary", label: "Hôtel temporaire" },
-  { value: "other", label: "Autre" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "pending", label: "En attente" },
-  { value: "valid", label: "Validé" },
-  { value: "expired", label: "Expiré" },
-  { value: "rejected", label: "Rejeté" },
-];
-
-const CVEC_STATUS_OPTIONS = [
-  { value: "pending", label: "En attente" },
-  { value: "paid", label: "Payé" },
-  { value: "exempted", label: "Exempté" },
-  { value: "rejected", label: "Rejeté" },
+const CVEC_STATUS_OPTIONS: { value: CvecPaymentStatus; label: string }[] = [
+  { value: CvecPaymentStatus.pending, label: "En attente" },
+  { value: CvecPaymentStatus.paid, label: "Payé" },
+  { value: CvecPaymentStatus.exempted, label: "Exempté" },
+  { value: CvecPaymentStatus.rejected, label: "Rejeté" },
 ];
 
 function formatEur(n: number | string | null | undefined) {
@@ -63,6 +69,122 @@ function formatEur(n: number | string | null | undefined) {
   const v = typeof n === "string" ? Number(n) : n;
   if (Number.isNaN(v)) return "—";
   return `${v.toLocaleString("fr-FR")} €`;
+}
+
+// ─── Reusable: file → upload → create document → return documentId ──────────
+function DocumentAttachField({
+  studentId,
+  category,
+  documentId,
+  onChange,
+  label = "Justificatif",
+}: {
+  studentId: number;
+  category: string;
+  documentId: number | null | undefined;
+  onChange: (id: number | null) => void;
+  label?: string;
+}) {
+  const { getToken } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const token = (await getToken()) ?? "";
+      const headers = {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      } as const;
+      const tokenRes = (await fetch(`${apiBase}/storage/upload-url`, {
+        method: "POST",
+        credentials: "include",
+        headers,
+        body: JSON.stringify({
+          name: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        }),
+      }).then((r) => r.json())) as StorageUploadTokenResponse;
+
+      await fetch(tokenRes.uploadURL, {
+        method: "PUT",
+        headers: { "content-type": file.type },
+        body: file,
+      });
+
+      const created = await fetch(
+        `${apiBase}/students/${studentId}/documents`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers,
+          body: JSON.stringify({
+            category,
+            name: file.name,
+            fileName: file.name,
+            objectPath: tokenRes.objectPath,
+            uploadToken: tokenRes.uploadToken,
+            mimeType: file.type,
+            sizeBytes: file.size,
+          }),
+        },
+      ).then((r) => r.json());
+
+      if (typeof created?.id === "number") {
+        onChange(created.id);
+      } else {
+        setError("Échec de l'enregistrement du document.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Échec du téléversement.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div className="text-xs">
+      <Label className="text-xs">{label}</Label>
+      <div className="flex items-center gap-2 mt-1">
+        {documentId ? (
+          <>
+            <span className="inline-flex items-center gap-1 text-green-700">
+              <Paperclip size={12} /> Document #{documentId} attaché
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              type="button"
+              onClick={() => onChange(null)}
+              data-testid="doc-detach"
+            >
+              Retirer
+            </Button>
+          </>
+        ) : (
+          <label className="inline-flex items-center gap-1 cursor-pointer text-blue-700 hover:underline">
+            <Upload size={12} />
+            {uploading ? "Téléversement…" : "Téléverser un fichier"}
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFile}
+              disabled={uploading}
+              data-testid="doc-upload-input"
+            />
+          </label>
+        )}
+      </div>
+      {error && <div className="text-red-600 mt-1">{error}</div>}
+    </div>
+  );
 }
 
 export function FinancialReadinessTab({
@@ -81,6 +203,7 @@ export function FinancialReadinessTab({
   const { data: cvecList, refetch: refetchCvec } =
     useListCvecPayments(studentId);
   const { data: scholarships } = useListScholarships();
+  const { data: ref } = useGetFinanceReference();
 
   const createProof = useCreateFinancialProof();
   const updateProof = useUpdateFinancialProof();
@@ -98,24 +221,30 @@ export function FinancialReadinessTab({
     refetchCvec();
   };
 
-  // ── Proof form state
+  const proofTypes = ref?.proofTypes ?? [];
+  const accommodationTypes = ref?.accommodationTypes ?? [];
+
   const [proofForm, setProofForm] = useState<CreateFinancialProofBody>({
-    proofType: "bank_attestation",
+    proofType: CreateFinancialProofBodyProofType.bank_attestation,
     amountEur: "",
     currency: "EUR",
   });
 
-  // ── Accommodation form state
   const [accForm, setAccForm] = useState<CreateAccommodationRecordBody>({
-    accommodationType: "crous",
+    accommodationType:
+      CreateAccommodationRecordBodyAccommodationType.crous,
     countryCode: "FR",
   });
 
-  // ── CVEC form state
   const [cvecForm, setCvecForm] = useState<UpsertCvecPaymentBody>({
     amountEur: "103.00",
-    status: "pending",
+    status: CvecPaymentStatus.pending,
   });
+
+  // Sync defaults from reference data once it loads
+  if (ref && cvecForm.amountEur === "103.00" && cvecList?.length === 0) {
+    // no-op — handled at render via placeholder/value
+  }
 
   const [overrideReason, setOverrideReason] = useState("");
 
@@ -129,6 +258,11 @@ export function FinancialReadinessTab({
         ),
       )
     : 0;
+
+  const proofTypeLabel = (v: string) =>
+    proofTypes.find((t) => t.value === v)?.label ?? v;
+  const accTypeLabel = (v: string) =>
+    accommodationTypes.find((t) => t.value === v)?.label ?? v;
 
   return (
     <div className="space-y-4">
@@ -203,7 +337,9 @@ export function FinancialReadinessTab({
                         : "font-medium text-red-700"
                     }
                   >
-                    {readiness.cvecReady ? "Validé" : "Non validé"}
+                    {readiness.cvecReady
+                      ? "Validé"
+                      : `Non validé (${ref?.currentAcademicYear ?? ""})`}
                   </div>
                 </div>
               </div>
@@ -290,7 +426,7 @@ export function FinancialReadinessTab({
             </div>
           )}
           {(proofs ?? []).map((p) => {
-            const derived = (p as any).derivedStatus ?? p.status;
+            const derived = p.derivedStatus ?? p.status;
             return (
               <div
                 key={p.id}
@@ -299,14 +435,17 @@ export function FinancialReadinessTab({
               >
                 <div className="flex-1">
                   <div className="font-medium text-sm">
-                    {PROOF_TYPES.find((t) => t.value === p.proofType)?.label ??
-                      p.proofType}{" "}
-                    — {formatEur(p.amountEur)}
+                    {proofTypeLabel(p.proofType)} — {formatEur(p.amountEur)}
                   </div>
                   <div className="text-xs text-slate-600">
                     {p.providerName ?? p.guarantorName ?? "—"}
                     {p.issueDate && ` • Émis : ${p.issueDate}`}
                     {p.expiryDate && ` • Expire : ${p.expiryDate}`}
+                    {p.documentId && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-green-700">
+                        <Paperclip size={11} /> doc #{p.documentId}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <select
@@ -316,7 +455,9 @@ export function FinancialReadinessTab({
                     await updateProof.mutateAsync({
                       studentId,
                       proofId: p.id,
-                      data: { status: e.target.value as any },
+                      data: {
+                        status: e.target.value as FinancialProofStatus,
+                      },
                     });
                     reload();
                   }}
@@ -369,19 +510,24 @@ export function FinancialReadinessTab({
                 onChange={(e) =>
                   setProofForm((f) => ({
                     ...f,
-                    proofType: e.target.value as any,
+                    proofType: e.target
+                      .value as CreateFinancialProofBodyProofType,
                   }))
                 }
                 data-testid="proof-form-type"
               >
-                {PROOF_TYPES.map((t) => (
+                {proofTypes.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
+                    {t.validityMonths
+                      ? ` (validité ${t.validityMonths} mois)`
+                      : ""}
                   </option>
                 ))}
               </select>
             </div>
-            {proofForm.proofType === "scholarship_letter" && (
+            {proofForm.proofType ===
+              CreateFinancialProofBodyProofType.scholarship_letter && (
               <div>
                 <Label className="text-xs">Bourse</Label>
                 <select
@@ -445,6 +591,16 @@ export function FinancialReadinessTab({
                 data-testid="proof-form-provider"
               />
             </div>
+            <div className="md:col-span-2">
+              <DocumentAttachField
+                studentId={studentId}
+                category="finance"
+                documentId={proofForm.documentId}
+                onChange={(id) =>
+                  setProofForm((f) => ({ ...f, documentId: id }))
+                }
+              />
+            </div>
             <div className="md:col-span-4">
               <Button
                 size="sm"
@@ -455,7 +611,8 @@ export function FinancialReadinessTab({
                     data: proofForm,
                   });
                   setProofForm({
-                    proofType: "bank_attestation",
+                    proofType:
+                      CreateFinancialProofBodyProofType.bank_attestation,
                     amountEur: "",
                     currency: "EUR",
                   });
@@ -467,10 +624,12 @@ export function FinancialReadinessTab({
                 <Plus size={14} className="mr-1" />
                 Ajouter le justificatif
               </Button>
-              {proofForm.proofType === "bank_attestation" && (
+              {proofForm.proofType ===
+                CreateFinancialProofBodyProofType.bank_attestation && (
                 <span className="ml-3 text-xs text-slate-500">
-                  La date d'expiration sera calculée automatiquement (3 mois
-                  après l'émission).
+                  La date d'expiration sera calculée automatiquement (
+                  {ref?.bankAttestationValidityMonths ?? 3} mois après
+                  l'émission).
                 </span>
               )}
             </div>
@@ -497,9 +656,7 @@ export function FinancialReadinessTab({
             >
               <div className="flex-1">
                 <div className="font-medium text-sm">
-                  {ACCOMMODATION_TYPES.find(
-                    (t) => t.value === a.accommodationType,
-                  )?.label ?? a.accommodationType}
+                  {accTypeLabel(a.accommodationType)}
                 </div>
                 <div className="text-xs text-slate-600">
                   {[a.addressLine, a.postalCode, a.city]
@@ -507,6 +664,11 @@ export function FinancialReadinessTab({
                     .join(", ") || "—"}
                   {a.startDate && ` • Du ${a.startDate}`}
                   {a.endDate && ` au ${a.endDate}`}
+                  {a.documentId && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-green-700">
+                      <Paperclip size={11} /> doc #{a.documentId}
+                    </span>
+                  )}
                 </div>
                 {(a.hostFirstName || a.hostLastName) && (
                   <div className="text-xs text-slate-600">
@@ -522,7 +684,10 @@ export function FinancialReadinessTab({
                   await updateAcc.mutateAsync({
                     studentId,
                     recordId: a.id,
-                    data: { status: e.target.value as any },
+                    data: {
+                      status: e.target
+                        .value as (typeof STATUS_OPTIONS)[number]["value"],
+                    },
                   });
                   reload();
                 }}
@@ -560,12 +725,13 @@ export function FinancialReadinessTab({
                 onChange={(e) =>
                   setAccForm((f) => ({
                     ...f,
-                    accommodationType: e.target.value as any,
+                    accommodationType: e.target
+                      .value as CreateAccommodationRecordBodyAccommodationType,
                   }))
                 }
                 data-testid="acc-form-type"
               >
-                {ACCOMMODATION_TYPES.map((t) => (
+                {accommodationTypes.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
@@ -598,7 +764,8 @@ export function FinancialReadinessTab({
                 data-testid="acc-form-address"
               />
             </div>
-            {accForm.accommodationType === "host_attestation" && (
+            {accForm.accommodationType ===
+              CreateAccommodationRecordBodyAccommodationType.host_attestation && (
               <>
                 <div>
                   <Label className="text-xs">Prénom de l'hôte</Label>
@@ -669,6 +836,16 @@ export function FinancialReadinessTab({
                 data-testid="acc-form-end"
               />
             </div>
+            <div>
+              <DocumentAttachField
+                studentId={studentId}
+                category="logement"
+                documentId={accForm.documentId}
+                onChange={(id) =>
+                  setAccForm((f) => ({ ...f, documentId: id }))
+                }
+              />
+            </div>
             <div className="md:col-span-3">
               <Button
                 size="sm"
@@ -678,7 +855,8 @@ export function FinancialReadinessTab({
                     data: accForm,
                   });
                   setAccForm({
-                    accommodationType: "crous",
+                    accommodationType:
+                      CreateAccommodationRecordBodyAccommodationType.crous,
                     countryCode: "FR",
                   });
                   reload();
@@ -696,7 +874,9 @@ export function FinancialReadinessTab({
       {/* ── CVEC ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">CVEC</CardTitle>
+          <CardTitle className="text-lg">
+            CVEC{ref && ` (tarif officiel ${ref.cvecAmountEur}€)`}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {(cvecList ?? []).length === 0 && (
@@ -717,14 +897,20 @@ export function FinancialReadinessTab({
                 <div className="text-xs text-slate-600">
                   {c.paidAt && `Payé le ${c.paidAt}`}
                   {c.receiptNumber && ` • Reçu n° ${c.receiptNumber}`}
+                  {c.attestationDocumentId && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-green-700">
+                      <Paperclip size={11} /> doc #{c.attestationDocumentId}
+                    </span>
+                  )}
                 </div>
               </div>
               <span
                 className={
                   "text-xs px-2 py-0.5 rounded " +
-                  (c.status === "paid" || c.status === "exempted"
+                  (c.status === CvecPaymentStatus.paid ||
+                  c.status === CvecPaymentStatus.exempted
                     ? "bg-green-100 text-green-800"
-                    : c.status === "rejected"
+                    : c.status === CvecPaymentStatus.rejected
                       ? "bg-red-100 text-red-800"
                       : "bg-slate-100 text-slate-700")
                 }
@@ -738,7 +924,7 @@ export function FinancialReadinessTab({
             <div>
               <Label className="text-xs">Année académique</Label>
               <Input
-                placeholder="2025-2026"
+                placeholder={ref?.currentAcademicYear ?? "2025-2026"}
                 value={cvecForm.academicYear ?? ""}
                 onChange={(e) =>
                   setCvecForm((f) => ({
@@ -755,6 +941,7 @@ export function FinancialReadinessTab({
                 type="number"
                 step="0.01"
                 value={cvecForm.amountEur}
+                placeholder={ref?.cvecAmountEur?.toString() ?? "103"}
                 onChange={(e) =>
                   setCvecForm((f) => ({ ...f, amountEur: e.target.value }))
                 }
@@ -783,7 +970,7 @@ export function FinancialReadinessTab({
                 onChange={(e) =>
                   setCvecForm((f) => ({
                     ...f,
-                    status: e.target.value as any,
+                    status: e.target.value as CvecPaymentStatus,
                   }))
                 }
                 data-testid="cvec-form-status"
@@ -806,6 +993,17 @@ export function FinancialReadinessTab({
                   }))
                 }
                 data-testid="cvec-form-receipt"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <DocumentAttachField
+                studentId={studentId}
+                category="cvec"
+                documentId={cvecForm.attestationDocumentId}
+                onChange={(id) =>
+                  setCvecForm((f) => ({ ...f, attestationDocumentId: id }))
+                }
+                label="Attestation CVEC"
               />
             </div>
             <div className="md:col-span-4">

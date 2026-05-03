@@ -1632,6 +1632,30 @@ export interface SubmissionGateOverrideBody {
   reason?: string | null;
 }
 
+export interface FinanceReferenceProofType {
+  value: string;
+  label: string;
+  /** @nullable */
+  validityMonths?: number | null;
+}
+
+export interface FinanceReferenceAccommodationType {
+  value: string;
+  label: string;
+}
+
+export type FinanceReferenceCvecAmountByYear = { [key: string]: number };
+
+export interface FinanceReference {
+  proofTypes: FinanceReferenceProofType[];
+  accommodationTypes: FinanceReferenceAccommodationType[];
+  bankAttestationValidityMonths: number;
+  monthlyMinimumEur: number;
+  currentAcademicYear: string;
+  cvecAmountEur: number;
+  cvecAmountByYear: FinanceReferenceCvecAmountByYear;
+}
+
 /**
  * Unauthorized
  */
