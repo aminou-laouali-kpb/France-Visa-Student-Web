@@ -633,9 +633,24 @@ export async function applyMatrixToStudent(
   // is preserved verbatim. This is non-blocking: validation logic only
   // gates progression on prior `isRequired` steps, and completion score
   // is computed over required steps only (see students.ts).
+  // Lazy-loaded canonical step → checklist template, used to rehydrate
+  // checklist items when a previously-skipped step is re-required by the
+  // matrix (true bidirectional refresh).
+  let checklistByStepName: Map<string, { label: string; isRequired: boolean }[]> | null = null;
+  const getCanonicalChecklist = async (stepName: string) => {
+    if (!checklistByStepName) {
+      const { STEPS } = await import("../lib/seed");
+      checklistByStepName = new Map(
+        STEPS.map((s) => [s.name, s.checklist as { label: string; isRequired: boolean }[]]),
+      );
+    }
+    return checklistByStepName.get(stepName) ?? [];
+  };
+
   let stepsSkipped = 0;
   let stepsRestored = 0;
   let removed = 0;
+  let added = 0;
   if (matrixApplies) {
     for (const ss of existingSteps) {
       const ws = wfById.get(ss.workflowStepId);
@@ -675,6 +690,35 @@ export async function applyMatrixToStudent(
           }
         } else {
           stepsRestored++;
+          // Step is required again → rehydrate any canonical template items
+          // that are missing, so refresh is fully reversible.
+          const canonical = await getCanonicalChecklist(ss.stepName);
+          if (canonical.length > 0) {
+            const existing = await db
+              .select()
+              .from(checklistItemsTable)
+              .where(
+                and(
+                  eq(checklistItemsTable.studentId, studentId),
+                  eq(checklistItemsTable.workflowStepId, ws.id),
+                ),
+              );
+            const presentLabels = new Set(existing.map((i) => i.label));
+            let nextOrder =
+              existing.reduce((mx, it) => Math.max(mx, it.order), -1) + 1;
+            for (const tpl of canonical) {
+              if (presentLabels.has(tpl.label)) continue;
+              await db.insert(checklistItemsTable).values({
+                workflowStepId: ws.id,
+                studentId,
+                label: tpl.label,
+                isRequired: tpl.isRequired,
+                isChecked: false,
+                order: nextOrder++,
+              });
+              added++;
+            }
+          }
         }
       }
     }
@@ -757,7 +801,6 @@ export async function applyMatrixToStudent(
 
   // Add missing matrix-driven items
   const presentLabels = new Set(existingItems.map((i) => i.label));
-  let added = 0;
   let nextOrder =
     existingItems.reduce((mx, it) => Math.max(mx, it.order), 0) + 1;
   for (const c of matrixOnlyCats) {
