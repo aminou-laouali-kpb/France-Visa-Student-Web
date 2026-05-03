@@ -11,8 +11,10 @@ import {
   usersTable,
   commentsTable,
   studentStepsTable,
+  countriesTable,
+  schoolsTable,
 } from "@workspace/db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lt } from "drizzle-orm";
 import { requireAuth, isAdmin, isStaff, requireStudentAccess } from "../middlewares/auth";
 import { calculateRiskScore } from "../lib/risk";
 
@@ -170,18 +172,73 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
     u.role === "advisor"
       ? await db.select().from(studentsTable).where(eq(studentsTable.advisorId, u.id))
       : u.role === "reviewer"
-      ? await db.select().from(studentsTable).where(eq(studentsTable.reviewerId, u.id))
-      : await db.select().from(studentsTable);
+        ? await db.select().from(studentsTable).where(eq(studentsTable.reviewerId, u.id))
+        : await db.select().from(studentsTable);
 
   const studentIds = myStudents.map((s) => s.id);
-  const tasks = await db
-    .select()
-    .from(tasksTable)
-    .where(eq(tasksTable.assignedToId, u.id));
+  const [tasks, risks, docs, apts] = await Promise.all([
+    db.select().from(tasksTable).where(eq(tasksTable.assignedToId, u.id)),
+    studentIds.length
+      ? db.select().from(riskScoresTable).where(sql`${riskScoresTable.studentId} = ANY(${studentIds})`)
+      : Promise.resolve([] as Array<typeof riskScoresTable.$inferSelect>),
+    studentIds.length
+      ? db.select().from(documentsTable).where(sql`${documentsTable.studentId} = ANY(${studentIds})`)
+      : Promise.resolve([] as Array<typeof documentsTable.$inferSelect>),
+    studentIds.length
+      ? db
+          .select()
+          .from(appointmentsTable)
+          .where(sql`${appointmentsTable.studentId} = ANY(${studentIds})`)
+      : Promise.resolve([] as Array<typeof appointmentsTable.$inferSelect>),
+  ]);
+  const now = new Date();
   const overdueTasks = tasks.filter(
-    (t) => t.dueDate && t.dueDate < new Date() && t.status !== "done",
+    (t) => t.dueDate && t.dueDate < now && t.status !== "done",
   );
+  const highRiskStudentIds = new Set(
+    risks.filter((r) => r.level === "high").map((r) => r.studentId),
+  );
+  const lateStudents = myStudents.filter(
+    (s) => s.status === "blocked" || s.status === "active" && s.lastActivityAt && now.getTime() - new Date(s.lastActivityAt).getTime() > 14 * 86400000,
+  ).length;
+  const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startOfDay); endOfDay.setDate(endOfDay.getDate() + 1);
+  const todayAppointments = apts.filter(
+    (a) => a.scheduledAt >= startOfDay && a.scheduledAt < endOfDay && a.status === "upcoming",
+  ).length;
+  const documentsAwaitingReview = docs.filter(
+    (d) => d.status === "received" || d.status === "under_review",
+  ).length;
+  const urgentStudents = myStudents
+    .filter((s) => highRiskStudentIds.has(s.id) || s.status === "blocked")
+    .slice(0, 12)
+    .map((s) => ({
+      id: s.id,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      email: s.email,
+      status: s.status,
+      completionScore: s.completionScore,
+      riskLevel: risks.find((r) => r.studentId === s.id)?.level ?? null,
+      riskScore: risks.find((r) => r.studentId === s.id)?.score ?? null,
+      lastActivityAt: s.lastActivityAt,
+    }));
+  // Scope recent activity: admins see global, advisors/reviewers see only their own actions
+  const recentActivity = isAdmin(u)
+    ? await db
+        .select()
+        .from(auditLogsTable)
+        .orderBy(desc(auditLogsTable.createdAt))
+        .limit(20)
+    : await db
+        .select()
+        .from(auditLogsTable)
+        .where(eq(auditLogsTable.userId, u.id))
+        .orderBy(desc(auditLogsTable.createdAt))
+        .limit(20);
+
   res.json({
+    // Legacy fields (kept for older callers)
     studentCount: myStudents.length,
     activeStudents: myStudents.filter((s) => s.status === "active").length,
     blockedStudents: myStudents.filter((s) => s.status === "blocked").length,
@@ -191,6 +248,15 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
     myTasks: tasks.length,
     overdueTasks: overdueTasks.length,
     students: myStudents.slice(0, 50),
+    // Rich fields
+    totalStudents: myStudents.length,
+    lateStudents,
+    highRiskStudents: highRiskStudentIds.size,
+    documentsAwaitingReview,
+    todayAppointments,
+    unresponsiveStudents: lateStudents,
+    urgentStudents,
+    recentActivity,
   });
 });
 
@@ -199,13 +265,73 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     res.status(403).json({ error: "Forbidden" });
     return;
   }
-  const [users, students, docs, recentLogs] = await Promise.all([
-    db.select().from(usersTable),
-    db.select().from(studentsTable),
-    db.select().from(documentsTable),
-    db.select().from(auditLogsTable).orderBy(desc(auditLogsTable.createdAt)).limit(20),
-  ]);
+  const [users, students, docs, recentLogs, countries, schools, risks, steps] =
+    await Promise.all([
+      db.select().from(usersTable),
+      db.select().from(studentsTable),
+      db.select().from(documentsTable),
+      db.select().from(auditLogsTable).orderBy(desc(auditLogsTable.createdAt)).limit(20),
+      db.select().from(countriesTable),
+      db.select().from(schoolsTable),
+      db.select().from(riskScoresTable),
+      db.select().from(studentStepsTable),
+    ]);
+  const total = students.length || 1;
+  const stat = (groups: Record<string, number>) =>
+    Object.entries(groups)
+      .map(([label, count]) => ({
+        label,
+        count,
+        percentage: Math.round((count / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+  const byCountry: Record<string, number> = {};
+  const bySchool: Record<string, number> = {};
+  const byAdvisor: Record<string, number> = {};
+  for (const s of students) {
+    const c = countries.find((x) => x.id === s.countryId)?.name ?? "—";
+    byCountry[c] = (byCountry[c] ?? 0) + 1;
+    const sc = schools.find((x) => x.id === s.schoolId)?.name ?? "—";
+    bySchool[sc] = (bySchool[sc] ?? 0) + 1;
+    const ad = users.find((u) => u.id === s.advisorId);
+    const adName = ad ? `${ad.firstName} ${ad.lastName}` : "Non affecté";
+    byAdvisor[adName] = (byAdvisor[adName] ?? 0) + 1;
+  }
+  const byStep: Record<string, number> = {};
+  for (const s of students) {
+    const next = steps
+      .filter((x) => x.studentId === s.id)
+      .sort((a, b) => a.stepOrder - b.stepOrder)
+      .find((x) => x.status !== "validated");
+    const label = next?.stepName ?? "Terminé";
+    byStep[label] = (byStep[label] ?? 0) + 1;
+  }
+
   res.json({
+    // Rich fields
+    totalStudents: students.length,
+    totalAdvisors: users.filter((u) => u.role === "advisor" && u.isActive).length,
+    totalReviewers: users.filter((u) => u.role === "reviewer" && u.isActive).length,
+    studentsWithVisa: students.filter((s) => s.status === "visa_obtained").length,
+    studentsInProgress: students.filter((s) =>
+      ["active", "submitted"].includes(s.status),
+    ).length,
+    studentsBlocked: students.filter((s) => s.status === "blocked").length,
+    avgCompletionScore:
+      students.length > 0
+        ? Math.round(
+            students.reduce((acc, s) => acc + s.completionScore, 0) / students.length,
+          )
+        : 0,
+    highRiskCount: risks.filter((r) => r.level === "high").length,
+    byCountry: stat(byCountry),
+    bySchool: stat(bySchool),
+    byStep: stat(byStep),
+    byAdvisor: stat(byAdvisor),
+    recentAuditLogs: recentLogs,
+    // Legacy
     userCount: users.length,
     studentCount: students.length,
     documentCount: docs.length,
@@ -229,29 +355,67 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
 });
 
 router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
-  if (!isStaff(req.currentUser!)) {
+  const u = req.currentUser!;
+  if (!isStaff(u)) {
     res.status(403).json({ error: "Forbidden" });
     return;
   }
-  const students = await db.select().from(studentsTable);
-  const byStatus = students.reduce<Record<string, number>>((acc, s) => {
-    acc[s.status] = (acc[s.status] ?? 0) + 1;
-    return acc;
-  }, {});
-  const total = students.length;
-  const submitted = students.filter((s) => s.status === "submitted").length;
-  const obtained = students.filter((s) => s.status === "visa_obtained").length;
-  const refused = students.filter((s) => s.status === "visa_refused").length;
-  const successRate =
-    obtained + refused > 0 ? Math.round((obtained / (obtained + refused)) * 100) : 0;
+  const studentsAll = await db.select().from(studentsTable);
+  const students = isAdmin(u)
+    ? studentsAll
+    : u.role === "advisor"
+      ? studentsAll.filter((s) => s.advisorId === u.id)
+      : u.role === "reviewer"
+        ? studentsAll.filter((s) => s.reviewerId === u.id)
+        : studentsAll;
+  const ids = students.map((s) => s.id);
+  const [countries, schools, risks] = await Promise.all([
+    db.select().from(countriesTable),
+    db.select().from(schoolsTable),
+    ids.length
+      ? db.select().from(riskScoresTable).where(sql`${riskScoresTable.studentId} = ANY(${ids})`)
+      : Promise.resolve([] as Array<typeof riskScoresTable.$inferSelect>),
+  ]);
+  const total = students.length || 1;
+  const tally = (groups: Record<string, number>) =>
+    Object.entries(groups)
+      .map(([label, count]) => ({
+        label,
+        count,
+        percentage: Math.round((count / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+
+  const byStatus: Record<string, number> = {};
+  const byCountry: Record<string, number> = {};
+  const bySchool: Record<string, number> = {};
+  const byMonth: Record<string, number> = {};
+  for (const s of students) {
+    byStatus[s.status] = (byStatus[s.status] ?? 0) + 1;
+    const c = countries.find((x) => x.id === s.countryId)?.name ?? "—";
+    byCountry[c] = (byCountry[c] ?? 0) + 1;
+    const sc = schools.find((x) => x.id === s.schoolId)?.name ?? "—";
+    bySchool[sc] = (bySchool[sc] ?? 0) + 1;
+    const month = s.intakeDate ? s.intakeDate.slice(0, 7) : "—";
+    byMonth[month] = (byMonth[month] ?? 0) + 1;
+  }
+  const byRiskLevel: Record<string, number> = { low: 0, medium: 0, high: 0 };
+  for (const r of risks) {
+    byRiskLevel[r.level] = (byRiskLevel[r.level] ?? 0) + 1;
+  }
   res.json({
-    total,
-    byStatus,
-    successRate,
-    avgCompletion:
-      students.length > 0
-        ? Math.round(students.reduce((s, x) => s + x.completionScore, 0) / students.length)
-        : 0,
+    byStatus: tally(byStatus),
+    byRiskLevel: tally(byRiskLevel),
+    byCountry: tally(byCountry).slice(0, 10),
+    bySchool: tally(bySchool).slice(0, 10),
+    byIntakeMonth: Object.entries(byMonth)
+      .filter(([k]) => k !== "—")
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, count]) => ({
+        label,
+        count,
+        percentage: Math.round((count / total) * 100),
+      })),
   });
 });
 

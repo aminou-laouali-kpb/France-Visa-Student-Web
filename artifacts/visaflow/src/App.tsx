@@ -1,6 +1,7 @@
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Show } from "@clerk/react";
+import { useGetMe } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useApiAuthSetup } from "@/lib/api";
@@ -21,6 +22,11 @@ import { MyTasks } from "@/pages/MyTasks";
 import { Notifications } from "@/pages/Notifications";
 import { Profile } from "@/pages/Profile";
 import { AdminUsers, AdminAudit, AdminSchools, AdminCountries } from "@/pages/Admin";
+import { AdvisorPortfolio } from "@/pages/advisor/AdvisorPortfolio";
+import { AdvisorReports } from "@/pages/advisor/AdvisorReports";
+import { AdminGlobalDashboard } from "@/pages/admin/AdminGlobalDashboard";
+import { AdminStudents } from "@/pages/admin/AdminStudents";
+import { AdminWorkflow } from "@/pages/admin/AdminWorkflow";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -52,6 +58,38 @@ function Protected({ children }: { children: React.ReactNode }) {
         <Redirect to="/" />
       </Show>
     </>
+  );
+}
+
+function RoleGate({
+  allow,
+  children,
+}: {
+  allow: string[];
+  children: React.ReactNode;
+}) {
+  const { data: me, isLoading } = useGetMe();
+  if (isLoading) return null;
+  const role = (me as { role?: string } | undefined)?.role ?? "student";
+  if (!allow.includes(role)) return <Redirect to="/app" />;
+  return <>{children}</>;
+}
+
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  return (
+    <Protected>
+      <RoleGate allow={["admin", "superadmin"]}>{children}</RoleGate>
+    </Protected>
+  );
+}
+
+function StaffOnly({ children }: { children: React.ReactNode }) {
+  return (
+    <Protected>
+      <RoleGate allow={["advisor", "reviewer", "admin", "superadmin"]}>
+        {children}
+      </RoleGate>
+    </Protected>
   );
 }
 
@@ -154,6 +192,63 @@ function AppRouter() {
         <Protected>
           <AdminCountries />
         </Protected>
+      </Route>
+
+      <Route path="/advisor">
+        <StaffOnly>
+          <AdvisorPortfolio />
+        </StaffOnly>
+      </Route>
+      <Route path="/advisor/tasks">
+        <StaffOnly>
+          <MyTasks />
+        </StaffOnly>
+      </Route>
+      <Route path="/advisor/reports">
+        <StaffOnly>
+          <AdvisorReports />
+        </StaffOnly>
+      </Route>
+      <Route path="/advisor/students/:id">
+        <StaffOnly>
+          <StudentDetail />
+        </StaffOnly>
+      </Route>
+
+      <Route path="/admin">
+        <AdminOnly>
+          <AdminGlobalDashboard />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/users">
+        <AdminOnly>
+          <AdminUsers />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/students">
+        <AdminOnly>
+          <AdminStudents />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/schools">
+        <AdminOnly>
+          <AdminSchools />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/countries">
+        <AdminOnly>
+          <AdminCountries />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/workflow">
+        <AdminOnly>
+          <AdminWorkflow />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/audit">
+        <AdminOnly>
+          <AdminAudit />
+        </AdminOnly>
       </Route>
 
       <Route component={NotFound} />

@@ -17,6 +17,8 @@ import {
   FileText,
   Calendar,
   MessageSquare,
+  BarChart3,
+  Workflow,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +46,6 @@ export function Layout({ children }: { children: ReactNode }) {
   const isAdmin = ["admin", "superadmin"].includes(role);
 
   const navItems: NavItem[] = [
-    { href: "/app", icon: LayoutDashboard, label: "Tableau de bord" },
     ...(isStudent
       ? [
           { href: "/student", icon: LayoutDashboard, label: "Accueil" },
@@ -54,10 +55,19 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/student/messages", icon: MessageSquare, label: "Messages" },
         ]
       : []),
-    ...(isStaff
+    ...(isStaff && !isAdmin
       ? [
-          { href: "/app/students", icon: Users, label: "Étudiants" },
-          { href: "/app/tasks", icon: CheckSquare, label: "Mes tâches" },
+          { href: "/advisor", icon: LayoutDashboard, label: "Mon portefeuille" },
+          { href: "/advisor/tasks", icon: CheckSquare, label: "Mes tâches" },
+          { href: "/advisor/reports", icon: BarChart3, label: "Statistiques" },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
+          { href: "/admin", icon: LayoutDashboard, label: "Centre de pilotage" },
+          { href: "/advisor", icon: Users, label: "Portefeuille" },
+          { href: "/advisor/tasks", icon: CheckSquare, label: "Mes tâches" },
+          { href: "/advisor/reports", icon: BarChart3, label: "Statistiques" },
         ]
       : []),
     {
@@ -68,10 +78,12 @@ export function Layout({ children }: { children: ReactNode }) {
     },
     ...(isAdmin
       ? [
-          { href: "/app/admin/users", icon: ShieldCheck, label: "Utilisateurs" },
-          { href: "/app/admin/schools", icon: Building2, label: "Écoles" },
-          { href: "/app/admin/countries", icon: Globe, label: "Pays" },
-          { href: "/app/admin/audit", icon: ScrollText, label: "Journal d'audit" },
+          { href: "/admin/users", icon: ShieldCheck, label: "Utilisateurs" },
+          { href: "/admin/students", icon: GraduationCap, label: "Tous les étudiants" },
+          { href: "/admin/schools", icon: Building2, label: "Écoles" },
+          { href: "/admin/countries", icon: Globe, label: "Pays" },
+          { href: "/admin/workflow", icon: Workflow, label: "Parcours" },
+          { href: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
         ]
       : []),
     { href: "/app/profile", icon: Settings, label: "Profil" },
@@ -81,7 +93,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-slate-50 flex">
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
         <div className="p-5 border-b border-slate-200">
-          <Link href="/app">
+          <Link href={isStudent ? "/student" : isAdmin ? "/admin" : "/advisor"}>
             <a className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
                 <GraduationCap className="w-5 h-5 text-white" />

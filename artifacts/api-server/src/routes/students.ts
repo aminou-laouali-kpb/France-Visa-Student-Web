@@ -7,13 +7,19 @@ import {
   workflowStepsTable,
   workflowTemplatesTable,
   countriesTable,
+  schoolsTable,
+  programsTable,
+  riskScoresTable,
   notificationsTable,
   tasksTable,
   usersTable,
   type Student,
   type User,
 } from "@workspace/db";
-import { eq, and, asc, desc, or } from "drizzle-orm";
+import { eq, and, asc, desc, or, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+
+const advisorAlias = alias(usersTable, "advisor_user");
 import {
   requireAuth,
   isStaff,
@@ -118,28 +124,97 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
 // LIST students (filtered by role)
 router.get("/students", requireAuth, async (req, res) => {
   const u = req.currentUser!;
-  let rows;
-  if (u.role === "student") {
-    rows = await db.select().from(studentsTable).where(eq(studentsTable.userId, u.id));
-  } else if (u.role === "advisor") {
-    rows = await db
-      .select()
-      .from(studentsTable)
-      .where(eq(studentsTable.advisorId, u.id))
-      .orderBy(desc(studentsTable.updatedAt));
-  } else if (u.role === "reviewer") {
-    rows = await db
-      .select()
-      .from(studentsTable)
-      .where(eq(studentsTable.reviewerId, u.id))
-      .orderBy(desc(studentsTable.updatedAt));
-  } else {
-    rows = await db.select().from(studentsTable).orderBy(desc(studentsTable.updatedAt));
-  }
+  const baseFilter =
+    u.role === "student"
+      ? eq(studentsTable.userId, u.id)
+      : u.role === "advisor"
+        ? eq(studentsTable.advisorId, u.id)
+        : u.role === "reviewer"
+          ? eq(studentsTable.reviewerId, u.id)
+          : undefined;
+  const query = db
+    .select({
+      id: studentsTable.id,
+      userId: studentsTable.userId,
+      firstName: studentsTable.firstName,
+      lastName: studentsTable.lastName,
+      email: studentsTable.email,
+      nationalityCode: studentsTable.nationalityCode,
+      countryId: studentsTable.countryId,
+      schoolId: studentsTable.schoolId,
+      programId: studentsTable.programId,
+      advisorId: studentsTable.advisorId,
+      reviewerId: studentsTable.reviewerId,
+      status: studentsTable.status,
+      completionScore: studentsTable.completionScore,
+      intakeDate: studentsTable.intakeDate,
+      hasVisaRefusalHistory: studentsTable.hasVisaRefusalHistory,
+      lastActivityAt: studentsTable.lastActivityAt,
+      createdAt: studentsTable.createdAt,
+      updatedAt: studentsTable.updatedAt,
+      countryName: countriesTable.name,
+      schoolName: schoolsTable.name,
+      programName: programsTable.name,
+      advisorFirstName: advisorAlias.firstName,
+      advisorLastName: advisorAlias.lastName,
+      riskLevel: riskScoresTable.level,
+      riskScore: riskScoresTable.score,
+    })
+    .from(studentsTable)
+    .leftJoin(countriesTable, eq(studentsTable.countryId, countriesTable.id))
+    .leftJoin(schoolsTable, eq(studentsTable.schoolId, schoolsTable.id))
+    .leftJoin(programsTable, eq(studentsTable.programId, programsTable.id))
+    .leftJoin(advisorAlias, eq(studentsTable.advisorId, advisorAlias.id))
+    .leftJoin(riskScoresTable, eq(studentsTable.id, riskScoresTable.studentId))
+    .orderBy(desc(studentsTable.updatedAt));
+  let rows = baseFilter ? await query.where(baseFilter) : await query;
   // Optional filters
   const status = req.query.status as string | undefined;
+  const search = req.query.search as string | undefined;
+  const countryId = req.query.countryId ? Number(req.query.countryId) : undefined;
+  const schoolId = req.query.schoolId ? Number(req.query.schoolId) : undefined;
+  const advisorId = req.query.advisorId ? Number(req.query.advisorId) : undefined;
+  const riskLevel = req.query.riskLevel as string | undefined;
   if (status) rows = rows.filter((r) => r.status === status);
-  res.json(rows);
+  if (countryId) rows = rows.filter((r) => r.countryId === countryId);
+  if (schoolId) rows = rows.filter((r) => r.schoolId === schoolId);
+  if (advisorId) rows = rows.filter((r) => r.advisorId === advisorId);
+  if (riskLevel) rows = rows.filter((r) => r.riskLevel === riskLevel);
+  if (search) {
+    const q = search.toLowerCase();
+    rows = rows.filter(
+      (r) =>
+        `${r.firstName} ${r.lastName} ${r.email}`.toLowerCase().includes(q),
+    );
+  }
+  // Compute current step for each (cheap-ish join: use cached order)
+  const ids = rows.map((r) => r.id);
+  const steps = ids.length
+    ? await db
+        .select()
+        .from(studentStepsTable)
+        .where(inArray(studentStepsTable.studentId, ids))
+    : [];
+  const isStaffRole = ["advisor", "reviewer", "admin", "superadmin"].includes(u.role);
+  const enriched = rows.map((r) => {
+    const next = steps
+      .filter((s) => s.studentId === r.id)
+      .sort((a, b) => a.stepOrder - b.stepOrder)
+      .find((s) => s.status !== "validated");
+    const advisorName =
+      r.advisorFirstName || r.advisorLastName
+        ? `${r.advisorFirstName ?? ""} ${r.advisorLastName ?? ""}`.trim()
+        : null;
+    // Strip risk fields for non-staff (students must not see their own risk score)
+    const { riskLevel, riskScore, ...rest } = r;
+    return {
+      ...rest,
+      ...(isStaffRole ? { riskLevel, riskScore } : {}),
+      advisorName,
+      currentStepName: next?.stepName ?? null,
+    };
+  });
+  res.json(enriched);
 });
 
 // CREATE student

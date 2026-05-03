@@ -142,25 +142,101 @@ export interface StudentDashboardData {
 }
 
 export interface AdvisorDashboardData {
-  studentCount: number;
-  activeStudents: number;
-  blockedStudents: number;
-  visaObtained: number;
-  overdueTasks: number;
-  students: Array<Student & { completionScore: number }>;
+  studentCount?: number;
+  activeStudents?: number;
+  blockedStudents?: number;
+  visaObtained?: number;
+  overdueTasks?: number;
+  students?: Array<Student & { completionScore: number }>;
+  totalStudents?: number;
+  lateStudents?: number;
+  highRiskStudents?: number;
+  documentsAwaitingReview?: number;
+  todayAppointments?: number;
+  unresponsiveStudents?: number;
+  urgentStudents?: StudentSummary[];
+  recentActivity?: AuditLog[];
+}
+
+export interface CountStat {
+  label: string;
+  count: number;
+  percentage: number;
 }
 
 export interface AdminDashboardData {
-  userCount: number;
-  studentCount: number;
-  documentCount: number;
-  visaObtained: number;
-  activeStudents: number;
-  blockedStudents: number;
-  submittedStudents: number;
-  visaRefused: number;
-  usersByRole: Record<string, number>;
-  recentActivity: AuditLog[];
+  userCount?: number;
+  studentCount?: number;
+  documentCount?: number;
+  visaObtained?: number;
+  activeStudents?: number;
+  blockedStudents?: number;
+  submittedStudents?: number;
+  visaRefused?: number;
+  usersByRole?: Record<string, number>;
+  recentActivity?: AuditLog[];
+  totalStudents?: number;
+  totalAdvisors?: number;
+  totalReviewers?: number;
+  studentsWithVisa?: number;
+  studentsInProgress?: number;
+  studentsBlocked?: number;
+  avgCompletionScore?: number;
+  highRiskCount?: number;
+  byCountry?: CountStat[];
+  bySchool?: CountStat[];
+  byStep?: CountStat[];
+  byAdvisor?: CountStat[];
+  recentAuditLogs?: AuditLog[];
+}
+
+export interface PortfolioStatsData {
+  byStatus: CountStat[];
+  byRiskLevel: CountStat[];
+  byCountry: CountStat[];
+  bySchool: CountStat[];
+  byIntakeMonth: CountStat[];
+}
+
+export interface StudentSummary {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  completionScore: number;
+  riskLevel?: string | null;
+  riskScore?: number | null;
+  countryId?: number | null;
+  countryName?: string | null;
+  schoolId?: number | null;
+  schoolName?: string | null;
+  advisorId?: number | null;
+  advisorName?: string | null;
+  reviewerId?: number | null;
+  currentStepName?: string | null;
+  lastActivityAt?: string | null;
+}
+
+export interface WorkflowTemplate {
+  id: number;
+  name: string;
+  description?: string | null;
+  isDefault: boolean;
+  countryId?: number | null;
+  version: number;
+  createdAt: string;
+}
+
+export interface WorkflowTemplateStep {
+  id: number;
+  workflowTemplateId: number;
+  name: string;
+  description?: string | null;
+  order: number;
+  isCampusFranceStep: boolean;
+  isRequired: boolean;
+  isActive: boolean;
 }
 
 export interface UploadUrlResponse {
