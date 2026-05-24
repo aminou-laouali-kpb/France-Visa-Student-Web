@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "7UorAlBpv56FvA5vJr6nF"
+uri = "file://docs/guide-equipe.md"
+type = "text"
+title = "Guide de l'équipe — VisaFlow France"
+
+[[outputs]]
+id = "1EQ1tTEW6ZlSkmCmZC33Y"
+uri = "file://docs/guide-etudiants.md"
+type = "text"
+title = "Guide de l'étudiant — VisaFlow France"
