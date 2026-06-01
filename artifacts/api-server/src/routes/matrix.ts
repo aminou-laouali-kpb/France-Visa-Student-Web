@@ -593,7 +593,7 @@ export async function resolveMatrixEntry(
     fallbackUsed: true,
     documentCategories: [],
     visaCenter: null,
-    campusFranceRequired: true,
+    campusFranceRequired: false,
   };
 }
 

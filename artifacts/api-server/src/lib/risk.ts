@@ -5,7 +5,6 @@ import {
   tasksTable,
   appointmentsTable,
   studentStepsTable,
-  countriesTable,
   riskScoresTable,
   type RiskScore,
 } from "@workspace/db";
@@ -37,24 +36,19 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
       ),
     );
 
-  const country = student.countryId
-    ? (await db.select().from(countriesTable).where(eq(countriesTable.id, student.countryId)))[0]
-    : null;
-
   const allSteps = await db
     .select()
     .from(studentStepsTable)
     .where(eq(studentStepsTable.studentId, studentId));
-  const cfSteps = allSteps.filter((s) => s.isCampusFranceStep);
-  const missingCampusFrance =
-    !!country?.requiresCampusFrance &&
-    cfSteps.length > 0 &&
-    cfSteps.some((s) => s.status === "not_started" || s.status === "blocked");
+  const admissionDoc = docs.find(
+    (d) => d.category === "lettre_admission" || d.category === "lettre_admission_definitive",
+  );
+  const missingAdmissionLetter =
+    !admissionDoc ||
+    admissionDoc.status === "missing" ||
+    admissionDoc.status === "rejected";
 
   // Step delays vs intake/rentrée timeline ----------------------------------
-  // If the student has an intake date, count required steps that are not yet
-  // validated or in_progress and whose intake is approaching within
-  // STEP_DELAY_THRESHOLD_DAYS days. Each delayed required step adds risk.
   const now = new Date();
   let intakeDate: Date | null = null;
   if (student.intakeDate) {
@@ -75,7 +69,6 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
   let intakeOverdue = false;
   if (intakeDate) {
     if (daysToIntake !== null && daysToIntake < 0 && student.status === "active") {
-      // Rentrée passed without visa_obtained / submitted resolution
       intakeOverdue = true;
     }
     if (daysToIntake !== null && daysToIntake <= STEP_DELAY_THRESHOLD_DAYS) {
@@ -85,10 +78,6 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     }
   }
 
-  // Appointment proximity to departure --------------------------------------
-  // Risk is high when: the student has a planned departure but no upcoming
-  // appointment falls within APPOINTMENT_PROXIMITY_DAYS of departure (visa
-  // appointments must realistically be booked in that window).
   const upcomingApts = await db
     .select()
     .from(appointmentsTable)
@@ -114,10 +103,9 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
   score += missingDocs * 8;
   score += rejectedDocs * 12;
   score += overdueTasks.length * 10;
-  if (missingCampusFrance) score += 25;
+  if (missingAdmissionLetter) score += 25;
   if (missingAppointments) score += 8;
   if (hasVisaRefusal) score += 20;
-  // Timeline-derived risk
   score += delayedSteps * 5;
   if (intakeOverdue) score += 30;
   if (appointmentNotInProximityWindow) score += 15;
@@ -131,7 +119,8 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     recommendations.push(`Corriger ${rejectedDocs} document(s) rejeté(s)`);
   if (overdueTasks.length > 0)
     recommendations.push(`Compléter ${overdueTasks.length} tâche(s) en retard`);
-  if (missingCampusFrance) recommendations.push("Finaliser les étapes Campus France obligatoires");
+  if (missingAdmissionLetter)
+    recommendations.push("Téléverser la lettre d'admission de l'école privée");
   if (missingAppointments) recommendations.push("Planifier les prochains rendez-vous");
   if (hasVisaRefusal)
     recommendations.push("Joindre une lettre explicative liée au refus précédent");
@@ -157,7 +146,7 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     missingDocuments: missingDocs,
     overdueTasks: overdueTasks.length,
     rejectedDocuments: rejectedDocs,
-    missingCampusFrance,
+    missingCampusFrance: false,
     missingAppointments: missingAppointments || appointmentNotInProximityWindow,
     hasVisaRefusal,
     recommendations,

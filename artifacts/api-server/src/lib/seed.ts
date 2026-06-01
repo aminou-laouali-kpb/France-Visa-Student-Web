@@ -13,12 +13,12 @@ import {
   programsTable,
   scholarshipsTable,
 } from "@workspace/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, or, inArray } from "drizzle-orm";
 import { logger } from "./logger";
 
 const COUNTRIES = [
-  { name: "Sénégal", code: "SN", requiresCampusFrance: true, visaCenter: "VFS Dakar" },
-  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: true, visaCenter: "VFS Abidjan" },
+  { name: "Sénégal", code: "SN", requiresCampusFrance: false, visaCenter: "VFS Dakar" },
+  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: false, visaCenter: "VFS Abidjan" },
   { name: "Cameroun", code: "CM", requiresCampusFrance: false, visaCenter: "TLS Yaoundé" },
   { name: "Bénin", code: "BJ", requiresCampusFrance: false, visaCenter: "TLS Cotonou" },
   { name: "Burkina Faso", code: "BF", requiresCampusFrance: false, visaCenter: "TLS Ouagadougou" },
@@ -27,13 +27,10 @@ const COUNTRIES = [
   { name: "Guinée", code: "GN", requiresCampusFrance: false, visaCenter: "TLS Conakry" },
   { name: "Niger", code: "NE", requiresCampusFrance: false, visaCenter: "TLS Niamey" },
   { name: "Madagascar", code: "MG", requiresCampusFrance: false, visaCenter: "TLS Antananarivo" },
-  { name: "Maroc", code: "MA", requiresCampusFrance: true, visaCenter: "TLS Casablanca" },
+  { name: "Maroc", code: "MA", requiresCampusFrance: false, visaCenter: "TLS Casablanca" },
 ];
 
-// Reference catalog of French schools commonly chosen by francophone African
-// students. Includes flagship business/engineering schools (INSEEC, ECE) plus
-// public universities — gives the school/program selection screens real
-// content out-of-the-box.
+// Private schools only — students already admitted who need a visa procedure.
 const SCHOOLS: { name: string; city: string; website?: string; programs: { name: string; level: string; duration?: string }[] }[] = [
   {
     name: "INSEEC Grande École",
@@ -56,30 +53,21 @@ const SCHOOLS: { name: string; city: string; website?: string; programs: { name:
     ],
   },
   {
-    name: "Sorbonne Université",
+    name: "ESCE International Business School",
     city: "Paris",
-    website: "https://www.sorbonne-universite.fr",
+    website: "https://www.esce.fr",
     programs: [
-      { name: "Licence Économie-Gestion", level: "licence", duration: "3 ans" },
-      { name: "Master Droit International", level: "master", duration: "2 ans" },
+      { name: "Bachelor International Business", level: "bachelor", duration: "3 ans" },
+      { name: "MSc Finance & Risk Management", level: "master", duration: "2 ans" },
     ],
   },
   {
-    name: "Université Paris-Saclay",
-    city: "Saclay",
-    website: "https://www.universite-paris-saclay.fr",
+    name: "IPAG Business School",
+    city: "Paris",
+    website: "https://www.ipag.edu",
     programs: [
-      { name: "Licence Informatique", level: "licence", duration: "3 ans" },
-      { name: "Master Mathématiques Appliquées", level: "master", duration: "2 ans" },
-    ],
-  },
-  {
-    name: "Université de Lyon",
-    city: "Lyon",
-    website: "https://www.universite-lyon.fr",
-    programs: [
-      { name: "Licence Sciences de la Vie", level: "licence", duration: "3 ans" },
-      { name: "Master Santé Publique", level: "master", duration: "2 ans" },
+      { name: "Bachelor Marketing & Digital", level: "bachelor", duration: "3 ans" },
+      { name: "MBA International", level: "mba", duration: "1 an" },
     ],
   },
   {
@@ -116,7 +104,17 @@ export const STEPS: SeedStep[] = [
     checklist: [
       { label: "Identité et état civil renseignés", isRequired: true },
       { label: "Coordonnées et nationalité confirmées", isRequired: true },
+      { label: "École privée et programme confirmés", isRequired: true },
       { label: "Type de financement précisé", isRequired: true },
+    ],
+  },
+  {
+    name: "Confirmation de l'admission (école privée)",
+    isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"],
+    checklist: [
+      { label: "Lettre d'admission définitive reçue", isRequired: true },
+      { label: "Frais de scolarité acquittés ou échéancier validé", isRequired: false },
+      { label: "Date de rentrée confirmée", isRequired: true },
     ],
   },
   {
@@ -140,64 +138,8 @@ export const STEPS: SeedStep[] = [
     name: "Test de langue (DELF/TCF/IELTS)",
     isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"],
     checklist: [
-      { label: "Inscription au test effectuée", isRequired: true },
       { label: "Résultat obtenu et téléversé", isRequired: true },
-    ],
-  },
-  {
-    name: "Choix de la formation et de l'école",
-    isCampusFranceStep: false, requiredDocumentCategories: [],
-    checklist: [
-      { label: "Formation cible sélectionnée", isRequired: true },
-      { label: "Établissement d'accueil confirmé", isRequired: true },
-    ],
-  },
-  {
-    name: "Création du dossier Études en France",
-    isCampusFranceStep: true, requiredDocumentCategories: [],
-    checklist: [
-      { label: "Compte EEF créé", isRequired: true },
-      { label: "CV et projet motivé renseignés", isRequired: true },
-    ],
-  },
-  {
-    name: "Préparation des pièces Campus France",
-    isCampusFranceStep: true, requiredDocumentCategories: [],
-    checklist: [
-      { label: "Pièces administratives compilées", isRequired: true },
-      { label: "Lettre de motivation finalisée", isRequired: true },
-      { label: "CV format Campus France", isRequired: true },
-    ],
-  },
-  {
-    name: "Soumission du dossier Campus France",
-    isCampusFranceStep: true, requiredDocumentCategories: [],
-    checklist: [
-      { label: "Dossier soumis dans les délais", isRequired: true },
-      { label: "Frais Campus France réglés", isRequired: true },
-    ],
-  },
-  {
-    name: "Entretien Campus France",
-    isCampusFranceStep: true, requiredDocumentCategories: [],
-    checklist: [
-      { label: "Convocation reçue", isRequired: true },
-      { label: "Entretien réalisé", isRequired: true },
-    ],
-  },
-  {
-    name: "Avis Campus France obtenu",
-    isCampusFranceStep: true, requiredDocumentCategories: ["attestation_campus_france"],
-    checklist: [
-      { label: "Attestation Campus France téléversée", isRequired: true },
-    ],
-  },
-  {
-    name: "Acceptation par l'établissement",
-    isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"],
-    checklist: [
-      { label: "Lettre d'admission reçue", isRequired: true },
-      { label: "Frais de scolarité acquittés ou échéancier validé", isRequired: false },
+      { label: "Niveau conforme aux exigences de l'école", isRequired: true },
     ],
   },
   {
@@ -212,7 +154,7 @@ export const STEPS: SeedStep[] = [
     name: "Justificatif d'hébergement",
     isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"],
     checklist: [
-      { label: "Hébergement confirmé (CROUS / privé)", isRequired: true },
+      { label: "Hébergement confirmé (résidence / location)", isRequired: true },
     ],
   },
   {
@@ -268,6 +210,20 @@ export const STEPS: SeedStep[] = [
     ],
   },
 ];
+
+/** Legacy Campus France / public-university steps — deactivated on sync. */
+export const LEGACY_WORKFLOW_STEP_NAMES = [
+  "Choix de la formation et de l'école",
+  "Création du dossier Études en France",
+  "Préparation des pièces Campus France",
+  "Soumission du dossier Campus France",
+  "Entretien Campus France",
+  "Avis Campus France obtenu",
+  "Acceptation par l'établissement",
+] as const;
+
+export const WORKFLOW_STEP_COUNT = STEPS.length;
+
 
 const SCHOLARSHIPS = [
   {
@@ -367,8 +323,11 @@ export async function seedReferenceData(): Promise<void> {
     if (newCountries.length > 0) {
       await db.insert(countriesTable).values(newCountries);
     }
+    await db
+      .update(countriesTable)
+      .set({ requiresCampusFrance: false })
+      .where(eq(countriesTable.requiresCampusFrance, true));
 
-    // Workflow template — find the default; create only if missing.
     let [tpl] = await db
       .select()
       .from(workflowTemplatesTable)
@@ -377,34 +336,72 @@ export async function seedReferenceData(): Promise<void> {
       [tpl] = await db
         .insert(workflowTemplatesTable)
         .values({
-          name: "Procédure visa étudiant France — Standard",
-          description: "Parcours en 21 étapes pour étudiants africains francophones",
+          name: "Procédure visa étudiant — École privée",
+          description:
+            "Parcours visa pour étudiants admis dans une école privée française (hors Campus France)",
           isDefault: true,
-          version: 1,
+          version: 2,
         })
         .returning();
+    } else {
+      await db
+        .update(workflowTemplatesTable)
+        .set({
+          name: "Procédure visa étudiant — École privée",
+          description:
+            "Parcours visa pour étudiants admis dans une école privée française (hors Campus France)",
+          version: 2,
+        })
+        .where(eq(workflowTemplatesTable.id, tpl.id));
     }
 
-    // Workflow steps — insert any name that does not already exist for the
-    // default template (preserves existing step ids / student references).
+    await db
+      .update(workflowStepsTable)
+      .set({ isActive: false, isRequired: false, isCampusFranceStep: false })
+      .where(
+        and(
+          eq(workflowStepsTable.workflowTemplateId, tpl.id),
+          or(
+            eq(workflowStepsTable.isCampusFranceStep, true),
+            inArray(workflowStepsTable.name, [...LEGACY_WORKFLOW_STEP_NAMES]),
+          ),
+        ),
+      );
+
     const existingSteps = await db
       .select()
       .from(workflowStepsTable)
       .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
     const existingStepNames = new Set(existingSteps.map((s) => s.name));
-    const newSteps = STEPS
-      .map((s, i) => ({
-        workflowTemplateId: tpl.id,
-        name: s.name,
-        order: i + 1,
-        isCampusFranceStep: s.isCampusFranceStep,
-        isRequired: true,
-        isActive: true,
-        requiredDocumentCategories: s.requiredDocumentCategories,
-      }))
-      .filter((s) => !existingStepNames.has(s.name));
+    const newSteps = STEPS.map((s, i) => ({
+      workflowTemplateId: tpl.id,
+      name: s.name,
+      order: i + 1,
+      isCampusFranceStep: false,
+      isRequired: true,
+      isActive: true,
+      requiredDocumentCategories: s.requiredDocumentCategories,
+    })).filter((s) => !existingStepNames.has(s.name));
     if (newSteps.length > 0) {
       await db.insert(workflowStepsTable).values(newSteps);
+    }
+    for (let i = 0; i < STEPS.length; i++) {
+      const stepDef = STEPS[i];
+      await db
+        .update(workflowStepsTable)
+        .set({
+          order: i + 1,
+          isCampusFranceStep: false,
+          isRequired: true,
+          isActive: true,
+          requiredDocumentCategories: stepDef.requiredDocumentCategories,
+        })
+        .where(
+          and(
+            eq(workflowStepsTable.workflowTemplateId, tpl.id),
+            eq(workflowStepsTable.name, stepDef.name),
+          ),
+        );
     }
 
     // Schools — insert any school whose name is not already present, with
@@ -580,16 +577,15 @@ export async function seedDemoPersonas(): Promise<void> {
           advisorId: advisor.id,
           reviewerId: reviewer.id,
           status: ds.status,
-          completionScore: Math.round((ds.completedSteps / 21) * 100),
+          completionScore: Math.round((ds.completedSteps / WORKFLOW_STEP_COUNT) * 100),
           hasVisaRefusalHistory: !!ds.hasVisaRefusalHistory,
           financingType: ds.completedSteps > 10 ? "compte_bloque" : "garant",
         })
         .returning();
 
       // Provision steps + checklists, applying completion progression
-      const requiresCampusFrance = !!country.requiresCampusFrance;
       const applicable = allSteps.filter(
-        (s) => !(s.isCampusFranceStep && !requiresCampusFrance),
+        (s) => s.isActive && !s.isCampusFranceStep,
       );
       for (let i = 0; i < applicable.length; i++) {
         const step = applicable[i];

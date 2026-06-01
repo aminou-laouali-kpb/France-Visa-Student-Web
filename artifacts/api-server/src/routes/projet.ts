@@ -77,7 +77,7 @@ const ImproveAiSchema = z.object({
   rationale: z.string().nullable().optional(),
 });
 
-const PROJET_RUBRIC = `Tu es un expert Campus France qui évalue le projet d'études d'un étudiant africain francophone candidat au visa étudiant français. Note de 0 à 10 chaque axe :
+const PROJET_RUBRIC = `Tu es un conseiller visa étudiant spécialisé dans les admissions en école privée française. Tu évalues le projet d'études d'un étudiant africain francophone déjà admis et en cours de procédure visa. Note de 0 à 10 chaque axe :
 - coherence: cohérence du parcours (lien études passées → master visé)
 - french: niveau et qualité du français écrit
 - specificity: spécificité au programme/école choisi (mention de cours, profs, spécialisations)

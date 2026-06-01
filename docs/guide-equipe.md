@@ -2,7 +2,7 @@
 
 **Pour les conseillers, examinateurs et administrateurs**
 
-Bienvenue dans VisaFlow France, la plateforme SaaS qui centralise la gestion des dossiers de candidature et de visa de vos étudiants internationaux pour la France. Ce guide vous explique, étape par étape, comment utiliser l'application au quotidien selon votre rôle.
+VisaFlow France centralise la gestion des **dossiers visa d'étudiants déjà admis dans une école privée française** (hors Campus France / Études en France). Ce guide explique comment utiliser l'application au quotidien selon votre rôle.
 
 ---
 

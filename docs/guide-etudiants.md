@@ -1,8 +1,8 @@
 # Guide de l'étudiant — VisaFlow France
 
-**Tout ce que tu dois savoir pour préparer ton dossier d'études en France**
+**Votre procédure visa après admission en école privée**
 
-Bienvenue sur VisaFlow France ! Cette plateforme va t'accompagner pas à pas dans la préparation de ton dossier de candidature et de visa pour la France. Ce guide t'explique simplement comment utiliser l'application.
+Bienvenue sur VisaFlow France ! Cette plateforme vous accompagne **après réception de votre lettre d'admission** dans une école privée française : constitution du dossier consulaire, rendez-vous TLS/VFS, et installation en France.
 
 ---
 

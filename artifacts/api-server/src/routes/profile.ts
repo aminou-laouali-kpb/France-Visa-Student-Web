@@ -613,7 +613,7 @@ router.get("/students/:studentId/profile-depth", requireAuth, async (req, res) =
     priorSchooling.length >= 1,
     languageTests.length >= 1,
     diplomaEquivalences.length >= 1,
-    eefWishes.length >= 1,
+    !!(student.schoolId && student.programId),
   ];
   const filled = buckets.filter(Boolean).length;
   const profileCompletenessScore = Math.round((filled / buckets.length) * 100);

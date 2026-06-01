@@ -8,7 +8,7 @@ import {
   useUpsertStudentCivilStatus,
   useCreatePriorSchoolingEntry,
   useCreateLanguageTest,
-  useCreateEefWish,
+  useListPrograms,
 } from "@workspace/api-client-react";
 import type { Country, School } from "@/types";
 import type {
@@ -16,13 +16,11 @@ import type {
   UpsertStudentCivilStatusBody,
   CreatePriorSchoolingEntryBody,
   CreateLanguageTestBody,
-  CreateEefWishBody,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Trash2 } from "lucide-react";
 
 const TEST_TYPES = [
@@ -37,8 +35,6 @@ const TEST_TYPES = [
   "OTHER",
 ];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
-const MAX_WISHES = 7;
-
 type DraftState = {
   step: number;
   identity: {
@@ -81,13 +77,11 @@ type DraftState = {
     testDate: string;
     expiryDate: string;
   }>;
-  wishes: Array<{
-    wishOrder: number;
-    schoolId: string;
-    schoolNameFreeText: string;
+  admission: {
+    programId: string;
+    intakeDate: string;
     programNameFreeText: string;
-    motivationText: string;
-  }>;
+  };
 };
 
 const DRAFT_KEY_PREFIX = "visaflow.onboardingDraft.v1.";
@@ -141,7 +135,11 @@ function emptyDraft(prefill?: Partial<DraftState["identity"]>): DraftState {
     },
     schooling: [],
     languageTests: [],
-    wishes: [],
+    admission: {
+      programId: "",
+      intakeDate: "",
+      programNameFreeText: "",
+    },
   };
 }
 
@@ -152,7 +150,7 @@ export function Onboarding() {
   const upsertCivil = useUpsertStudentCivilStatus();
   const createSchooling = useCreatePriorSchoolingEntry();
   const createTest = useCreateLanguageTest();
-  const createWish = useCreateEefWish();
+  const { data: programs = [] } = useListPrograms();
   const { data: countries = [] } = useListCountries();
   const { data: schools = [] } = useListSchools();
 
@@ -195,6 +193,10 @@ export function Onboarding() {
         ...id,
         countryId: id.countryId ? Number(id.countryId) : undefined,
         schoolId: id.schoolId ? Number(id.schoolId) : undefined,
+        programId: draft.admission.programId
+          ? Number(draft.admission.programId)
+          : undefined,
+        intakeDate: draft.admission.intakeDate || undefined,
       };
       Object.keys(studentBody).forEach(
         (k) => studentBody[k] === "" && delete studentBody[k],
@@ -248,24 +250,6 @@ export function Onboarding() {
         });
       }
 
-      // 5. EEF wishes
-      for (const w of draft.wishes) {
-        const body: any = {
-          wishOrder: w.wishOrder,
-          schoolId: w.schoolId ? Number(w.schoolId) : undefined,
-          schoolNameFreeText: w.schoolNameFreeText || undefined,
-          programNameFreeText: w.programNameFreeText || undefined,
-          motivationText: w.motivationText || undefined,
-        };
-        Object.keys(body).forEach(
-          (k) => body[k] === undefined && delete body[k],
-        );
-        if (!body.wishOrder) continue;
-        await createWish.mutateAsync({
-          studentId,
-          data: body as unknown as CreateEefWishBody,
-        });
-      }
 
       try {
         localStorage.removeItem(draftKey);
@@ -284,14 +268,19 @@ export function Onboarding() {
     draft.identity.firstName &&
     draft.identity.lastName &&
     draft.identity.email &&
-    draft.identity.countryId;
+    draft.identity.countryId &&
+    draft.identity.schoolId;
+
+  const canSubmitAdmission =
+    draft.admission.intakeDate &&
+    (draft.admission.programId || draft.admission.programNameFreeText.trim());
 
   const stepLabels = [
     "Identité",
     "État civil",
     "Parcours scolaire",
     "Tests de langue",
-    "Vœux EEF",
+    "Admission reçue",
   ];
 
   return (
@@ -336,7 +325,7 @@ export function Onboarding() {
           {draft.step === 2 && <CivilStep draft={draft} setDraft={setDraft} />}
           {draft.step === 3 && <SchoolingStep draft={draft} setDraft={setDraft} />}
           {draft.step === 4 && <TestsStep draft={draft} setDraft={setDraft} />}
-          {draft.step === 5 && <WishesStep draft={draft} setDraft={setDraft} schools={schools} />}
+          {draft.step === 5 && <AdmissionStep draft={draft} setDraft={setDraft} programs={programs} />}
 
           {error && (
             <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
@@ -364,7 +353,7 @@ export function Onboarding() {
             ) : (
               <Button
                 onClick={submit}
-                disabled={!canSubmitIdentity || submitting}
+                disabled={!canSubmitIdentity || !canSubmitAdmission || submitting}
                 data-testid="button-submit-onboarding"
               >
                 {submitting ? "Création…" : "Créer mon dossier"}
@@ -438,13 +427,13 @@ function IdentityStep({
         </select>
       </div>
       <div>
-        <Label>École cible (si connue)</Label>
+        <Label>École privée d'admission *</Label>
         <select
           className="w-full mt-1 border rounded-lg px-3 py-2 bg-white"
           value={f.schoolId}
           onChange={(e) => set("schoolId", e.target.value)}
         >
-          <option value="">—</option>
+          <option value="">Sélectionnez votre école</option>
           {(schools as School[]).map((s) => (
             <option key={s.id} value={s.id}>
               {s.name} ({s.city})
@@ -681,109 +670,72 @@ function TestsStep({ draft, setDraft }: { draft: DraftState; setDraft: (d: Draft
   );
 }
 
-function WishesStep({
+function AdmissionStep({
   draft,
   setDraft,
-  schools,
+  programs,
 }: {
   draft: DraftState;
   setDraft: (d: DraftState) => void;
-  schools: any;
+  programs: { id: number; schoolId: number; name: string }[];
 }) {
-  const items = draft.wishes;
-  const add = () => {
-    if (items.length >= MAX_WISHES) return;
-    const used = new Set(items.map((w) => w.wishOrder));
-    let next = 1;
-    while (used.has(next)) next++;
-    setDraft({
-      ...draft,
-      wishes: [
-        ...items,
-        {
-          wishOrder: next,
-          schoolId: "",
-          schoolNameFreeText: "",
-          programNameFreeText: "",
-          motivationText: "",
-        },
-      ],
-    });
-  };
-  const remove = (i: number) =>
-    setDraft({ ...draft, wishes: items.filter((_, idx) => idx !== i) });
-  const update = (i: number, patch: Partial<DraftState["wishes"][number]>) =>
-    setDraft({
-      ...draft,
-      wishes: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)),
-    });
+  const a = draft.admission;
+  const schoolId = draft.identity.schoolId ? Number(draft.identity.schoolId) : null;
+  const schoolPrograms = programs.filter((p) => p.schoolId === schoolId);
+  const set = (k: keyof DraftState["admission"], v: string) =>
+    setDraft({ ...draft, admission: { ...a, [k]: v } });
+
   return (
     <div className="space-y-3">
       <p className="text-sm text-slate-600">
-        Vous pouvez ajouter jusqu'à {MAX_WISHES} vœux Études en France. Vous pourrez les modifier plus tard depuis votre dossier.
+        Vous avez reçu votre admission dans une école privée — confirmez le programme
+        et la date de rentrée pour démarrer votre procédure visa.
       </p>
-      {items.map((it, i) => (
-        <div key={i} className="border rounded-lg p-3 bg-slate-50 space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-semibold text-slate-600">Vœu n°{it.wishOrder}</span>
-            <Button size="icon" variant="ghost" onClick={() => remove(i)}>
-              <Trash2 className="w-4 h-4 text-red-500" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs text-slate-500">Rang</Label>
-              <Input
-                type="number"
-                min={1}
-                max={MAX_WISHES}
-                value={it.wishOrder}
-                onChange={(e) => update(i, { wishOrder: Number(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-slate-500">École (catalogue)</Label>
-              <select
-                className="w-full border rounded-lg px-3 py-2 bg-white"
-                value={it.schoolId}
-                onChange={(e) => update(i, { schoolId: e.target.value })}
-              >
-                <option value="">— ou texte libre —</option>
-                {(schools as School[]).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.city})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      <div>
+        <Label>Programme *</Label>
+        {schoolPrograms.length > 0 ? (
+          <select
+            className="w-full mt-1 border rounded-lg px-3 py-2 bg-white"
+            value={a.programId}
+            onChange={(e) => set("programId", e.target.value)}
+            data-testid="select-program"
+          >
+            <option value="">Sélectionnez le programme</option>
+            {schoolPrograms.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        ) : (
           <Input
-            placeholder="École (texte libre)"
-            value={it.schoolNameFreeText}
-            onChange={(e) => update(i, { schoolNameFreeText: e.target.value })}
+            placeholder="Nom du programme (texte libre) *"
+            value={a.programNameFreeText}
+            onChange={(e) => set("programNameFreeText", e.target.value)}
+            data-testid="input-program-free-text"
           />
-          <Input
-            placeholder="Programme / Formation"
-            value={it.programNameFreeText}
-            onChange={(e) => update(i, { programNameFreeText: e.target.value })}
-          />
-          <Textarea
-            rows={2}
-            placeholder="Motivation pour ce vœu"
-            value={it.motivationText}
-            onChange={(e) => update(i, { motivationText: e.target.value })}
-            data-testid={`textarea-wish-motivation-${i}`}
-          />
-        </div>
-      ))}
-      <Button
-        variant="outline"
-        onClick={add}
-        disabled={items.length >= MAX_WISHES}
-        data-testid="button-add-wish-row"
-      >
-        + Ajouter un vœu
-      </Button>
+        )}
+      </div>
+      {schoolPrograms.length > 0 && (
+        <Input
+          placeholder="Programme (texte libre, si absent du catalogue)"
+          value={a.programNameFreeText}
+          onChange={(e) => set("programNameFreeText", e.target.value)}
+        />
+      )}
+      <div>
+        <Label>Date de rentrée prévue *</Label>
+        <Input
+          type="date"
+          value={a.intakeDate}
+          onChange={(e) => set("intakeDate", e.target.value)}
+          data-testid="input-intake-date"
+        />
+      </div>
+      <p className="text-xs text-slate-500">
+        Vous pourrez téléverser votre lettre d'admission dès la création du dossier,
+        dans l'onglet Documents.
+      </p>
     </div>
   );
 }

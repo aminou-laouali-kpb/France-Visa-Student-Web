@@ -7,11 +7,11 @@ import {
   workflowStepsTable,
   usersTable,
 } from "./schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, inArray } from "drizzle-orm";
 
 const COUNTRIES = [
-  { name: "Sénégal", code: "SN", requiresCampusFrance: true, visaCenter: "VFS Dakar" },
-  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: true, visaCenter: "VFS Abidjan" },
+  { name: "Sénégal", code: "SN", requiresCampusFrance: false, visaCenter: "VFS Dakar" },
+  { name: "Côte d'Ivoire", code: "CI", requiresCampusFrance: false, visaCenter: "VFS Abidjan" },
   { name: "Cameroun", code: "CM", requiresCampusFrance: false, visaCenter: "TLS Yaoundé" },
   { name: "Bénin", code: "BJ", requiresCampusFrance: false, visaCenter: "TLS Cotonou" },
   { name: "Burkina Faso", code: "BF", requiresCampusFrance: false, visaCenter: "TLS Ouagadougou" },
@@ -20,7 +20,7 @@ const COUNTRIES = [
   { name: "Guinée", code: "GN", requiresCampusFrance: false, visaCenter: "TLS Conakry" },
   { name: "Niger", code: "NE", requiresCampusFrance: false, visaCenter: "TLS Niamey" },
   { name: "Madagascar", code: "MG", requiresCampusFrance: false, visaCenter: "TLS Antananarivo" },
-  { name: "Maroc", code: "MA", requiresCampusFrance: true, visaCenter: "TLS Casablanca" },
+  { name: "Maroc", code: "MA", requiresCampusFrance: false, visaCenter: "TLS Casablanca" },
 ];
 
 const SCHOOLS: { name: string; city: string; website?: string; programs: { name: string; level: string; duration?: string }[] }[] = [
@@ -45,30 +45,21 @@ const SCHOOLS: { name: string; city: string; website?: string; programs: { name:
     ],
   },
   {
-    name: "Sorbonne Université",
+    name: "ESCE International Business School",
     city: "Paris",
-    website: "https://www.sorbonne-universite.fr",
+    website: "https://www.esce.fr",
     programs: [
-      { name: "Licence Économie-Gestion", level: "licence", duration: "3 ans" },
-      { name: "Master Droit International", level: "master", duration: "2 ans" },
+      { name: "Bachelor International Business", level: "bachelor", duration: "3 ans" },
+      { name: "MSc Finance & Risk Management", level: "master", duration: "2 ans" },
     ],
   },
   {
-    name: "Université Paris-Saclay",
-    city: "Saclay",
-    website: "https://www.universite-paris-saclay.fr",
+    name: "IPAG Business School",
+    city: "Paris",
+    website: "https://www.ipag.edu",
     programs: [
-      { name: "Licence Informatique", level: "licence", duration: "3 ans" },
-      { name: "Master Mathématiques Appliquées", level: "master", duration: "2 ans" },
-    ],
-  },
-  {
-    name: "Université de Lyon",
-    city: "Lyon",
-    website: "https://www.universite-lyon.fr",
-    programs: [
-      { name: "Licence Sciences de la Vie", level: "licence", duration: "3 ans" },
-      { name: "Master Santé Publique", level: "master", duration: "2 ans" },
+      { name: "Bachelor Marketing & Digital", level: "bachelor", duration: "3 ans" },
+      { name: "MBA International", level: "mba", duration: "1 an" },
     ],
   },
   {
@@ -82,22 +73,24 @@ const SCHOOLS: { name: string; city: string; website?: string; programs: { name:
   },
 ];
 
-// Canonical 21-step parcours (must stay aligned with the api-server runtime
-// seed in artifacts/api-server/src/lib/seed.ts so that the two seeds do not
-// duplicate workflow_steps rows when both run).
+const LEGACY_WORKFLOW_STEP_NAMES = [
+  "Choix de la formation et de l'école",
+  "Création du dossier Études en France",
+  "Préparation des pièces Campus France",
+  "Soumission du dossier Campus France",
+  "Entretien Campus France",
+  "Avis Campus France obtenu",
+  "Acceptation par l'établissement",
+] as const;
+
+// Private-university visa workflow — must stay aligned with api-server seed.
 const STEPS = [
   { name: "Création du compte VisaFlow", isCampusFranceStep: false, requiredDocumentCategories: [] as string[] },
   { name: "Renseignement du profil étudiant", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Confirmation de l'admission (école privée)", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
   { name: "Téléversement du passeport", isCampusFranceStep: false, requiredDocumentCategories: ["passeport"] },
   { name: "Téléversement des diplômes et relevés", isCampusFranceStep: false, requiredDocumentCategories: ["diplome", "releve_notes"] },
   { name: "Test de langue (DELF/TCF/IELTS)", isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"] },
-  { name: "Choix de la formation et de l'école", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Création du dossier Études en France", isCampusFranceStep: true, requiredDocumentCategories: [] },
-  { name: "Préparation des pièces Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
-  { name: "Soumission du dossier Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
-  { name: "Entretien Campus France", isCampusFranceStep: true, requiredDocumentCategories: [] },
-  { name: "Avis Campus France obtenu", isCampusFranceStep: true, requiredDocumentCategories: ["attestation_campus_france"] },
-  { name: "Acceptation par l'établissement", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
   { name: "Justificatif financier (compte bloqué/garant)", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"] },
   { name: "Justificatif d'hébergement", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"] },
   { name: "Souscription assurance santé", isCampusFranceStep: false, requiredDocumentCategories: ["assurance"] },
@@ -112,7 +105,6 @@ const STEPS = [
 async function seed() {
   console.log("🌱 Seeding reference data…");
 
-  // Countries — insert by missing code.
   const existingCountries = await db.select().from(countriesTable);
   const existingCodes = new Set(existingCountries.map((c) => c.code));
   const newCountries = COUNTRIES.filter((c) => !existingCodes.has(c.code));
@@ -120,8 +112,11 @@ async function seed() {
     await db.insert(countriesTable).values(newCountries);
     console.log(`  ✓ ${newCountries.length} country/ies added`);
   }
+  await db
+    .update(countriesTable)
+    .set({ requiresCampusFrance: false })
+    .where(eq(countriesTable.requiresCampusFrance, true));
 
-  // Schools — insert by missing name; backfill missing programs by name.
   const existingSchools = await db.select().from(schoolsTable);
   const schoolByName = new Map(existingSchools.map((s) => [s.name, s]));
   for (const s of SCHOOLS) {
@@ -150,7 +145,6 @@ async function seed() {
     }
   }
 
-  // Default workflow template — find or create.
   let [tpl] = await db
     .select()
     .from(workflowTemplatesTable)
@@ -159,45 +153,76 @@ async function seed() {
     [tpl] = await db
       .insert(workflowTemplatesTable)
       .values({
-        name: "Procédure visa étudiant France — Standard",
-        description: "Parcours en 21 étapes pour étudiants africains francophones",
+        name: "Procédure visa étudiant — École privée",
+        description:
+          "Parcours visa pour étudiants admis dans une école privée française (hors Campus France)",
         isDefault: true,
-        version: 1,
+        version: 2,
       })
       .returning();
     console.log(`  ✓ Workflow template: ${tpl.name}`);
+  } else {
+    await db
+      .update(workflowTemplatesTable)
+      .set({
+        name: "Procédure visa étudiant — École privée",
+        description:
+          "Parcours visa pour étudiants admis dans une école privée française (hors Campus France)",
+        version: 2,
+      })
+      .where(eq(workflowTemplatesTable.id, tpl.id));
   }
 
-  // Workflow steps — insert by missing name within the default template
-  // (preserves any existing student_steps FK references).
+  await db
+    .update(workflowStepsTable)
+    .set({ isActive: false, isRequired: false, isCampusFranceStep: false })
+    .where(
+      and(
+        eq(workflowStepsTable.workflowTemplateId, tpl.id),
+        or(
+          eq(workflowStepsTable.isCampusFranceStep, true),
+          inArray(workflowStepsTable.name, [...LEGACY_WORKFLOW_STEP_NAMES]),
+        ),
+      ),
+    );
+
   const existingSteps = await db
     .select()
     .from(workflowStepsTable)
     .where(eq(workflowStepsTable.workflowTemplateId, tpl.id));
   const existingStepNames = new Set(existingSteps.map((s) => s.name));
-  const newSteps = STEPS
-    .map((s, i) => ({
-      workflowTemplateId: tpl.id,
-      name: s.name,
-      order: i + 1,
-      isCampusFranceStep: s.isCampusFranceStep,
-      isRequired: true,
-      isActive: true,
-      requiredDocumentCategories: s.requiredDocumentCategories,
-    }))
-    .filter((s) => !existingStepNames.has(s.name));
+  const newSteps = STEPS.map((s, i) => ({
+    workflowTemplateId: tpl.id,
+    name: s.name,
+    order: i + 1,
+    isCampusFranceStep: false,
+    isRequired: true,
+    isActive: true,
+    requiredDocumentCategories: s.requiredDocumentCategories,
+  })).filter((s) => !existingStepNames.has(s.name));
   if (newSteps.length > 0) {
     await db.insert(workflowStepsTable).values(newSteps);
     console.log(`  ✓ ${newSteps.length} workflow step(s) added`);
   }
+  for (let i = 0; i < STEPS.length; i++) {
+    const stepDef = STEPS[i];
+    await db
+      .update(workflowStepsTable)
+      .set({
+        order: i + 1,
+        isCampusFranceStep: false,
+        isRequired: true,
+        isActive: true,
+        requiredDocumentCategories: stepDef.requiredDocumentCategories,
+      })
+      .where(
+        and(
+          eq(workflowStepsTable.workflowTemplateId, tpl.id),
+          eq(workflowStepsTable.name, stepDef.name),
+        ),
+      );
+  }
 
-  // Bootstrap superadmin user from environment if requested. Required env:
-  //   SUPERADMIN_CLERK_ID    — Clerk user id (e.g. user_xxx)
-  //   SUPERADMIN_EMAIL       — email address
-  //   SUPERADMIN_FIRST_NAME  — optional, defaults to "Super"
-  //   SUPERADMIN_LAST_NAME   — optional, defaults to "Admin"
-  // Skips silently if SUPERADMIN_CLERK_ID is not set so the seed remains
-  // safe to run in environments without a designated bootstrap admin.
   const clerkId = process.env.SUPERADMIN_CLERK_ID;
   const email = process.env.SUPERADMIN_EMAIL;
   if (clerkId && email) {
@@ -227,10 +252,11 @@ async function seed() {
   }
 
   console.log("✅ Seed complete");
-  await pool.end();
 }
 
-seed().catch((err) => {
-  console.error("❌ Seed failed:", err);
-  process.exit(1);
-});
+seed()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(() => pool.end());
