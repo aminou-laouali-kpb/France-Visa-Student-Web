@@ -7,7 +7,7 @@
     "home": "Accueil",
     "myJourney": "Mon parcours",
     "documents": "Documents",
-    "projet": "Lettre de motivation",
+    "projet": "Projet & motivation",
     "finance": "Finances & logement",
     "appointments": "Rendez-vous",
     "postArrival": "Après l'arrivée",
@@ -713,7 +713,7 @@
     "axeCoherence": "Cohérence",
     "axeFrench": "Français",
     "axeKnowledge": "Connaissance du programme",
-    "axeReturnPlan": "Plan de retour"
+    "axeReturnPlan": "Projet professionnel"
   },
   "depth": {
     "maritalStatus": "État civil",

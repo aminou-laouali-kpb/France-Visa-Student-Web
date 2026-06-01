@@ -23,6 +23,7 @@ import { StudentAppointments } from "@/pages/student/StudentAppointments";
 import { StudentPostArrival } from "@/pages/student/StudentPostArrival";
 import { StudentMessages } from "@/pages/student/StudentMessages";
 import { StudentProjet } from "@/pages/student/StudentProjet";
+import { StudentInterview } from "@/pages/StudentInterview";
 import { MyTasks } from "@/pages/MyTasks";
 import { Notifications } from "@/pages/Notifications";
 import { Profile } from "@/pages/Profile";
@@ -209,7 +210,7 @@ function AppRouter() {
       </Route>
       <Route path="/student/interview">
         <Protected>
-          <Redirect to="/student/projet" />
+          <StudentInterview />
         </Protected>
       </Route>
       <Route path="/app/students">

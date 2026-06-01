@@ -68,6 +68,7 @@ export function Layout({ children }: { children: ReactNode }) {
           { href: "/student/appointments", icon: Calendar, label: t("nav.appointments") },
           { href: "/student/post-arrival", icon: Plane, label: t("nav.postArrival") },
           { href: "/student/messages", icon: MessageSquare, label: t("nav.messages") },
+          { href: "/student/interview", icon: Sparkles, label: t("nav.interview") },
         ]
       : []),
     ...(isStaff && !isAdmin

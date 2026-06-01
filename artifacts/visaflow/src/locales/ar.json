@@ -7,7 +7,7 @@
     "home": "الرئيسية",
     "myJourney": "مساري",
     "documents": "الوثائق",
-    "projet": "رسالة الدافع",
+    "projet": "المشروع والدافع",
     "finance": "التمويل والسكن",
     "appointments": "المواعيد",
     "postArrival": "بعد الوصول",
@@ -713,7 +713,7 @@
     "axeCoherence": "التماسك",
     "axeFrench": "اللغة الفرنسية",
     "axeKnowledge": "معرفة البرنامج",
-    "axeReturnPlan": "خطة العودة"
+    "axeReturnPlan": "المشروع المهني"
   },
   "depth": {
     "maritalStatus": "الحالة الاجتماعية",

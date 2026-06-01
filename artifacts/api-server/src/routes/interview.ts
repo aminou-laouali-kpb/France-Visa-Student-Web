@@ -162,7 +162,7 @@ async function gradeInterview(opts: {
       {
         role: "system",
         content:
-          "Tu es un examinateur Campus France. Évalue l'entretien sur 5 axes (motivation, coherence, french, knowledge, returnPlan, chacun de 0 à 10) et calcule un overall de 0 à 10. Donne un feedback factuel en français (5 à 8 phrases), 3 points forts, 3 axes de progrès, 3 suggestions concrètes. Réponds STRICTEMENT en JSON.",
+          "Tu es un examinateur spécialisé dans les entretiens de motivation pour visa étudiant en école privée française. Évalue l'entretien sur 5 axes (motivation, coherence, french, knowledge, returnPlan — ce dernier = projet professionnel et insertion après les études, chacun de 0 à 10) et calcule un overall de 0 à 10. Donne un feedback factuel en français (5 à 8 phrases), 3 points forts, 3 axes de progrès, 3 suggestions concrètes. Réponds STRICTEMENT en JSON.",
       },
       {
         role: "user",
