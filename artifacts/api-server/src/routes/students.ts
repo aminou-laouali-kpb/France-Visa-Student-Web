@@ -188,6 +188,7 @@ router.get("/students", requireAuth, async (req, res) => {
   const advisorIdRaw =
     req.query.advisorId !== undefined ? Number(req.query.advisorId) : undefined;
   const riskLevel = req.query.riskLevel as string | undefined;
+  const readinessLevel = (req.query.readinessLevel as string | undefined) || riskLevel;
   if (status) rows = rows.filter((r) => r.status === status);
   if (countryId) rows = rows.filter((r) => r.countryId === countryId);
   if (schoolId) rows = rows.filter((r) => r.schoolId === schoolId);
@@ -196,7 +197,7 @@ router.get("/students", requireAuth, async (req, res) => {
   } else if (advisorIdRaw && !Number.isNaN(advisorIdRaw)) {
     rows = rows.filter((r) => r.advisorId === advisorIdRaw);
   }
-  if (riskLevel) rows = rows.filter((r) => r.riskLevel === riskLevel);
+  if (readinessLevel) rows = rows.filter((r) => r.riskLevel === readinessLevel);
   if (search) {
     const q = search.toLowerCase();
     rows = rows.filter(
@@ -226,7 +227,15 @@ router.get("/students", requireAuth, async (req, res) => {
     const { riskLevel, riskScore, riskNarrative, ...rest } = r;
     return {
       ...rest,
-      ...(isStaffRole ? { riskLevel, riskScore, riskNarrative } : {}),
+      ...(isStaffRole
+        ? {
+            riskLevel,
+            riskScore,
+            riskNarrative,
+            readinessLevel: riskLevel ?? null,
+            readinessScore: riskScore ?? null,
+          }
+        : {}),
       advisorName,
       currentStepName: next?.stepName ?? null,
     };
@@ -295,6 +304,38 @@ router.get("/students/:studentId", requireAuth, async (req, res) => {
     return;
   }
   res.json(student);
+});
+
+
+router.get("/students/:studentId/playbooks", requireAuth, async (req, res) => {
+  const id = Number(req.params.studentId);
+  const [student] = await db.select().from(studentsTable).where(eq(studentsTable.id, id));
+  if (!student) {
+    res.status(404).json({ error: "Student not found" });
+    return;
+  }
+  if (!(await canAccessStudent(req.currentUser!, student))) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  if (!["advisor", "reviewer", "admin", "superadmin"].includes(req.currentUser!.role)) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  const steps = await db
+    .select()
+    .from(studentStepsTable)
+    .where(eq(studentStepsTable.studentId, id));
+  const next = steps
+    .sort((a, b) => a.stepOrder - b.stepOrder)
+    .find((s) => s.status !== "validated");
+  const { resolvePlaybooksForStudent } = await import("../lib/playbooks");
+  res.json(
+    resolvePlaybooksForStudent({
+      status: student.status,
+      currentStepName: next?.stepName ?? null,
+    }),
+  );
 });
 
 router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody), async (req, res) => {

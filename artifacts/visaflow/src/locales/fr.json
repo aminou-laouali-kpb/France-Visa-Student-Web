@@ -249,7 +249,8 @@
     "riskLow": "Risque faible",
     "riskMedium": "Risque moyen",
     "riskHigh": "Risque élevé",
-    "reset": "Réinitialiser"
+    "reset": "Réinitialiser",
+    "allReadiness": "Toute préparation"
   },
   "table": {
     "student": "Étudiant",
@@ -269,7 +270,8 @@
     "file": "Fichier",
     "status": "Statut",
     "registered": "Inscrit",
-    "site": "Site"
+    "site": "Site",
+    "readiness": "Préparation visa"
   },
   "dash": {
     "studentWelcome": "Créons votre dossier visa étudiant pour démarrer votre parcours en France.",
@@ -448,7 +450,9 @@
     "nStudents": "{{n}} étudiant",
     "nStudentsPlural": "{{n}} étudiants",
     "highRisk": "Risque élevé",
-    "students": "Étudiants"
+    "students": "Étudiants",
+    "readinessGreen": "Préparation — vert",
+    "readinessAmber": "Préparation — orange"
   },
   "advisorTasks": {
     "title": "Mes tâches",
@@ -469,7 +473,8 @@
     "byCountry": "Étudiants par pays",
     "byRisk": "Niveau de risque",
     "byCompletion": "Répartition de la progression",
-    "noData": "Aucune donnée"
+    "noData": "Aucune donnée",
+    "byReadiness": "Préparation visa (feu tricolore)"
   },
   "adminStudents": {
     "title": "Tous les étudiants",
@@ -842,5 +847,23 @@
     "specificity": "Spécificité",
     "returnPlan": "Plan de retour",
     "overall": "Note globale"
+  },
+  "timeline": {
+    "title": "Calendrier de préparation",
+    "empty": "Aucun jalon à afficher pour le moment.",
+    "status_done": "Terminé",
+    "status_current": "En cours",
+    "status_upcoming": "À venir",
+    "status_overdue": "En retard",
+    "status_blocked": "Bloqué"
+  },
+  "readiness": {
+    "green": "Bon niveau",
+    "amber": "À surveiller",
+    "red": "Priorité haute"
+  },
+  "playbook": {
+    "title": "Playbooks conseiller",
+    "subtitle": "Procédures recommandées selon l'étape du dossier."
   }
 }

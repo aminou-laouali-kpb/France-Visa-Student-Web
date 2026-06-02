@@ -249,7 +249,8 @@
     "riskLow": "خطر منخفض",
     "riskMedium": "خطر متوسط",
     "riskHigh": "خطر مرتفع",
-    "reset": "إعادة تعيين"
+    "reset": "إعادة تعيين",
+    "allReadiness": "كل الجاهزية"
   },
   "table": {
     "student": "الطالب",
@@ -269,7 +270,8 @@
     "file": "ملف",
     "status": "الحالة",
     "registered": "تاريخ التسجيل",
-    "site": "الموقع"
+    "site": "الموقع",
+    "readiness": "جاهزية التأشيرة"
   },
   "dash": {
     "studentWelcome": "لنُنشئ ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا.",
@@ -448,7 +450,9 @@
     "nStudents": "{{n}} طالب",
     "nStudentsPlural": "{{n}} طلاب",
     "highRisk": "خطر مرتفع",
-    "students": "الطلاب"
+    "students": "الطلاب",
+    "readinessGreen": "جاهزية — أخضر",
+    "readinessAmber": "جاهزية — برتقالي"
   },
   "advisorTasks": {
     "title": "مهامي",
@@ -469,7 +473,8 @@
     "byCountry": "الطلاب حسب البلد",
     "byRisk": "مستوى الخطر",
     "byCompletion": "توزيع التقدم",
-    "noData": "لا توجد بيانات"
+    "noData": "لا توجد بيانات",
+    "byReadiness": "جاهزية التأشيرة"
   },
   "adminStudents": {
     "title": "كل الطلاب",
@@ -842,5 +847,23 @@
     "specificity": "التحديد",
     "returnPlan": "خطة العودة",
     "overall": "النتيجة الإجمالية"
+  },
+  "timeline": {
+    "title": "جدول التحضير",
+    "empty": "لا معالم للعرض حالياً.",
+    "status_done": "منجز",
+    "status_current": "جاري",
+    "status_upcoming": "قادم",
+    "status_overdue": "متأخر",
+    "status_blocked": "محظور"
+  },
+  "readiness": {
+    "green": "مستوى جيد",
+    "amber": "يحتاج متابعة",
+    "red": "أولوية عالية"
+  },
+  "playbook": {
+    "title": "أدلة المستشار",
+    "subtitle": "إجراءات موصى بها حسب مرحلة الملف."
   }
 }

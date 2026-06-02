@@ -174,7 +174,9 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
   const rejectedDocs = docs.filter((d) => d.status === "rejected");
   const blockedSteps = steps.filter((s) => s.status === "blocked");
   const { getVisaReadinessSummary } = await import("../lib/risk");
+  const { getProactiveMilestones } = await import("../lib/proactiveTimeline");
   const visaReadiness = await getVisaReadinessSummary(student.id);
+  const timeline = await getProactiveMilestones(student.id);
   const nextActions: string[] = [...visaReadiness.recommendations];
   if (rejectedDocs.length > 0)
     nextActions.push(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`);
@@ -211,6 +213,7 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
       level: visaReadiness.level,
       recommendations: visaReadiness.recommendations.slice(0, 5),
     },
+    timeline,
     recentComments,
     postArrivalSteps,
   });
@@ -252,6 +255,9 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
   const highRiskStudentIds = new Set(
     risks.filter((r) => r.level === "high").map((r) => r.studentId),
   );
+  const readinessGreen = risks.filter((r) => r.level === "low").length;
+  const readinessAmber = risks.filter((r) => r.level === "medium").length;
+  const readinessRed = risks.filter((r) => r.level === "high").length;
   const lateStudents = myStudents.filter(
     (s) => s.status === "blocked" || s.status === "active" && s.lastActivityAt && now.getTime() - new Date(s.lastActivityAt).getTime() > 14 * 86400000,
   ).length;
@@ -305,7 +311,7 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
         .orderBy(desc(auditLogsTable.createdAt))
         .limit(20);
 
-  const payload = GetAdvisorDashboardResponse.parse({
+  const payload = {
     totalStudents: myStudents.length,
     blockedStudents: myStudents.filter((s) => s.status === "blocked").length,
     lateStudents,
@@ -315,8 +321,13 @@ router.get("/dashboard/advisor", requireAuth, async (req, res) => {
     unresponsiveStudents: lateStudents,
     urgentStudents,
     recentActivity,
+  };
+  res.json({
+    ...GetAdvisorDashboardResponse.parse(payload),
+    readinessGreen,
+    readinessAmber,
+    readinessRed,
   });
-  res.json(payload);
 });
 
 router.get("/dashboard/admin", requireAuth, async (req, res) => {
@@ -471,7 +482,10 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
         percentage: Math.round((count / total) * 100),
       })),
   });
-  res.json(payload);
+  res.json({
+    ...payload,
+    byReadinessLevel: payload.byRiskLevel,
+  });
 });
 
 export default router;

@@ -1,29 +1,37 @@
-# Plan VisaFlow — Fluidité & taux d’obtention visa
+# Plan Visa Readiness — VisaFlow France
 
-Objectif : augmenter drastiquement les chances d’obtention du visa en standardisant le parcours école privée, en détectant tôt les risques, et en bloquant les erreurs avant le consulat.
+## Contexte produit
 
-## Phase 1 — Fondations (priorité immédiate)
+Cible : étudiants **admis en école privée**, procédure visa **hors Campus France / Études en France**.
 
-| ID | Chantier | Statut |
-|----|----------|--------|
-| P1-A | Parcours 100 % école privée (16 étapes) | ✅ |
-| P1-B | Visa Readiness Score v2 + recommandations | ✅ |
-| P1-C | Gating TLS/VFS (admission + finances) | ✅ |
-| P1-D | Coach entretien motivation | ✅ |
-| P1-E | Pré-contrôle documents | ✅ |
-| P1-F | Dashboard étudiant préparation visa | ✅ |
+## Phase 1 — Livré
 
-## Phase 2 — Pilotage opérationnel
+- Parcours 16 étapes (seed + provisioning sans étapes CF actives)
+- Visa Readiness Score + gating TLS/VFS / dépôt
+- Pré-contrôle documents
+- Simulateur entretien de motivation
+- Dashboard étudiant : carte préparation visa
 
-| ID | Chantier | Livrable |
-|----|----------|----------|
-| P2-A | Timeline proactive | Rappels J-60/J-30/J-15 |
-| P2-B | Tableau de bord conseiller | Portefeuille feu tricolore |
-| P2-C | Playbooks conseiller | Templates + scripts |
+## Phase 2 — Livré (cette itération)
 
-## Phase 3 — Mesure & optimisation
+- **Timeline proactive** : jalons (étapes, documents critiques, échéances pays, RDV) via `GET /dashboard/student` → `timeline`
+- **Portefeuille conseiller** : colonne feu tricolore (préparation visa), filtres, KPIs vert/orange
+- **Playbooks** : SOPs contextuels `GET /students/:id/playbooks` + panneau conseiller
+- **Analytics** : graphique préparation visa dans rapports (`byReadinessLevel`)
 
-| ID | Chantier | Livrable |
-|----|----------|----------|
-| P3-A | Analytics visa | Taux obtention/refus par pays/école |
-| P3-B | A/B accompagnement | Efficacité simulateur / relances |
+## Phase 3 — À faire
+
+- Playbooks éditables (admin CRUD + base)
+- Analytics refus (motifs, recours)
+- Notifications proactives (email / push) sur jalons en retard
+- Regénération OpenAPI complète (`readinessLevel` dans `StudentSummary`)
+
+## Fichiers clés
+
+| Domaine | Fichiers |
+|--------|----------|
+| Readiness | `artifacts/api-server/src/lib/risk.ts` |
+| Timeline | `artifacts/api-server/src/lib/proactiveTimeline.ts` |
+| Playbooks | `artifacts/api-server/src/lib/playbooks.ts` |
+| UI étudiant | `ProactiveTimeline.tsx`, `StudentDashboard.tsx` |
+| UI conseiller | `ReadinessTrafficLight.tsx`, `AdvisorPortfolio.tsx`, `PlaybookPanel.tsx` |

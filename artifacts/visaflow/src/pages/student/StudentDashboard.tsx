@@ -13,6 +13,7 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
+import { ProactiveTimeline } from "@/components/ProactiveTimeline";
 import {
   AlertTriangle,
   ArrowRight,
@@ -158,6 +159,21 @@ export function StudentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {(data.timeline?.length ?? 0) > 0 && (
+        <Card data-testid="card-proactive-timeline">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              {t("timeline.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProactiveTimeline milestones={data.timeline!} />
+          </CardContent>
+        </Card>
+      )}
+
 
       <Card>
         <CardContent className="p-6">

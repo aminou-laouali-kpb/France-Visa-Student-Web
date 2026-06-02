@@ -249,7 +249,8 @@
     "riskLow": "Risco baixo",
     "riskMedium": "Risco médio",
     "riskHigh": "Risco alto",
-    "reset": "Reiniciar"
+    "reset": "Reiniciar",
+    "allReadiness": "Toda preparação"
   },
   "table": {
     "student": "Estudante",
@@ -269,7 +270,8 @@
     "file": "Ficheiro",
     "status": "Estado",
     "registered": "Registado",
-    "site": "Site"
+    "site": "Site",
+    "readiness": "Preparação visto"
   },
   "dash": {
     "studentWelcome": "Vamos criar o seu processo de visto de estudante para iniciar o seu percurso em França.",
@@ -448,7 +450,9 @@
     "nStudents": "{{n}} estudante",
     "nStudentsPlural": "{{n}} estudantes",
     "highRisk": "Alto risco",
-    "students": "Estudantes"
+    "students": "Estudantes",
+    "readinessGreen": "Preparação — verde",
+    "readinessAmber": "Preparação — âmbar"
   },
   "advisorTasks": {
     "title": "As minhas tarefas",
@@ -469,7 +473,8 @@
     "byCountry": "Estudantes por país",
     "byRisk": "Nível de risco",
     "byCompletion": "Distribuição da progressão",
-    "noData": "Sem dados"
+    "noData": "Sem dados",
+    "byReadiness": "Preparação visto (semáforo)"
   },
   "adminStudents": {
     "title": "Todos os estudantes",
@@ -842,5 +847,23 @@
     "specificity": "Especificidade",
     "returnPlan": "Plano de retorno",
     "overall": "Nota global"
+  },
+  "timeline": {
+    "title": "Calendário de preparação",
+    "empty": "Nenhum marco a exibir por agora.",
+    "status_done": "Concluído",
+    "status_current": "Em curso",
+    "status_upcoming": "Próximo",
+    "status_overdue": "Atrasado",
+    "status_blocked": "Bloqueado"
+  },
+  "readiness": {
+    "green": "Bom nível",
+    "amber": "Acompanhar",
+    "red": "Prioridade alta"
+  },
+  "playbook": {
+    "title": "Playbooks do conselheiro",
+    "subtitle": "Procedimentos recomendados para esta etapa."
   }
 }

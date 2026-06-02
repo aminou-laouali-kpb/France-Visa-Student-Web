@@ -201,6 +201,18 @@ export interface VisaReadinessSummary {
   recommendations: string[];
 }
 
+export type MilestoneStatus = "done" | "current" | "upcoming" | "overdue" | "blocked";
+
+export interface ProactiveMilestone {
+  id: string;
+  label: string;
+  status: MilestoneStatus;
+  dueDate: string | null;
+  href: string | null;
+  urgency: "low" | "medium" | "high";
+  kind: "step" | "document" | "appointment" | "deadline" | "intake";
+}
+
 export interface StudentDashboardData {
   student: Student | null;
   totalSteps: number;
@@ -213,6 +225,7 @@ export interface StudentDashboardData {
   currentStep?: Step | null;
   nextActions?: string[];
   visaReadiness?: VisaReadinessSummary;
+  timeline?: ProactiveMilestone[];
   recentComments?: Comment[];
   postArrivalSteps?: PostArrivalStep[];
 }

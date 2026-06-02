@@ -59,6 +59,7 @@ import { ProjetReviewTab } from "./ProjetReviewTab";
 import { DossierExportButtons } from "@/components/DossierExportButtons";
 import { CommentBody } from "@/components/CommentBubble";
 import { AdvisorCopilotPanel } from "@/components/AdvisorCopilotPanel";
+import { PlaybookPanel } from "@/components/PlaybookPanel";
 import { RiskNarrativeCard } from "@/components/RiskNarrativeCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

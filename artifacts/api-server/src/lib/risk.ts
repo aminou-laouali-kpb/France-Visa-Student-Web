@@ -46,7 +46,7 @@ type VisaSignals = {
   profilePct: number;
 };
 
-function documentCategoryIsMissing(docs: Document[], category: string): boolean {
+export function documentCategoryIsMissing(docs: Document[], category: string): boolean {
   const inCat = docs.filter((d) => d.category === category);
   if (inCat.length === 0) return true;
   return inCat.every((d) => d.status === "missing");

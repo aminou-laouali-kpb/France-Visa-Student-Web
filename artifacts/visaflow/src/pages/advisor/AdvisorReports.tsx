@@ -39,6 +39,7 @@ export function AdvisorReports() {
   const byStatus = stats?.byStatus ?? [];
   const byCountry = stats?.byCountry ?? [];
   const byRisk = stats?.byRiskLevel ?? [];
+  const byReadiness = (stats as { byReadinessLevel?: typeof byRisk })?.byReadinessLevel ?? byRisk;
 
   const byCompletion: CountStat[] = HISTOGRAM_BUCKETS.map((b) => {
     const count = students.filter(
@@ -98,6 +99,33 @@ export function AdvisorReports() {
                 <Tooltip />
                 <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+
+        <ChartCard title={t("reports.byReadiness")}>
+          {byReadiness.length === 0 ? (
+            <Empty t={t} />
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={byReadiness}
+                  dataKey="count"
+                  nameKey="label"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  label={(entry: CountStat) => entry.label}
+                >
+                  {byReadiness.map((_, i) => (
+                    <Cell key={i} fill={["#10b981", "#f59e0b", "#ef4444"][i % 3]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
