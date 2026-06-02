@@ -14,7 +14,6 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
 import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
-import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
 import {
   AlertTriangle,
   ArrowRight,
@@ -31,6 +30,7 @@ import {
 } from "lucide-react";
 import type { Appointment, PostArrivalStep } from "@/types";
 import { useTranslation } from "react-i18next";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function StudentDashboard() {
   const { t } = useTranslation();

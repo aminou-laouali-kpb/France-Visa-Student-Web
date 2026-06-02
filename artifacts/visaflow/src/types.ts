@@ -55,6 +55,8 @@ export interface Student {
   visaType?: "vls_ts" | "vls_t" | null;
   arrivalDate?: string | null;
   titreExpiryDate?: string | null;
+  passportExpiry?: string | null;
+  intakeDate?: string | null;
 }
 
 export interface Appointment {

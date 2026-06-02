@@ -402,7 +402,16 @@
     "dropzoneAria": "اسحب وأفلت ملفاً هنا أو انقر للتصفح",
     "uploadFailed": "فشل الرفع",
     "saveFailed": "فشل الحفظ",
-    "unknownError": "خطأ غير معروف"
+    "unknownError": "خطأ غير معروف",
+    "aviProvider": "مقدم AVI",
+    "aviNumber": "رقم الشهادة",
+    "aviNumberPh": "مثال AVI-2024-12345",
+    "aviDate": "تاريخ الشهادة",
+    "aviAmount": "المبلغ المحجوز (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "وثيقة أقدم من 3 أشهر — يلزم إثبات حديث.",
+    "threeMonthExpired": "وثيقة منتهية أو شهادة AVI منتهية — يرجى التجديد."
   },
   "steps": {
     "subtitle": "الخطوات الـ 16 لملف تأشيرة الطالب (مدرسة خاصة).",
@@ -617,6 +626,7 @@
     "lettre_admission": "خطاب القبول",
     "attestation_campus_france": "شهادة إجراء التأشيرة",
     "justificatif_financier": "إثبات مالي",
+    "avi": "شهادة AVI (حساب مجمد)",
     "justificatif_hebergement": "إثبات السكن",
     "assurance": "التأمين الصحي",
     "billet_avion": "تذكرة الطيران",

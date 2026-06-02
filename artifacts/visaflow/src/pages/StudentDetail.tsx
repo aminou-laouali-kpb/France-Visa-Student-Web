@@ -94,6 +94,7 @@ import {
   Sparkles,
   UserCog,
 } from "lucide-react";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function StudentDetail() {
   const params = useParams<{ id: string }>();
@@ -473,6 +474,7 @@ const DOCUMENT_CATEGORY_VALUES = [
   "lettre_admission",
   "attestation_campus_france",
   "justificatif_financier",
+  "avi",
   "justificatif_hebergement",
   "assurance",
   "billet_avion",
@@ -1469,6 +1471,8 @@ function ProfileTab({
   const allUsers = users as unknown as UserRow[];
   const advisors = allUsers.filter((u) => u.role === "advisor");
   const reviewers = allUsers.filter((u) => u.role === "reviewer");
+  const passportShort = isPassportTooShortForIntake(form.passportExpiry, form.intakeDate);
+  const passportRequiredUntil = minimumPassportExpiryForIntake(form.intakeDate);
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -1517,12 +1521,9 @@ function ProfileTab({
             />
           </Field>
           <Field label={t("profile.passportExpiry")}>
-            <Input
-              type="date"
-              value={form.passportExpiry ?? ""}
-              onChange={(e) => setForm({ ...form, passportExpiry: e.target.value })}
-            />
+            <Input type="date" value={form.passportExpiry ?? ""} onChange={(e) => setForm({ ...form, passportExpiry: e.target.value })} />
           </Field>
+          {passportShort && (<div className="text-sm rounded-lg px-3 py-2 bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2" data-testid="passport-validity-warning"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>{t("dash.passportTooShortBody", { expiry: form.passportExpiry ?? "—", required: passportRequiredUntil?.toISOString().slice(0, 10) ?? "—" })}</span></div>)}
           <Button onClick={handleSave} data-testid="button-save-profile">
             {t("common.save")}
           </Button>

@@ -12,26 +12,27 @@ Cible : étudiants **admis en école privée**, procédure visa **hors Campus Fr
 - Simulateur entretien de motivation
 - Dashboard étudiant : carte préparation visa
 
-## Phase 2 — Livré (cette itération)
+## Phase 2 — Livré
 
-- **Timeline proactive** : jalons (étapes, documents critiques, échéances pays, RDV) via `GET /dashboard/student` → `timeline`
-- **Portefeuille conseiller** : colonne feu tricolore (préparation visa), filtres, KPIs vert/orange
-- **Playbooks** : SOPs contextuels `GET /students/:id/playbooks` + panneau conseiller
-- **Analytics** : graphique préparation visa dans rapports (`byReadinessLevel`)
+- Timeline proactive + notifications quotidiennes
+- Portefeuille conseiller feu tricolore
+- Playbooks (statiques puis DB)
+- Analytics préparation visa
 
-## Phase 3 — À faire
+## Phase 3 — Livré (agents 1–7 intégrés)
 
-- Playbooks éditables (admin CRUD + base)
-- Analytics refus (motifs, recours)
-- Notifications proactives (email / push) sur jalons en retard
-- Regénération OpenAPI complète (`readinessLevel` dans `StudentSummary`)
+- Docs / landing / i18n pivot privé
+- Copilot + projet IA privé
+- OpenAPI + codegen
+- Playbooks admin CRUD + `AdminPlaybooks`
+- Refus visa : motifs, analytics, `RefusalContextCard`
+- AVI + validité passeport + règle 3 mois
 
-## Fichiers clés
+## Phase 4 — À faire
 
-| Domaine | Fichiers |
-|--------|----------|
-| Readiness | `artifacts/api-server/src/lib/risk.ts` |
-| Timeline | `artifacts/api-server/src/lib/proactiveTimeline.ts` |
-| Playbooks | `artifacts/api-server/src/lib/playbooks.ts` |
-| UI étudiant | `ProactiveTimeline.tsx`, `StudentDashboard.tsx` |
-| UI conseiller | `ReadinessTrafficLight.tsx`, `AdvisorPortfolio.tsx`, `PlaybookPanel.tsx` |
+- Tests E2E (parcours étudiant, portefeuille, gate TLS)
+- Playbooks : routes OpenAPI CRUD `/playbooks`
+- Notifications email sur jalons en retard
+- Readiness score distinct du risk score
+- Nettoyage legacy EEF / tables inutilisées
+- Merge PR + smoke prod

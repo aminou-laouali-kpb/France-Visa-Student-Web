@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { useTranslation } from "react-i18next";
+import { checkThreeMonthRule } from "@/lib/documentPrecheck";
+
+const AVI_PROVIDERS = ["Studely","AVICENTER","Visa Etude France","Ready Study Go","Autre"] as const;
 
 const DOCUMENT_CATEGORY_VALUES = [
   "passeport",
@@ -29,6 +32,7 @@ const DOCUMENT_CATEGORY_VALUES = [
   "lettre_admission",
   "attestation_campus_france",
   "justificatif_financier",
+  "avi",
   "justificatif_hebergement",
   "assurance",
   "billet_avion",
@@ -246,13 +250,12 @@ function StudentDocExtraction({
   const expiringSoon = expDays !== null && expDays >= 0 && expDays <= SOON_DAYS;
 
   const banners: { tone: "red" | "amber"; text: string }[] = [];
-  if (expired)
-    banners.push({ tone: "red", text: t("documents.expired", { date: doc.expiryDate }) });
-  else if (expiringSoon)
-    banners.push({
-      tone: "amber",
-      text: t("documents.expiringSoon", { n: expDays, date: doc.expiryDate }),
-    });
+  if (expired) banners.push({ tone: "red", text: t("documents.expired", { date: doc.expiryDate }) });
+  else if (expiringSoon) banners.push({ tone: "amber", text: t("documents.expiringSoon", { n: expDays, date: doc.expiryDate }) });
+  const precheckKey = checkThreeMonthRule(doc);
+  if (precheckKey) banners.push({ tone: "amber", text: t(precheckKey) });
+  const storedPrecheck = (doc.extractedData as { precheckWarnings?: { messageKey: string }[] } | null | undefined)?.precheckWarnings;
+  if (storedPrecheck?.length) { for (const w of storedPrecheck) { banners.push({ tone: "amber", text: t(w.messageKey) }); } }
 
   if (status === "pending" || status === "processing") {
     return (
@@ -322,6 +325,10 @@ function UploadDropzone({
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aviProvider, setAviProvider] = useState<string>(AVI_PROVIDERS[0]);
+  const [aviNumber, setAviNumber] = useState("");
+  const [aviDate, setAviDate] = useState("");
+  const [aviAmount, setAviAmount] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
@@ -376,6 +383,7 @@ function UploadDropzone({
           uploadToken: tokenRes.uploadToken,
           mimeType: file.type,
           sizeBytes: file.size,
+          ...(category === "avi" ? { aviProvider, aviCertificateNumber: aviNumber || undefined, aviCertificateDate: aviDate || undefined, aviAmountEur: aviAmount ? Number(aviAmount) : undefined } : {}),
         }),
       });
       if (!docRes.ok) throw new Error(t("documents.saveFailed"));
@@ -477,9 +485,8 @@ function UploadDropzone({
             />
           </div>
         </div>
-        {error && (
-          <div className="text-sm text-rose-600">⚠️ {error}</div>
-        )}
+        {category === "avi" && (<div className="grid md:grid-cols-2 gap-3 p-3 rounded-lg border border-blue-100 bg-blue-50/40"><div><Label>{t("documents.aviProvider")}</Label><select className="w-full mt-1 border rounded-lg px-3 py-2 bg-white" value={aviProvider} onChange={(e) => setAviProvider(e.target.value)} data-testid="select-avi-provider">{AVI_PROVIDERS.map((p) => (<option key={p} value={p}>{p}</option>))}</select></div><div><Label>{t("documents.aviNumber")}</Label><Input value={aviNumber} onChange={(e) => setAviNumber(e.target.value)} placeholder={t("documents.aviNumberPh")} data-testid="input-avi-number" /></div><div><Label>{t("documents.aviDate")}</Label><Input type="date" value={aviDate} onChange={(e) => setAviDate(e.target.value)} data-testid="input-avi-date" /></div><div><Label>{t("documents.aviAmount")}</Label><Input type="number" min={0} step="0.01" value={aviAmount} onChange={(e) => setAviAmount(e.target.value)} placeholder="7380" data-testid="input-avi-amount" /></div></div>)}
+        {error && (<div className="text-sm text-rose-600">⚠️ {error}</div>)}
         <Button
           onClick={handleUpload}
           disabled={!file || !name || uploading}

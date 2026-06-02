@@ -110,3 +110,44 @@ export async function precheckStudentDocuments(
 
   return warnings;
 }
+
+
+import { addMonthsUtc, parseIsoDate } from "./passportValidity";
+
+export const THREE_MONTH_PRECHECK_CATEGORIES = new Set(["releve_notes", "justificatif_hebergement", "avi"]);
+const THREE_MONTH_MS = 92 * 24 * 3600 * 1000;
+export type DocumentFreshnessWarning = { messageKey: string; issueDate?: string };
+
+function documentIssueDate(doc: Pick<typeof documentsTable.$inferSelect, "category" | "extractedData">): string | null {
+  const data = doc.extractedData as Record<string, unknown> | null | undefined;
+  if (!data) return null;
+  const fields = data.fields as Record<string, unknown> | undefined;
+  const fromFields = (fields?.issueDate as string | undefined) ?? (data.issueDate as string | undefined);
+  if (fromFields) return fromFields;
+  if (doc.category === "avi") return (data.aviCertificateDate as string | undefined) ?? null;
+  return null;
+}
+
+export function checkThreeMonthRule(doc: Pick<typeof documentsTable.$inferSelect, "category" | "extractedData" | "expiryDate">, referenceDate: Date = new Date()): DocumentFreshnessWarning | null {
+  if (!THREE_MONTH_PRECHECK_CATEGORIES.has(doc.category)) return null;
+  const issue = parseIsoDate(documentIssueDate(doc));
+  const refMs = referenceDate.getTime();
+  if (issue) {
+    if (refMs - issue.getTime() > THREE_MONTH_MS) return { messageKey: "precheck.threeMonthStale", issueDate: issue.toISOString().slice(0, 10) };
+    return null;
+  }
+  const exp = parseIsoDate(doc.expiryDate);
+  if (exp && exp.getTime() < refMs) return { messageKey: "precheck.threeMonthExpired", issueDate: exp.toISOString().slice(0, 10) };
+  return null;
+}
+
+export function runDocumentFreshnessPrecheck(doc: Pick<typeof documentsTable.$inferSelect, "category" | "extractedData" | "expiryDate">): DocumentFreshnessWarning[] {
+  const w = checkThreeMonthRule(doc);
+  return w ? [w] : [];
+}
+
+export function aviExpiryFromCertificateDate(certificateDate: string | null | undefined): string | null {
+  const d = parseIsoDate(certificateDate);
+  if (!d) return null;
+  return addMonthsUtc(d, 3).toISOString().slice(0, 10);
+}

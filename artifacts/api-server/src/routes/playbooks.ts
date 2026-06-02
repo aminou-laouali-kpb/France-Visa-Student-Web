@@ -112,7 +112,6 @@ router.post("/playbooks", requireAuth, async (req, res) => {
 router.patch(
   "/playbooks/:playbookId",
   requireAuth,
-  validateBody(UpdatePlaybookBody),
   async (req, res) => {
     if (!isAdmin(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
