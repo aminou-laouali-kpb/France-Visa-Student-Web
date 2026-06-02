@@ -293,6 +293,12 @@
     "postArrival": "Après l'arrivée en France",
     "seeAllSteps": "Voir toutes les démarches",
     "stepsCompleted": "Étapes validées",
+    "visaPreparation": "Préparation visa",
+    "visaPrepCompletion": "Avancement du dossier",
+    "visaPrepRisk": "Niveau de vigilance",
+    "visaPrepActions": "Actions recommandées",
+    "visaPrepOnTrack": "Votre dossier est sur la bonne voie — continuez le suivi avec votre conseiller.",
+    "visaPrepSeeSteps": "Voir mon parcours",
     "hello": "Bonjour, {{name}} 👋",
     "advisorSubtitle": "Vous suivez actuellement {{n}} étudiant(s)",
     "studentsToFollow": "Étudiants à suivre",
@@ -713,7 +719,7 @@
     "axeCoherence": "Cohérence",
     "axeFrench": "Français",
     "axeKnowledge": "Connaissance du programme",
-    "axeReturnPlan": "Projet professionnel"
+    "axeReturnPlan": "Plan de retour"
   },
   "depth": {
     "maritalStatus": "État civil",

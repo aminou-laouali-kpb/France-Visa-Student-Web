@@ -293,6 +293,12 @@
     "postArrival": "Após a chegada a França",
     "seeAllSteps": "Ver todos os procedimentos",
     "stepsCompleted": "Etapas validadas",
+    "visaPreparation": "Preparação do visto",
+    "visaPrepCompletion": "Progresso do dossiê",
+    "visaPrepRisk": "Nível de vigilância",
+    "visaPrepActions": "Ações recomendadas",
+    "visaPrepOnTrack": "O seu dossiê está no bom caminho — continue com o seu conselheiro.",
+    "visaPrepSeeSteps": "Ver o meu percurso",
     "hello": "Olá, {{name}} 👋",
     "advisorSubtitle": "Está atualmente a acompanhar {{n}} estudante(s)",
     "studentsToFollow": "Estudantes a acompanhar",
@@ -713,7 +719,7 @@
     "axeCoherence": "Coerência",
     "axeFrench": "Francês",
     "axeKnowledge": "Conhecimento do programa",
-    "axeReturnPlan": "Projeto profissional"
+    "axeReturnPlan": "Plano de regresso"
   },
   "depth": {
     "maritalStatus": "Estado civil",

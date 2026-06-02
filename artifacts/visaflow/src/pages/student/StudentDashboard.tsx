@@ -2,6 +2,7 @@ import { Link, Redirect } from "wouter";
 import {
   useGetMe,
   useGetStudentDashboard,
+  useGetStudentRiskScore,
   useListDocuments,
   useListStudentSteps,
 } from "@workspace/api-client-react";

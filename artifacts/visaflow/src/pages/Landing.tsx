@@ -44,9 +44,9 @@ export function Landing() {
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-10">
           VisaFlow accompagne les étudiants admis dans une école privée française
-          tout au long de leur procédure visa : lettre d'admission, dossier
-          consulaire TLS/VFS, entretien de motivation, validation OFII — parcours
-          guidé par votre conseiller dédié.
+          tout au long de leur procédure visa : lettre d&apos;admission, entretien
+          de motivation, dossier consulaire TLS/VFS, validation OFII — 15 étapes
+          guidées par votre conseiller dédié.
         </p>
         <div className="flex items-center justify-center gap-3">
           <Link href="/sign-up">
@@ -77,7 +77,7 @@ export function Landing() {
             <Users className="w-8 h-8 text-blue-600 mb-3" />
             <h3 className="font-semibold text-slate-900 mb-2">Conseiller dédié</h3>
             <p className="text-sm text-slate-600">
-              Un expert vous accompagne, valide vos documents et vous prépare à l'entretien de motivation.
+              Un expert vous accompagne, valide vos documents et organise vos rendez-vous Campus France.
             </p>
           </CardContent>
         </Card>

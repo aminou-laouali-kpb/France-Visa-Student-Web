@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import {
   useListStudentSteps,
   useGetStepChecklist,
@@ -8,10 +9,12 @@ import {
 import type { ChecklistItem } from "@workspace/api-client-react";
 import type { Step, Document } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { CheckCircle2, Circle, AlertCircle, FileText } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, FileText, Sparkles } from "lucide-react";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { formatDate } from "@/lib/utils";
+import { shouldShowMotivationInterviewCta } from "@/lib/interviewCta";
 import { useTranslation } from "react-i18next";
 
 export function StudentSteps() {

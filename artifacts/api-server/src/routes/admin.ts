@@ -71,13 +71,16 @@ router.get("/audit-logs", requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-// RISK SCORES — staff only (students must not see their own risk score)
+// RISK SCORES — staff; students may read their own dossier readiness signals
 router.get(
   "/students/:studentId/risk-score",
   requireAuth,
   requireStudentAccess("studentId", "read"),
   async (req, res) => {
-    if (!isStaff(req.currentUser!)) {
+    const u = req.currentUser!;
+    const ownDossier =
+      u.role === "student" && req.targetStudent?.userId === u.id;
+    if (!isStaff(u) && !ownDossier) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }

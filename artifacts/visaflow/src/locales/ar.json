@@ -293,6 +293,12 @@
     "postArrival": "بعد الوصول إلى فرنسا",
     "seeAllSteps": "عرض كل الإجراءات",
     "stepsCompleted": "الخطوات المُعتمدة",
+    "visaPreparation": "التحضير للتأشيرة",
+    "visaPrepCompletion": "تقدم الملف",
+    "visaPrepRisk": "مستوى اليقظة",
+    "visaPrepActions": "الإجراءات الموصى بها",
+    "visaPrepOnTrack": "ملفك على المسار الصحيح — تابع مع مستشارك.",
+    "visaPrepSeeSteps": "عرض مساري",
     "hello": "مرحباً {{name}} 👋",
     "advisorSubtitle": "أنت تتابع حالياً {{n}} طالب/طلاب",
     "studentsToFollow": "الطلاب المتابَعون",
@@ -713,7 +719,7 @@
     "axeCoherence": "التماسك",
     "axeFrench": "اللغة الفرنسية",
     "axeKnowledge": "معرفة البرنامج",
-    "axeReturnPlan": "المشروع المهني"
+    "axeReturnPlan": "خطة العودة"
   },
   "depth": {
     "maritalStatus": "الحالة الاجتماعية",
