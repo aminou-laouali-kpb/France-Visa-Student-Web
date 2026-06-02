@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import type { Appointment, PostArrivalStep } from "@/types";
 import { useTranslation } from "react-i18next";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function StudentDashboard() {
   const { t } = useTranslation();

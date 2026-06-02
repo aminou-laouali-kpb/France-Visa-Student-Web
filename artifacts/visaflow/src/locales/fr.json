@@ -402,7 +402,16 @@
     "dropzoneAria": "Glissez-déposez un fichier ici ou cliquez pour parcourir",
     "uploadFailed": "Échec du téléversement",
     "saveFailed": "Échec de l'enregistrement",
-    "unknownError": "Erreur inconnue"
+    "unknownError": "Erreur inconnue",
+    "aviProvider": "Organisme AVI",
+    "aviNumber": "Numéro d'attestation",
+    "aviNumberPh": "Ex. AVI-2024-12345",
+    "aviDate": "Date de l'attestation",
+    "aviAmount": "Montant bloqué (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "Document datant de plus de 3 mois — un justificatif récent est requis.",
+    "threeMonthExpired": "Document expiré ou attestations AVI périmées — renouvelez la pièce."
   },
   "steps": {
     "subtitle": "Les étapes de votre dossier visa (école privée, hors Campus France).",
@@ -617,6 +626,7 @@
     "lettre_admission": "Lettre d'admission",
     "attestation_campus_france": "Attestation Campus France",
     "justificatif_financier": "Justificatif financier",
+    "avi": "Attestation AVI (compte bloqué)",
     "justificatif_hebergement": "Justificatif d'hébergement",
     "assurance": "Assurance santé",
     "billet_avion": "Billet d'avion",

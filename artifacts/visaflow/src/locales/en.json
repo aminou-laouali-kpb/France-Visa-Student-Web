@@ -402,7 +402,16 @@
     "dropzoneAria": "Drag and drop a file here or click to browse",
     "uploadFailed": "Upload failed",
     "saveFailed": "Save failed",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "aviProvider": "AVI provider",
+    "aviNumber": "Certificate number",
+    "aviNumberPh": "e.g. AVI-2024-12345",
+    "aviDate": "Certificate date",
+    "aviAmount": "Blocked amount (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "Document older than 3 months — a recent proof is required.",
+    "threeMonthExpired": "Document expired or AVI certificate outdated — please renew."
   },
   "steps": {
     "subtitle": "Your student visa journey (private school, no Campus France).",
@@ -617,6 +626,7 @@
     "lettre_admission": "Admission letter",
     "attestation_campus_france": "Campus France certificate",
     "justificatif_financier": "Financial proof",
+    "avi": "AVI certificate (blocked account)",
     "justificatif_hebergement": "Housing proof",
     "assurance": "Health insurance",
     "billet_avion": "Flight ticket",

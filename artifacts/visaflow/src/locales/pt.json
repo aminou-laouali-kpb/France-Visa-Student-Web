@@ -402,7 +402,16 @@
     "dropzoneAria": "Arraste e solte um ficheiro aqui ou clique para procurar",
     "uploadFailed": "Falha no carregamento",
     "saveFailed": "Falha ao guardar",
-    "unknownError": "Erro desconhecido"
+    "unknownError": "Erro desconhecido",
+    "aviProvider": "Organismo AVI",
+    "aviNumber": "Número da certidão",
+    "aviNumberPh": "Ex. AVI-2024-12345",
+    "aviDate": "Data da certidão",
+    "aviAmount": "Montante bloqueado (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "Documento com mais de 3 meses — é necessário um comprovativo recente.",
+    "threeMonthExpired": "Documento expirado ou certificado AVI caducado — renove a peça."
   },
   "steps": {
     "subtitle": "Etapas do seu visto (escola privada, sem Campus France).",
@@ -617,6 +626,7 @@
     "lettre_admission": "Carta de admissão",
     "attestation_campus_france": "Atestado Campus France",
     "justificatif_financier": "Comprovativo financeiro",
+    "avi": "Certificado AVI (conta bloqueada)",
     "justificatif_hebergement": "Comprovativo de alojamento",
     "assurance": "Seguro de saúde",
     "billet_avion": "Bilhete de avião",

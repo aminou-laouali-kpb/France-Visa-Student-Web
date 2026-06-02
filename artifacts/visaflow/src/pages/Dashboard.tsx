@@ -26,6 +26,7 @@ import {
   Plane,
   ClipboardList,
 } from "lucide-react";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function Dashboard() {
   const { t: tr } = useTranslation();
@@ -64,6 +65,9 @@ function StudentDashboard() {
     );
   }
 
+  const passportShort = isPassportTooShortForIntake(data.student.passportExpiry, data.student.intakeDate);
+  const passportRequiredUntil = minimumPassportExpiryForIntake(data.student.intakeDate);
+
   return (
     <div className="space-y-6">
       <div>
@@ -72,7 +76,7 @@ function StudentDashboard() {
           {tr("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
         </p>
       </div>
-
+      {passportShort && (<Card className="border-amber-200 bg-amber-50/60" data-testid="passport-validity-warning"><CardContent className="p-4 flex items-start gap-3"><AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" /><div><div className="font-medium text-amber-900">{tr("dash.passportTooShortTitle")}</div><p className="text-sm text-amber-800 mt-1">{tr("dash.passportTooShortBody", { expiry: data.student.passportExpiry ?? "—", required: passportRequiredUntil?.toISOString().slice(0, 10) ?? "—" })}</p></div></CardContent></Card>)}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between gap-6">

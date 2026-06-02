@@ -32,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, GitCompare } from "lucide-react";
 
 type Reference = {
-  documentCategories: { value: string; label: string }[];
+  documentCategories: { value: string; label: string; deprecated?: boolean }[];
   programLevels: { value: string; label: string }[];
   visaCenters: { value: string; label: string }[];
 };
@@ -98,6 +98,11 @@ export function AdminMatrix() {
           (!filterLvl || r.programLevel === filterLvl),
       ),
     [rows, filterNat, filterLvl],
+  );
+
+  const selectableCategories = useMemo(
+    () => reference.documentCategories.filter((c) => !c.deprecated),
+    [reference.documentCategories],
   );
 
   const editingPrev = editing?.id
@@ -167,8 +172,11 @@ export function AdminMatrix() {
     void refetch();
   }
 
-  const catLabel = (v: string) =>
-    reference.documentCategories.find((c) => c.value === v)?.label ?? v;
+  const catLabel = (v: string) => {
+    const c = reference.documentCategories.find((x) => x.value === v);
+    if (!c) return v;
+    return c.deprecated ? `${c.label} (dép.)` : c.label;
+  };
 
   return (
     <div className="space-y-6" data-testid="admin-matrix">
@@ -243,9 +251,7 @@ export function AdminMatrix() {
                   <td className="p-3">{row.programLevel}</td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-1">
-                      {row.documentCategories.slice(0, 5).map((c) => (
-                        <Badge key={c} variant="outline">{catLabel(c)}</Badge>
-                      ))}
+                      {row.documentCategories.slice(0, 5).map((c) => { const meta = reference.documentCategories.find((x) => x.value === c); return (<Badge key={c} variant="outline" className={meta?.deprecated ? "line-through opacity-70" : undefined}>{catLabel(c)}</Badge>); })}
                       {row.documentCategories.length > 5 && (
                         <Badge variant="outline">+{row.documentCategories.length - 5}</Badge>
                       )}
@@ -322,7 +328,7 @@ export function AdminMatrix() {
               <div>
                 <Label>Documents requis</Label>
                 <div className="grid grid-cols-2 gap-2 mt-2 max-h-72 overflow-y-auto p-3 border rounded-md">
-                  {reference.documentCategories.map((c) => {
+                  {selectableCategories.map((c) => {
                     const checked = editing.documentCategories.includes(c.value);
                     return (
                       <label key={c.value} className="flex items-center gap-2 text-sm">
@@ -341,6 +347,7 @@ export function AdminMatrix() {
                     );
                   })}
                 </div>
+                {reference.documentCategories.some((c) => c.deprecated) && (<p className="text-xs text-slate-500 mt-1">Les catégories dépréciées (ex. attestation Campus France) ne sont plus proposées à l&apos;ajout mais restent visibles sur les entrées existantes.</p>)}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
