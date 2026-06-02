@@ -45,6 +45,8 @@ export const studentsTable = pgTable("students", {
   passportExpiry: text("passport_expiry"),
   financingType: text("financing_type"),
   hasVisaRefusalHistory: boolean("has_visa_refusal_history").notNull().default(false),
+  refusalReasonCode: text("refusal_reason_code"),
+  refusalNotes: text("refusal_notes"),
   intakeDate: text("intake_date"),
   programEndDate: text("program_end_date"),
   monthlyMinimumEur: integer("monthly_minimum_eur"),

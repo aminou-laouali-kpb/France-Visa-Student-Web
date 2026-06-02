@@ -505,6 +505,8 @@ interface DemoStudent {
   nextStepStatus?: "in_progress" | "submitted" | "blocked";
   blockedReason?: string;
   hasVisaRefusalHistory?: boolean;
+  refusalReasonCode?: string;
+  refusalNotes?: string;
   advisorIdx: 0 | 1; // which advisor (0 or 1)
 }
 
@@ -516,7 +518,7 @@ const DEMO_STUDENTS: DemoStudent[] = [
   { firstName: "Sandrine", lastName: "Mballa",   email: "sandrine.mballa@demo.test",countryCode: "CM", status: "submitted",    completedSteps: 14, nextStepStatus: "in_progress", advisorIdx: 0 },
   { firstName: "Boureima", lastName: "Ouédraogo",email: "boureima.o@demo.test",     countryCode: "BF", status: "active",       completedSteps: 11, nextStepStatus: "in_progress", hasVisaRefusalHistory: true, advisorIdx: 1 },
   { firstName: "Marie",    lastName: "Houngbo",  email: "marie.houngbo@demo.test",  countryCode: "BJ", status: "visa_obtained",completedSteps: 15, advisorIdx: 0 },
-  { firstName: "Salif",    lastName: "Camara",   email: "salif.camara@demo.test",   countryCode: "GN", status: "visa_refused", completedSteps: 16, hasVisaRefusalHistory: true, advisorIdx: 1 },
+  { firstName: "Salif",    lastName: "Camara",   email: "salif.camara@demo.test",   countryCode: "GN", status: "visa_refused", completedSteps: 16, hasVisaRefusalHistory: true, refusalReasonCode: "2", refusalNotes: "Ressources financières insuffisantes.", advisorIdx: 1 },
 ];
 
 export async function seedDemoPersonas(): Promise<void> {
@@ -586,6 +588,8 @@ export async function seedDemoPersonas(): Promise<void> {
           status: ds.status,
           completionScore: Math.round((ds.completedSteps / WORKFLOW_STEP_COUNT) * 100),
           hasVisaRefusalHistory: !!ds.hasVisaRefusalHistory,
+          refusalReasonCode: ds.refusalReasonCode ?? null,
+          refusalNotes: ds.refusalNotes ?? null,
           financingType: ds.completedSteps > 10 ? "compte_bloque" : "garant",
         })
         .returning();

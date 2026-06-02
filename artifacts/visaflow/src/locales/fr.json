@@ -474,7 +474,8 @@
     "byRisk": "Niveau de risque",
     "byCompletion": "Répartition de la progression",
     "noData": "Aucune donnée",
-    "byReadiness": "Préparation visa (feu tricolore)"
+    "byReadiness": "Préparation visa (feu tricolore)",
+    "byRefusalMotif": "Refus visa par motif"
   },
   "adminStudents": {
     "title": "Tous les étudiants",
@@ -865,5 +866,70 @@
   "playbook": {
     "title": "Playbooks conseiller",
     "subtitle": "Procédures recommandées selon l'étape du dossier."
+  },
+  "refusal": {
+    "mapTitle": "x",
+    "mapIntro": "y",
+    "prevention": "z",
+    "advisorAlertTitle": "a",
+    "advisorAlertBody": "b",
+    "recordedMotif": "c",
+    "motifNotSet": "d",
+    "playbookTitle": "e",
+    "playbook": {
+      "gracious": "g",
+      "commission": "c",
+      "contentious": "x",
+      "generic": "y",
+      "byMotif": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7"
+      }
+    },
+    "reasonCode": "r",
+    "notes": "n",
+    "riskFlags": "f",
+    "motifs": {
+      "1": {
+        "label": "M1",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "2": {
+        "label": "M2",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "3": {
+        "label": "M3",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "4": {
+        "label": "M4",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "5": {
+        "label": "M5",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "6": {
+        "label": "M6",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "7": {
+        "label": "M7",
+        "explanation": "e",
+        "prevention": "p"
+      }
+    }
   }
 }

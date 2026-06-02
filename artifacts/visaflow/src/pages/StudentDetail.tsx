@@ -61,6 +61,7 @@ import { CommentBody } from "@/components/CommentBubble";
 import { AdvisorCopilotPanel } from "@/components/AdvisorCopilotPanel";
 import { PlaybookPanel } from "@/components/PlaybookPanel";
 import { RiskNarrativeCard } from "@/components/RiskNarrativeCard";
+import { RefusalContextCard } from "@/components/RefusalContextCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,6 +162,13 @@ export function StudentDetail() {
           )}
         </div>
       </div>
+
+      {isStaff && student.status === "visa_refused" && (
+        <RefusalContextCard
+          refusalReasonCode={(student as { refusalReasonCode?: string | null }).refusalReasonCode}
+          refusalNotes={(student as { refusalNotes?: string | null }).refusalNotes}
+        />
+      )}
 
       <Tabs defaultValue="steps">
         <TabsList>
@@ -1363,6 +1371,16 @@ function RiskScoreSection({ studentId }: { studentId: number }) {
               label={t("detail.visaRefusal")}
               value={score.hasVisaRefusal ? t("detail.yes") : t("detail.no")}
             />
+            {((score as { refusalMotifFlags?: string[] }).refusalMotifFlags ?? []).length > 0 && (
+              <div className="pt-2 border-t">
+                <div className="text-xs text-slate-500 mb-1">{t("refusal.riskFlags")}</div>
+                <div className="flex flex-wrap gap-1">
+                  {((score as { refusalMotifFlags?: string[] }).refusalMotifFlags ?? []).map((f) => (
+                    <span key={f} className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded">{f}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -1621,6 +1639,31 @@ function ProfileTab({
                   ))}
                 </select>
               </Field>
+              {form.status === "visa_refused" && (
+                <>
+                  <Field label={t("refusal.reasonCode")}>
+                    <select
+                      className="w-full border rounded-lg px-3 py-2 bg-white"
+                      value={(form as { refusalReasonCode?: string }).refusalReasonCode ?? ""}
+                      onChange={(e) => setForm({ ...form, refusalReasonCode: e.target.value || null } as typeof form)}
+                      data-testid="select-refusal-reason"
+                    >
+                      <option value="">—</option>
+                      {["1","2","3","4","5","6","7"].map((c) => (
+                        <option key={c} value={c}>{t(`refusal.motifs.${c}.label`)}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label={t("refusal.notes")}>
+                    <Textarea
+                      value={(form as { refusalNotes?: string }).refusalNotes ?? ""}
+                      onChange={(e) => setForm({ ...form, refusalNotes: e.target.value } as typeof form)}
+                      rows={3}
+                      data-testid="textarea-refusal-notes"
+                    />
+                  </Field>
+                </>
+              )}
               <Field label={t("profile.dossierStatus")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"

@@ -218,6 +218,10 @@ export interface Student {
   financingType?: string | null;
   hasVisaRefusalHistory: boolean;
   /** @nullable */
+  refusalReasonCode?: string | null;
+  /** @nullable */
+  refusalNotes?: string | null;
+  /** @nullable */
   visaType?: StudentVisaType;
   /** @nullable */
   arrivalDate?: string | null;
@@ -481,6 +485,7 @@ export interface RiskScore {
   missingCampusFrance: boolean;
   missingAppointments: boolean;
   hasVisaRefusal: boolean;
+  refusalMotifFlags: string[];
   recommendations: string[];
   calculatedAt: string;
 }
@@ -568,6 +573,10 @@ export interface UpdateStudentBody {
   arrivalDate?: string | null;
   /** @nullable */
   titreExpiryDate?: string | null;
+  /** @nullable */
+  refusalReasonCode?: string | null;
+  /** @nullable */
+  refusalNotes?: string | null;
 }
 
 export interface AssignStudentBody {
@@ -892,6 +901,8 @@ export interface AdminDashboard {
   byIntakeMonth: CountStat[];
   recentAuditLogs: AuditLog[];
   visaRefused: number;
+  visaRefusedByMotif?: CountStat[];
+  visaRefusedByCountry?: CountStat[];
 }
 
 export interface PortfolioStats {
@@ -900,6 +911,7 @@ export interface PortfolioStats {
   byCountry: CountStat[];
   bySchool: CountStat[];
   byIntakeMonth: CountStat[];
+  visaRefusedByMotif: CountStat[];
 }
 
 export interface WorkflowTemplate {

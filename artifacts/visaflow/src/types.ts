@@ -46,6 +46,8 @@ export interface Student {
   visaType?: "vls_ts" | "vls_t" | null;
   arrivalDate?: string | null;
   titreExpiryDate?: string | null;
+  refusalReasonCode?: string | null;
+  refusalNotes?: string | null;
 }
 
 export interface Appointment {
@@ -195,24 +197,6 @@ export interface StudentFormData {
   titreExpiryDate?: string | null;
 }
 
-export interface VisaReadinessSummary {
-  score: number;
-  level: "low" | "medium" | "high";
-  recommendations: string[];
-}
-
-export type MilestoneStatus = "done" | "current" | "upcoming" | "overdue" | "blocked";
-
-export interface ProactiveMilestone {
-  id: string;
-  label: string;
-  status: MilestoneStatus;
-  dueDate: string | null;
-  href: string | null;
-  urgency: "low" | "medium" | "high";
-  kind: "step" | "document" | "appointment" | "deadline" | "intake";
-}
-
 export interface StudentDashboardData {
   student: Student | null;
   totalSteps: number;
@@ -224,10 +208,16 @@ export interface StudentDashboardData {
   upcomingAppointments?: Appointment[];
   currentStep?: Step | null;
   nextActions?: string[];
-  visaReadiness?: VisaReadinessSummary;
-  timeline?: ProactiveMilestone[];
   recentComments?: Comment[];
   postArrivalSteps?: PostArrivalStep[];
+}
+
+export interface ProactiveMilestone {
+  id: string;
+  label: string;
+  status: "done" | "current" | "upcoming" | "overdue" | "blocked";
+  dueDate?: string | null;
+  href?: string | null;
 }
 
 export interface UploadUrlResponse {

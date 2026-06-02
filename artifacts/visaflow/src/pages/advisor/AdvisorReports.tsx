@@ -39,7 +39,7 @@ export function AdvisorReports() {
   const byStatus = stats?.byStatus ?? [];
   const byCountry = stats?.byCountry ?? [];
   const byRisk = stats?.byRiskLevel ?? [];
-  const byReadiness = (stats as { byReadinessLevel?: typeof byRisk })?.byReadinessLevel ?? byRisk;
+  const byRefusalMotif = stats?.visaRefusedByMotif ?? [];
 
   const byCompletion: CountStat[] = HISTOGRAM_BUCKETS.map((b) => {
     const count = students.filter(
@@ -103,33 +103,6 @@ export function AdvisorReports() {
           )}
         </ChartCard>
 
-
-        <ChartCard title={t("reports.byReadiness")}>
-          {byReadiness.length === 0 ? (
-            <Empty t={t} />
-          ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={byReadiness}
-                  dataKey="count"
-                  nameKey="label"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={(entry: CountStat) => entry.label}
-                >
-                  {byReadiness.map((_, i) => (
-                    <Cell key={i} fill={["#10b981", "#f59e0b", "#ef4444"][i % 3]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-
         <ChartCard title={t("reports.byRisk")}>
           {byRisk.length === 0 ? (
             <Empty t={t} />
@@ -154,6 +127,22 @@ export function AdvisorReports() {
                     />
                   ))}
                 </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard title={t("reports.byRefusalMotif")}>
+          {byRefusalMotif.length === 0 ? (
+            <Empty t={t} />
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={byRefusalMotif}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

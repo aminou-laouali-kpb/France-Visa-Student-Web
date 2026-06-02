@@ -77,6 +77,12 @@ export function AdminGlobalDashboard() {
         <ChartCard title="Tendance d'admission">
           <LineChartView data={data?.byIntakeMonth ?? []} />
         </ChartCard>
+        <ChartCard title="Refus visa par motif">
+          <BarChartView data={data?.visaRefusedByMotif ?? []} color="#f59e0b" />
+        </ChartCard>
+        <ChartCard title="Refus visa par pays">
+          <BarChartView data={data?.visaRefusedByCountry ?? []} color="#ef4444" />
+        </ChartCard>
       </div>
 
       <Card>

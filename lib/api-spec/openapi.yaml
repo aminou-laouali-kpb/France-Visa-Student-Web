@@ -3174,6 +3174,10 @@ components:
           type: ["string", "null"]
         hasVisaRefusalHistory:
           type: boolean
+        refusalReasonCode:
+          type: ["string", "null"]
+        refusalNotes:
+          type: ["string", "null"]
         visaType:
           type: ["string", "null"]
           enum: [vls_ts, vls_t, null]
@@ -3330,6 +3334,10 @@ components:
         arrivalDate:
           type: ["string", "null"]
         titreExpiryDate:
+          type: ["string", "null"]
+        refusalReasonCode:
+          type: ["string", "null"]
+        refusalNotes:
           type: ["string", "null"]
 
     AssignStudentBody:
@@ -3982,6 +3990,10 @@ components:
           type: boolean
         hasVisaRefusal:
           type: boolean
+        refusalMotifFlags:
+          type: array
+          items:
+            type: string
         recommendations:
           type: array
           items:
@@ -4000,6 +4012,7 @@ components:
         - missingCampusFrance
         - missingAppointments
         - hasVisaRefusal
+        - refusalMotifFlags
         - recommendations
         - calculatedAt
 
@@ -4136,6 +4149,14 @@ components:
             $ref: "#/components/schemas/AuditLog"
         visaRefused:
           type: integer
+        visaRefusedByMotif:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        visaRefusedByCountry:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
       required:
         - totalStudents
         - totalAdvisors
@@ -4176,12 +4197,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CountStat"
+        visaRefusedByMotif:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
       required:
         - byStatus
         - byRiskLevel
         - byCountry
         - bySchool
         - byIntakeMonth
+        - visaRefusedByMotif
 
     CountStat:
       type: object
