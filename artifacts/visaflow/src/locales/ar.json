@@ -148,7 +148,7 @@
     "noDeadlines": "لا توجد مواعيد نهائية مسجلة لجنسيتك.",
     "today": "اليوم",
     "daysLeft": "ي−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "إجراء التأشيرة",
     "deadlineType_visa_appointment": "موعد التأشيرة",
     "deadlineType_school_application": "طلب الالتحاق بالمدرسة",
     "deadlineType_other": "أخرى",
@@ -162,7 +162,7 @@
     "editEntry": "تعديل الموعد",
     "newEntry": "موعد جديد",
     "newEntryBtn": "موعد جديد",
-    "adminSubtitle": "مواعيد كامبوس فرانس والتأشيرة حسب الجنسية.",
+    "adminSubtitle": "مواعيد إجراء التأشيرة والقبول حسب الجنسية.",
     "adminTitle": "تقويم القبول",
     "entryCount": "{{n}} موعد",
     "sortOrder": "ترتيب العرض",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "مواعيدي",
-    "subtitle": "مقابلات Campus France والمواعيد القنصلية الخاصة بك.",
+    "subtitle": "مواعيد TLS/VFS والقنصلية والبيومترية الخاصة بك.",
     "upcoming": "القادمة ({{n}})",
     "past": "الماضية ({{n}})",
     "noUpcoming": "لا توجد مواعيد قادمة",
@@ -405,7 +405,7 @@
     "unknownError": "خطأ غير معروف"
   },
   "steps": {
-    "subtitle": "خطوات ملف التأشيرة (مدرسة خاصة، بدون Campus France).",
+    "subtitle": "الخطوات الـ 16 لملف تأشيرة الطالب (مدرسة خاصة).",
     "interviewCtaTitle": "تدرب على مقابلة الدافع",
     "interviewCtaBody": "قد يسألك القنصل أو المدرسة عن مشروعك وماليتك. استخدم المحاكي للتحضير.",
     "interviewCtaButton": "فتح المحاكي"
@@ -588,7 +588,7 @@
     "missingDocs": "وثائق مفقودة",
     "rejectedDocs": "وثائق مرفوضة",
     "overdueTasks": "مهام متأخرة",
-    "missingCF": "خطوات Campus France مفقودة",
+    "missingCF": "خطوات إجراء التأشيرة (البلد) مفقودة",
     "missingAppts": "لا توجد مواعيد قادمة",
     "visaRefusal": "سابقة رفض تأشيرة",
     "yes": "نعم",
@@ -602,11 +602,11 @@
     "noMessages": "لا توجد رسائل بعد",
     "checklistUpdated": "تم تحديث القائمة:\n+ {{added}} وثيقة(وثائق) مضافة\n- {{removed}} محذوفة\n{{skipped}} خطوة(خطوات) غير مطلوبة\n{{restored}} خطوة(خطوات) مستعادة",
     "checklistRefreshError": "خطأ أثناء التحديث.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "إجراء التأشيرة (البلد)",
+    "aptCampusFrance": "إجراء التأشيرة (البلد)",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "لا يمكن تقديم الملف.",
-    "campusFranceRequired": "(Campus France مطلوب)"
+    "campusFranceRequired": "(إجراء التأشيرة في البلد مطلوب)"
   },
   "docCategory": {
     "passeport": "جواز السفر",
@@ -615,7 +615,7 @@
     "releve_notes": "كشف العلامات",
     "test_langue": "اختبار اللغة",
     "lettre_admission": "خطاب القبول",
-    "attestation_campus_france": "شهادة Campus France",
+    "attestation_campus_france": "شهادة إجراء التأشيرة",
     "justificatif_financier": "إثبات مالي",
     "justificatif_hebergement": "إثبات السكن",
     "assurance": "التأمين الصحي",
@@ -649,7 +649,7 @@
     "saved": "تم الحفظ ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "إجراء التأشيرة (البلد)",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "المحافظة",
@@ -688,7 +688,7 @@
     "addCountry": "إضافة دولة",
     "colCode": "الرمز",
     "colVisaCenter": "مركز التأشيرة",
-    "colCampusFrance": "كامبوس فرانس",
+    "colCampusFrance": "إجراء التأشيرة",
     "required": "مطلوب",
     "notRequired": "غير مطلوب"
   },
@@ -797,7 +797,7 @@
     "equivEquivalent": "معادل: {{level}}",
     "equivRefShort": "مرجع. {{ref}}",
     "equivStatusLabel": "الحالة: {{status}}",
-    "wishCardTitle": "رغبات كامبوس فرانس ({{count}}/{{max}})",
+    "wishCardTitle": "طلبات المدرسة ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— أو نص حر أدناه —",
     "wishEntry": "الرغبة رقم {{order}} —",
     "wishStatusLabel": "الحالة: {{status}}"

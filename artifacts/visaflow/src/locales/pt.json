@@ -148,7 +148,7 @@
     "noDeadlines": "Nenhum prazo registrado para a sua nacionalidade.",
     "today": "Hoje",
     "daysLeft": "D−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "Procedimento de visto",
     "deadlineType_visa_appointment": "Consulta de visto",
     "deadlineType_school_application": "Candidatura escolar",
     "deadlineType_other": "Outro",
@@ -162,7 +162,7 @@
     "editEntry": "Editar prazo",
     "newEntry": "Novo prazo",
     "newEntryBtn": "Novo prazo",
-    "adminSubtitle": "Prazos Campus France e visto por nacionalidade.",
+    "adminSubtitle": "Prazos de procedimento de visto e admissão por nacionalidade.",
     "adminTitle": "Calendário de admissões",
     "entryCount": "{{n}} prazo(s)",
     "sortOrder": "Ordem de exibição",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "Os meus compromissos",
-    "subtitle": "Suas entrevistas no Campus France e consultas consulares.",
+    "subtitle": "Seus agendamentos TLS/VFS, consulado e biometria.",
     "upcoming": "Próximas ({{n}})",
     "past": "Passadas ({{n}})",
     "noUpcoming": "Nenhuma consulta próxima",
@@ -405,7 +405,7 @@
     "unknownError": "Erro desconhecido"
   },
   "steps": {
-    "subtitle": "Etapas do seu visto (escola privada, sem Campus France).",
+    "subtitle": "As 16 etapas do seu processo de visto (escola privada).",
     "interviewCtaTitle": "Treine a entrevista de motivação",
     "interviewCtaBody": "O consulado ou a escola pode perguntar sobre o seu projeto e finanças. Use o simulador.",
     "interviewCtaButton": "Abrir simulador"
@@ -588,7 +588,7 @@
     "missingDocs": "Documentos em falta",
     "rejectedDocs": "Documentos rejeitados",
     "overdueTasks": "Tarefas em atraso",
-    "missingCF": "Etapas Campus France em falta",
+    "missingCF": "Etapas do procedimento de visto (país) em falta",
     "missingAppts": "Sem compromissos futuros",
     "visaRefusal": "Recusa de visto anterior",
     "yes": "Sim",
@@ -602,11 +602,11 @@
     "noMessages": "Sem mensagens por enquanto",
     "checklistUpdated": "Lista atualizada:\n+ {{added}} documento(s) adicionado(s)\n- {{removed}} removido(s)\n{{skipped}} etapa(s) não obrigatória(s)\n{{restored}} etapa(s) restaurada(s)",
     "checklistRefreshError": "Erro ao atualizar a lista.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "Proc. visto país",
+    "aptCampusFrance": "Proc. visto país",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "O processo não pode ser submetido.",
-    "campusFranceRequired": "(Campus France obrigatório)"
+    "campusFranceRequired": "(procedimento de visto do país obrigatório)"
   },
   "docCategory": {
     "passeport": "Passaporte",
@@ -615,7 +615,7 @@
     "releve_notes": "Certidão de notas",
     "test_langue": "Teste de língua",
     "lettre_admission": "Carta de admissão",
-    "attestation_campus_france": "Atestado Campus France",
+    "attestation_campus_france": "Atestado de procedimento de visto",
     "justificatif_financier": "Comprovativo financeiro",
     "justificatif_hebergement": "Comprovativo de alojamento",
     "assurance": "Seguro de saúde",
@@ -649,7 +649,7 @@
     "saved": "Guardado ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "Proc. visto país",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "Prefeitura",
@@ -688,7 +688,7 @@
     "addCountry": "Adicionar país",
     "colCode": "Código",
     "colVisaCenter": "Centro de vistos",
-    "colCampusFrance": "Campus France",
+    "colCampusFrance": "Proc. visto país",
     "required": "Necessário",
     "notRequired": "Não necessário"
   },
@@ -797,7 +797,7 @@
     "equivEquivalent": "Equivalente: {{level}}",
     "equivRefShort": "Ref. {{ref}}",
     "equivStatusLabel": "Estado: {{status}}",
-    "wishCardTitle": "Desejos Études en France ({{count}}/{{max}})",
+    "wishCardTitle": "Candidaturas escola ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— ou texto livre abaixo —",
     "wishEntry": "Desejo nº{{order}} —",
     "wishStatusLabel": "estado: {{status}}"

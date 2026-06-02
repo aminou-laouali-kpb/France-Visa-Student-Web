@@ -12,6 +12,7 @@ import {
   schoolsTable,
   programsTable,
   scholarshipsTable,
+  appointmentsTable,
 } from "@workspace/db/schema";
 import { eq, and, asc, or, inArray } from "drizzle-orm";
 import { logger } from "./logger";
@@ -236,7 +237,7 @@ const SCHOLARSHIPS = [
   {
     code: "BGF",
     name: "Bourse du Gouvernement Français (BGF)",
-    provider: "Campus France / Ambassade de France",
+    provider: "Gouvernement français (programme BGF)",
     description:
       "Bourse d'excellence couvrant frais de scolarité, allocation mensuelle, sécurité sociale et voyage.",
     coversTuition: true,
@@ -645,6 +646,21 @@ export async function seedDemoPersonas(): Promise<void> {
           assignedToId: advisor.id,
           createdById: admin.id,
           priority: "high",
+        });
+      }
+
+      // Demo appointment — TLS/VFS (no Campus France / Ambassade)
+      if (ds.completedSteps >= 10) {
+        const centre = country.visaCenter ?? "TLScontact";
+        await db.insert(appointmentsTable).values({
+          studentId: student.id,
+          type: "tls_vfs",
+          title: "Dépôt dossier visa — biométrie",
+          scheduledAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+          location: centre,
+          provider: centre,
+          centre,
+          status: "upcoming",
         });
       }
 

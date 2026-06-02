@@ -34,7 +34,7 @@ Clerk (web) via `@clerk/react`:
 
 ## Data flow & workflow
 
-- **15-step default workflow** for private-university visa (admission → consular dossier → post-arrival). Legacy Campus France steps are deactivated on seed sync.
+- **16-step active workflow** for private-school visa (admission → TLS/VFS or consulate → post-arrival). Template has 21 steps; steps 7–11 (Campus France / EEF) are **skipped at provisioning** when `requiresCampusFrance = false`.
 - Documents go via Replit object storage: presigned PUT → register row → reviewer validates/rejects → notification fired.
 - Comments support internal-only and "demande de correction" flags.
 - Risk score computed from missing/rejected documents (including admission letter), overdue tasks, missing appointments, prior visa refusal.

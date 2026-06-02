@@ -63,7 +63,7 @@ Dès la connexion, vous voyez :
 La fiche d'un étudiant est organisée en onglets :
 
 #### Onglet **Parcours**
-Vue chronologique des étapes du dossier : Études en France, Campus France, Visa, Post-arrivée. Chaque étape affiche son statut (À faire, En cours, En revue, Validé, Bloqué).
+Vue chronologique des **16 étapes** (profil, admission, justificatifs, TLS/VFS, consulat, OFII). Les étapes Campus France n'apparaissent que si le pays l'exige. Chaque étape affiche son statut (À faire, En cours, En revue, Validé, Bloqué).
 Vous pouvez **faire avancer une étape** ou la **bloquer** en cas de problème.
 
 #### Onglet **Documents**
@@ -83,7 +83,7 @@ Vous pouvez **faire avancer une étape** ou la **bloquer** en cas de problème.
 - Statuts : À faire, En cours, Terminé, Annulé.
 
 #### Onglet **Rendez-vous**
-- Planifier les RDV Campus France, visa, etc.
+- Planifier les RDV **TLS/VFS**, consulat, biométrie, etc.
 - Statuts : À venir, Terminé, Manqué.
 
 #### Onglet **Risque**
@@ -99,7 +99,7 @@ Informations personnelles, état civil, contact, intake (date de rentrée).
 - Scolarité antérieure (établissements, diplômes, mentions, années).
 - Tests de langue (TCF, DELF, TOEFL…) avec alertes d'expiration (renouvellement nécessaire à 90 jours).
 - Équivalences de diplômes (ENIC-NARIC).
-- Vœux Études en France (jusqu'à 7 vœux : école, programme, motivation).
+- Candidatures école (jusqu'à 7 vœux : école, programme, motivation).
 
 #### Onglet **Garanties & logement**
 - Calcul de la capacité financière (seuil minimum requis par le visa).
@@ -109,7 +109,7 @@ Informations personnelles, état civil, contact, intake (date de rentrée).
 
 #### Onglet **Projet & lettres**
 - Édition du Projet d'études (avec versionnage et compteur de mots).
-- Lettres de motivation par vœu EEF.
+- Lettres de motivation par candidature école.
 - **Coach IA** : critique en streaming, points forts/faibles, suggestion d'amélioration paragraphe par paragraphe.
 - Notation automatique selon une rubrique : Cohérence, Français, Spécificité, Plan de retour, Note globale.
 
@@ -144,7 +144,7 @@ Sur la fiche étudiant, un bouton **Synthèse IA** génère un résumé complet 
 - Utilisé pour les vœux EEF des étudiants.
 
 #### Pays
-- Liste des pays sources avec leur centre de visa et le statut Campus France (Requis / Non requis).
+- Liste des pays sources avec leur **centre TLS/VFS** et le statut procédure visa pays (Requis / Non requis).
 
 #### Import en masse
 - Import CSV/XLSX d'une cohorte entière d'étudiants.

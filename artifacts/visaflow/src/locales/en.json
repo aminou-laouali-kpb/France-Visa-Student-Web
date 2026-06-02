@@ -148,7 +148,7 @@
     "noDeadlines": "No deadlines registered for your nationality.",
     "today": "Today",
     "daysLeft": "D−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "Visa procedure",
     "deadlineType_visa_appointment": "Visa appointment",
     "deadlineType_school_application": "School application",
     "deadlineType_other": "Other",
@@ -162,7 +162,7 @@
     "editEntry": "Edit deadline",
     "newEntry": "New deadline",
     "newEntryBtn": "New deadline",
-    "adminSubtitle": "Campus France and visa deadlines by nationality.",
+    "adminSubtitle": "Visa procedure and admission deadlines by nationality.",
     "adminTitle": "Intake calendar",
     "entryCount": "{{n}} deadline(s)",
     "sortOrder": "Display order",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "My appointments",
-    "subtitle": "Your Campus France interviews and consular appointments.",
+    "subtitle": "Your TLS/VFS, consular and biometrics appointments.",
     "upcoming": "Upcoming ({{n}})",
     "past": "Past ({{n}})",
     "noUpcoming": "No upcoming appointments",
@@ -405,7 +405,7 @@
     "unknownError": "Unknown error"
   },
   "steps": {
-    "subtitle": "Your student visa journey (private school, no Campus France).",
+    "subtitle": "The 16 steps of your student visa file (private school).",
     "interviewCtaTitle": "Practice your motivation interview",
     "interviewCtaBody": "The consulate or school may ask about your project, finances, and program. Use the simulator to prepare.",
     "interviewCtaButton": "Open simulator"
@@ -588,7 +588,7 @@
     "missingDocs": "Missing documents",
     "rejectedDocs": "Rejected documents",
     "overdueTasks": "Overdue tasks",
-    "missingCF": "Missing Campus France steps",
+    "missingCF": "Missing country visa procedure steps",
     "missingAppts": "No upcoming appointments",
     "visaRefusal": "Previous visa refusal",
     "yes": "Yes",
@@ -602,11 +602,11 @@
     "noMessages": "No messages yet",
     "checklistUpdated": "Checklist updated:\n+ {{added}} document(s) added\n- {{removed}} removed\n{{skipped}} step(s) not required\n{{restored}} step(s) restored",
     "checklistRefreshError": "Error refreshing checklist.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "Country visa proc.",
+    "aptCampusFrance": "Country visa proc.",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "The file cannot be submitted.",
-    "campusFranceRequired": "(Campus France required)"
+    "campusFranceRequired": "(country visa procedure required)"
   },
   "docCategory": {
     "passeport": "Passport",
@@ -615,7 +615,7 @@
     "releve_notes": "Transcript",
     "test_langue": "Language test",
     "lettre_admission": "Admission letter",
-    "attestation_campus_france": "Campus France certificate",
+    "attestation_campus_france": "Visa procedure certificate",
     "justificatif_financier": "Financial proof",
     "justificatif_hebergement": "Housing proof",
     "assurance": "Health insurance",
@@ -649,7 +649,7 @@
     "saved": "Saved ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "Country visa proc.",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "Prefecture",
@@ -688,7 +688,7 @@
     "addCountry": "Add a country",
     "colCode": "Code",
     "colVisaCenter": "Visa centre",
-    "colCampusFrance": "Campus France",
+    "colCampusFrance": "Country visa proc.",
     "required": "Required",
     "notRequired": "Not required"
   },
@@ -797,7 +797,7 @@
     "equivEquivalent": "Equivalent: {{level}}",
     "equivRefShort": "Ref. {{ref}}",
     "equivStatusLabel": "Status: {{status}}",
-    "wishCardTitle": "Campus France wishes ({{count}}/{{max}})",
+    "wishCardTitle": "School applications ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— or free text below —",
     "wishEntry": "Wish #{{order}} —",
     "wishStatusLabel": "status: {{status}}"

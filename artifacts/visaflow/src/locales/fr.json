@@ -148,7 +148,7 @@
     "noDeadlines": "Aucune échéance enregistrée pour votre nationalité.",
     "today": "Aujourd'hui",
     "daysLeft": "J−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "Procédure visa",
     "deadlineType_visa_appointment": "Rendez-vous visa",
     "deadlineType_school_application": "Candidature école",
     "deadlineType_other": "Autre",
@@ -162,7 +162,7 @@
     "editEntry": "Modifier l'échéance",
     "newEntry": "Nouvelle échéance",
     "newEntryBtn": "Nouvelle échéance",
-    "adminSubtitle": "Échéances Campus France et visa par nationalité.",
+    "adminSubtitle": "Échéances procédure visa et admission par nationalité.",
     "adminTitle": "Calendrier des admissions",
     "entryCount": "{{n}} échéance(s)",
     "sortOrder": "Ordre d'affichage",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "Mes rendez-vous",
-    "subtitle": "Vos entretiens Campus France et dépôts consulaires.",
+    "subtitle": "Vos rendez-vous TLS/VFS, consulat et démarches biométriques.",
     "upcoming": "À venir ({{n}})",
     "past": "Passés ({{n}})",
     "noUpcoming": "Aucun rendez-vous à venir",
@@ -405,7 +405,7 @@
     "unknownError": "Erreur inconnue"
   },
   "steps": {
-    "subtitle": "Les étapes de votre dossier visa (école privée, hors Campus France).",
+    "subtitle": "Les 16 étapes de votre dossier visa étudiant (école privée).",
     "interviewCtaTitle": "Entraînez-vous à l'entretien de motivation",
     "interviewCtaBody": "Le consulat ou l'école peut vous questionner sur votre projet, vos finances et votre formation. Utilisez le simulateur pour vous préparer.",
     "interviewCtaButton": "Lancer le simulateur"
@@ -588,7 +588,7 @@
     "missingDocs": "Documents manquants",
     "rejectedDocs": "Documents rejetés",
     "overdueTasks": "Tâches en retard",
-    "missingCF": "Étapes Campus France manquantes",
+    "missingCF": "Étapes procédure visa (pays) manquantes",
     "missingAppts": "Aucun rendez-vous à venir",
     "visaRefusal": "Antécédent de refus de visa",
     "yes": "Oui",
@@ -602,11 +602,11 @@
     "noMessages": "Aucun message pour l'instant",
     "checklistUpdated": "Liste mise à jour :\n+ {{added}} document(s) ajouté(s)\n- {{removed}} retiré(s)\n{{skipped}} étape(s) non requises\n{{restored}} étape(s) restaurée(s)",
     "checklistRefreshError": "Erreur lors du rafraîchissement.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "Proc. visa pays",
+    "aptCampusFrance": "Proc. visa pays",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "Le dossier ne peut pas être soumis.",
-    "campusFranceRequired": "(Campus France requis)"
+    "campusFranceRequired": "(procédure visa pays requise)"
   },
   "docCategory": {
     "passeport": "Passeport",
@@ -615,7 +615,7 @@
     "releve_notes": "Relevé de notes",
     "test_langue": "Test de langue",
     "lettre_admission": "Lettre d'admission",
-    "attestation_campus_france": "Attestation Campus France",
+    "attestation_campus_france": "Attestation procédure visa",
     "justificatif_financier": "Justificatif financier",
     "justificatif_hebergement": "Justificatif d'hébergement",
     "assurance": "Assurance santé",
@@ -649,7 +649,7 @@
     "saved": "Enregistré ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "Proc. visa pays",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "Préfecture",
@@ -688,7 +688,7 @@
     "addCountry": "Ajouter un pays",
     "colCode": "Code",
     "colVisaCenter": "Centre visa",
-    "colCampusFrance": "Campus France",
+    "colCampusFrance": "Proc. visa pays",
     "required": "Requis",
     "notRequired": "Non requis"
   },
@@ -797,7 +797,7 @@
     "equivEquivalent": "Équivalent : {{level}}",
     "equivRefShort": "Réf. {{ref}}",
     "equivStatusLabel": "Statut : {{status}}",
-    "wishCardTitle": "Vœux Études en France ({{count}}/{{max}})",
+    "wishCardTitle": "Candidatures école ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— ou texte libre ci-dessous —",
     "wishEntry": "Vœu n°{{order}} —",
     "wishStatusLabel": "statut : {{status}}"
