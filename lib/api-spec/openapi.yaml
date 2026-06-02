@@ -4176,12 +4176,129 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CountStat"
+        byReadinessLevel:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+          description: Visa preparation distribution (same buckets as risk, feu tricolore)
       required:
         - byStatus
         - byRiskLevel
         - byCountry
         - bySchool
         - byIntakeMonth
+
+    ReadinessLevel:
+      type: string
+      enum: [low, medium, high]
+      description: Visa preparation level (low=green, medium=amber, high=red)
+
+    VisaReadiness:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        level:
+          $ref: "#/components/schemas/ReadinessLevel"
+        recommendations:
+          type: array
+          items:
+            type: string
+      required:
+        - score
+        - level
+        - recommendations
+
+    ProactiveMilestone:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [done, current, upcoming, overdue, blocked]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+        href:
+          type: ["string", "null"]
+        urgency:
+          type: string
+          enum: [low, medium, high]
+        kind:
+          type: string
+          enum: [step, document, appointment, deadline, intake]
+      required:
+        - id
+        - label
+        - status
+        - urgency
+        - kind
+
+    PlaybookStep:
+      type: object
+      properties:
+        order:
+          type: integer
+        title:
+          type: string
+        detail:
+          type: string
+      required:
+        - order
+        - title
+        - detail
+
+    Playbook:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        when:
+          type: string
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlaybookStep"
+      required:
+        - id
+        - title
+        - when
+        - steps
+
+    DocumentPrecheckSeverity:
+      type: string
+      enum: [error, warning]
+
+    DocumentPrecheckWarning:
+      type: object
+      properties:
+        code:
+          type: string
+        severity:
+          $ref: "#/components/schemas/DocumentPrecheckSeverity"
+        message:
+          type: string
+      required:
+        - code
+        - severity
+        - message
+
+    DocumentPrecheckResponse:
+      type: object
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentPrecheckWarning"
+      required:
+        - warnings
 
     CountStat:
       type: object
