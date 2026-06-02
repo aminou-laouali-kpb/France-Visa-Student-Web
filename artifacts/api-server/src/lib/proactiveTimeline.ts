@@ -7,7 +7,7 @@ import {
   intakeCalendarEntriesTable,
   type StudentStep,
 } from "@workspace/db";
-import { eq, and, gte, asc } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { documentCategoryIsMissing } from "./risk";
 
 export type MilestoneStatus = "done" | "current" | "upcoming" | "overdue" | "blocked";
@@ -15,11 +15,19 @@ export type MilestoneStatus = "done" | "current" | "upcoming" | "overdue" | "blo
 export interface ProactiveMilestone {
   id: string;
   label: string;
+  intakeCalendarLabel?: string;
+  intakeCalendarEntryId?: number;
   status: MilestoneStatus;
   dueDate: string | null;
   href: string | null;
   urgency: "low" | "medium" | "high";
   kind: "step" | "document" | "appointment" | "deadline" | "intake";
+}
+
+export interface DashboardNextAction {
+  label: string;
+  href: string;
+  urgency: "low" | "medium" | "high";
 }
 
 const DEPARTURE_OFFSET_DAYS = 30;
@@ -115,21 +123,19 @@ export async function getProactiveMilestones(studentId: number): Promise<Proacti
     const calendarRows = await db
       .select()
       .from(intakeCalendarEntriesTable)
-      .where(
-        and(
-          eq(intakeCalendarEntriesTable.nationalityCode, code),
-          gte(intakeCalendarEntriesTable.windowEnd, today),
-        ),
-      )
+      .where(eq(intakeCalendarEntriesTable.nationalityCode, code))
       .orderBy(asc(intakeCalendarEntriesTable.windowEnd))
-      .limit(4);
+      .limit(8);
     for (const row of calendarRows) {
       const due = row.windowEnd;
       const days = Math.floor((new Date(due).getTime() - now.getTime()) / 86400000);
-      const st: MilestoneStatus = days < 0 ? "overdue" : days <= 21 ? "current" : "upcoming";
+      const st: MilestoneStatus =
+        due < today ? "overdue" : days <= 21 ? "current" : "upcoming";
       milestones.push({
         id: `cal-${row.id}`,
         label: row.label,
+        intakeCalendarLabel: row.label,
+        intakeCalendarEntryId: row.id,
         status: st,
         dueDate: due,
         href: "/student",
@@ -203,4 +209,64 @@ export async function getProactiveMilestones(studentId: number): Promise<Proacti
       return 0;
     })
     .slice(0, 12);
+}
+
+export function milestonesToNextActionItems(
+  milestones: ProactiveMilestone[],
+): DashboardNextAction[] {
+  const seen = new Set<string>();
+  const items: DashboardNextAction[] = [];
+  for (const m of milestones) {
+    const actionable =
+      m.status === "overdue" ||
+      m.status === "blocked" ||
+      (m.status === "current" && m.urgency !== "low");
+    if (!actionable || !m.href) continue;
+    const key = `${m.href}:${m.label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    items.push({ label: m.label, href: m.href, urgency: m.urgency });
+  }
+  return items.slice(0, 6);
+}
+
+function proactiveDedupeType(studentId: number): string {
+  return `proactive.timeline:${new Date().toISOString().slice(0, 10)}:${studentId}`;
+}
+
+export async function runProactiveTimelineNotifySweep(
+  studentId: number,
+  userId: number,
+  milestones: ProactiveMilestone[],
+  readinessLevel: "low" | "medium" | "high",
+): Promise<number> {
+  const overdue = milestones.filter((m) => m.status === "overdue").length;
+  const blocked = milestones.filter((m) => m.status === "blocked").length;
+  if (overdue === 0 && blocked === 0 && readinessLevel !== "high") return 0;
+
+  const { db: database, notificationsTable } = await import("@workspace/db");
+  const { eq, and } = await import("drizzle-orm");
+  const dedupeType = proactiveDedupeType(studentId);
+  const [existing] = await database
+    .select({ id: notificationsTable.id })
+    .from(notificationsTable)
+    .where(and(eq(notificationsTable.userId, userId), eq(notificationsTable.type, dedupeType)))
+    .limit(1);
+  if (existing) return 0;
+
+  const headline =
+    milestones.find((m) => m.status === "overdue") ??
+    milestones.find((m) => m.status === "blocked") ??
+    milestones.find((m) => m.status === "current" && m.urgency === "high");
+  const { notify } = await import("./notify");
+  await notify({
+    userId,
+    studentId,
+    title: overdue > 0 ? "Échéances dossier en retard" : "Action requise sur votre dossier",
+    message: headline
+      ? `Votre dossier nécessite une attention prioritaire. Prochain point : ${headline.label}.`
+      : "Votre dossier nécessite une attention prioritaire. Consultez votre tableau de bord.",
+    type: dedupeType,
+  });
+  return 1;
 }

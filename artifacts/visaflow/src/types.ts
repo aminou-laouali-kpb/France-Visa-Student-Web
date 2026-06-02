@@ -202,8 +202,9 @@ export interface StudentFormData {
   visaType?: "vls_ts" | "vls_t" | null;
   arrivalDate?: string | null;
   titreExpiryDate?: string | null;
+  refusalReasonCode?: string;
+  refusalNotes?: string;
 }
-
 
 export interface StudentDashboardData {
   student: Student | null;
@@ -218,6 +219,7 @@ export interface StudentDashboardData {
   nextActions?: string[];
   visaReadiness?: VisaReadiness;
   timeline?: ProactiveMilestone[];
+  nextActionItems?: { label: string; href: string; urgency: "low" | "medium" | "high" }[];
   recentComments?: Comment[];
   postArrivalSteps?: PostArrivalStep[];
 }
