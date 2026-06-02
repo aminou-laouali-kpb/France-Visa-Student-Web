@@ -602,6 +602,18 @@ router.patch(
           });
           return;
         }
+        if (!isOverride) {
+          const docs = await db
+            .select()
+            .from(documentsTable)
+            .where(eq(documentsTable.studentId, studentId));
+          const { visaStepGateMessage } = await import("../lib/risk");
+          const gateMsg = visaStepGateMessage(docs, existingStep.stepName);
+          if (gateMsg) {
+            res.status(422).json({ error: "visa_step_gate", message: gateMsg });
+            return;
+          }
+        }
       }
       if (status === "blocked" && !blockedReason) {
         res.status(400).json({ error: "blockedReason is required when status is blocked" });
