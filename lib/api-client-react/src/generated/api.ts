@@ -59,6 +59,7 @@ import type {
   Document,
   DocumentMatrixEntry,
   DocumentMatrixReference,
+  DocumentPrecheckResponse,
   DocumentReview,
   DownloadUrlResponse,
   EefWish,
@@ -89,6 +90,7 @@ import type {
   MotivationLetter,
   MotivationLetterVersion,
   Notification,
+  Playbook,
   PortfolioStats,
   PostArrivalStep,
   PriorSchoolingEntry,
@@ -2218,6 +2220,94 @@ export const useUpdateChecklistItem = <
 > => {
   return useMutation(getUpdateChecklistItemMutationOptions(options));
 };
+
+export const getGetStudentDocumentPrecheckUrl = (studentId: number) => {
+  return `/api/students/${studentId}/document-precheck`;
+};
+
+export const getStudentDocumentPrecheck = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<DocumentPrecheckResponse> => {
+  return customFetch<DocumentPrecheckResponse>(
+    getGetStudentDocumentPrecheckUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetStudentDocumentPrecheckQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/document-precheck`] as const;
+};
+
+export const getGetStudentDocumentPrecheckQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetStudentDocumentPrecheckQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStudentDocumentPrecheck>>
+  > = ({ signal }) =>
+    getStudentDocumentPrecheck(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStudentDocumentPrecheckQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStudentDocumentPrecheck>>
+>;
+export type GetStudentDocumentPrecheckQueryError = ErrorType<unknown>;
+
+export function useGetStudentDocumentPrecheck<
+  TData = Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStudentDocumentPrecheckQueryOptions(
+    studentId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List documents for student
@@ -4816,6 +4906,88 @@ export const useRecalculateRiskScore = <
 > => {
   return useMutation(getRecalculateRiskScoreMutationOptions(options));
 };
+
+export const getListStudentPlaybooksUrl = (studentId: number) => {
+  return `/api/students/${studentId}/playbooks`;
+};
+
+export const listStudentPlaybooks = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<Playbook[]> => {
+  return customFetch<Playbook[]>(getListStudentPlaybooksUrl(studentId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStudentPlaybooksQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/playbooks`] as const;
+};
+
+export const getListStudentPlaybooksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStudentPlaybooks>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentPlaybooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListStudentPlaybooksQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStudentPlaybooks>>
+  > = ({ signal }) =>
+    listStudentPlaybooks(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStudentPlaybooks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStudentPlaybooksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStudentPlaybooks>>
+>;
+export type ListStudentPlaybooksQueryError = ErrorType<unknown>;
+
+export function useListStudentPlaybooks<
+  TData = Awaited<ReturnType<typeof listStudentPlaybooks>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentPlaybooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStudentPlaybooksQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Student's own dashboard summary

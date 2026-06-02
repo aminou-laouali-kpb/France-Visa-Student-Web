@@ -123,6 +123,15 @@ export interface CreateProgramBody {
   duration?: string;
 }
 
+export type ReadinessLevel =
+  (typeof ReadinessLevel)[keyof typeof ReadinessLevel];
+
+export const ReadinessLevel = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
 export interface StudentSummary {
   id: number;
   /** @nullable */
@@ -164,6 +173,9 @@ export interface StudentSummary {
   currentStepName?: string | null;
   /** @nullable */
   lastActivityAt?: string | null;
+  readinessLevel?: ReadinessLevel;
+  /** @nullable */
+  readinessScore?: number | null;
   createdAt: string;
 }
 
@@ -842,6 +854,55 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface VisaReadiness {
+  score: number;
+  level: ReadinessLevel;
+  recommendations: string[];
+}
+
+export type ProactiveMilestoneStatus =
+  (typeof ProactiveMilestoneStatus)[keyof typeof ProactiveMilestoneStatus];
+
+export const ProactiveMilestoneStatus = {
+  done: "done",
+  current: "current",
+  upcoming: "upcoming",
+  overdue: "overdue",
+  blocked: "blocked",
+} as const;
+
+export type ProactiveMilestoneUrgency =
+  (typeof ProactiveMilestoneUrgency)[keyof typeof ProactiveMilestoneUrgency];
+
+export const ProactiveMilestoneUrgency = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export type ProactiveMilestoneKind =
+  (typeof ProactiveMilestoneKind)[keyof typeof ProactiveMilestoneKind];
+
+export const ProactiveMilestoneKind = {
+  step: "step",
+  document: "document",
+  appointment: "appointment",
+  deadline: "deadline",
+  intake: "intake",
+} as const;
+
+export interface ProactiveMilestone {
+  id: string;
+  label: string;
+  status: ProactiveMilestoneStatus;
+  /** @nullable */
+  dueDate?: string | null;
+  /** @nullable */
+  href?: string | null;
+  urgency: ProactiveMilestoneUrgency;
+  kind: ProactiveMilestoneKind;
+}
+
 export interface StudentDashboard {
   studentId: number;
   completionScore: number;
@@ -856,6 +917,8 @@ export interface StudentDashboard {
   riskScore?: RiskScore;
   alerts: string[];
   postArrivalSteps?: PostArrivalStep[];
+  visaReadiness?: VisaReadiness;
+  timeline?: ProactiveMilestone[];
 }
 
 export interface AdvisorDashboard {
@@ -866,6 +929,9 @@ export interface AdvisorDashboard {
   highRiskStudents: number;
   todayAppointments: number;
   unresponsiveStudents: number;
+  readinessGreen?: number;
+  readinessAmber?: number;
+  readinessRed?: number;
   urgentStudents: StudentSummary[];
   recentActivity: AuditLog[];
 }
@@ -900,6 +966,38 @@ export interface PortfolioStats {
   byCountry: CountStat[];
   bySchool: CountStat[];
   byIntakeMonth: CountStat[];
+  byReadinessLevel?: CountStat[];
+}
+
+export interface PlaybookStep {
+  order: number;
+  title: string;
+  detail: string;
+}
+
+export interface Playbook {
+  id: string;
+  title: string;
+  when: string;
+  steps: PlaybookStep[];
+}
+
+export type DocumentPrecheckSeverity =
+  (typeof DocumentPrecheckSeverity)[keyof typeof DocumentPrecheckSeverity];
+
+export const DocumentPrecheckSeverity = {
+  error: "error",
+  warning: "warning",
+} as const;
+
+export interface DocumentPrecheckWarning {
+  code: string;
+  severity: DocumentPrecheckSeverity;
+  message: string;
+}
+
+export interface DocumentPrecheckResponse {
+  warnings: DocumentPrecheckWarning[];
 }
 
 export interface WorkflowTemplate {
@@ -2349,6 +2447,7 @@ export type ListStudentsParams = {
   schoolId?: number | null;
   search?: string;
   riskLevel?: string;
+  readinessLevel?: ReadinessLevel;
 };
 
 export type ListDocumentsParams = {
