@@ -418,6 +418,17 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
       percentage: Math.round((count / total) * 100),
     }));
 
+  const refused = students.filter((s) => s.status === "visa_refused");
+  const refusedTotal = refused.length || 1;
+  const byRefusalMotif: Record<string, number> = {};
+  const byRefusalCountry: Record<string, number> = {};
+  for (const s of refused) {
+    const motif = s.refusalReasonCode?.trim() || "—";
+    byRefusalMotif[`Motif ${motif}`] = (byRefusalMotif[`Motif ${motif}`] ?? 0) + 1;
+    const c = countries.find((x) => x.id === s.countryId)?.name ?? "—";
+    byRefusalCountry[c] = (byRefusalCountry[c] ?? 0) + 1;
+  }
+  const refusalStat = (g: Record<string, number>) => Object.entries(g).map(([label, count]) => ({ label, count, percentage: Math.round((count / refusedTotal) * 100) })).sort((a, b) => b.count - a.count);
   const payload = GetAdminDashboardResponse.parse({
     totalStudents: students.length,
     totalAdvisors: users.filter((u) => u.role === "advisor" && u.isActive).length,
@@ -440,6 +451,8 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     byStep: stat(byStep),
     byAdvisor: stat(byAdvisor),
     byIntakeMonth,
+    visaRefusedByMotif: refusalStat(byRefusalMotif),
+    visaRefusedByCountry: refusalStat(byRefusalCountry),
     recentAuditLogs: recentLogs,
   });
   res.json(payload);
@@ -494,6 +507,11 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
   for (const r of risks) {
     byRiskLevel[r.level] = (byRiskLevel[r.level] ?? 0) + 1;
   }
+  const refusedP = students.filter((s) => s.status === "visa_refused");
+  const refusedTotalP = refusedP.length || 1;
+  const byRefusalMotifP: Record<string, number> = {};
+  for (const s of refusedP) { const motif = s.refusalReasonCode?.trim() || "—"; byRefusalMotifP[`Motif ${motif}`] = (byRefusalMotifP[`Motif ${motif}`] ?? 0) + 1; }
+  const refusalStatP = (g: Record<string, number>) => Object.entries(g).map(([label, count]) => ({ label, count, percentage: Math.round((count / refusedTotalP) * 100) })).sort((a, b) => b.count - a.count);
   const payload = GetPortfolioStatsResponse.parse({
     byStatus: tally(byStatus),
     byRiskLevel: tally(byRiskLevel),
@@ -507,6 +525,7 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
         count,
         percentage: Math.round((count / total) * 100),
       })),
+    visaRefusedByMotif: refusalStatP(byRefusalMotifP),
   });
   res.json({
     ...payload,

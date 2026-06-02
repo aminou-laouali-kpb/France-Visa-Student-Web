@@ -13,7 +13,8 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
-import { ProactiveTimeline } from "@/components/ProactiveTimeline";
+import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
+import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
 import {
   AlertTriangle,
   ArrowRight,
@@ -114,7 +115,9 @@ export function StudentDashboard() {
     (c: Comment) => !c.isInternal && c.authorRole !== "student",
   );
 
-  const visaPrep = data.visaReadiness;
+  const showRefusalMap = ["active", "submitted", "blocked", "visa_refused"].includes(
+    data.student.status,
+  );
 
   return (
     <div className="space-y-6" data-testid="student-dashboard">
@@ -124,57 +127,6 @@ export function StudentDashboard() {
           {t("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
         </p>
       </div>
-
-      {visaPrep && (
-        <Card className="border-blue-200 bg-blue-50/50" data-testid="card-visa-readiness">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Stamp className="w-4 h-4 text-blue-600" />
-              {t("dash.visaPrepTitle", { defaultValue: "Préparation visa" })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-2xl font-bold text-slate-900">{visaPrep.score}/100</span>
-              <span
-                className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                  visaPrep.level === "high"
-                    ? "bg-red-100 text-red-800"
-                    : visaPrep.level === "medium"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-emerald-100 text-emerald-800"
-                }`}
-              >
-                {visaPrep.level === "high"
-                  ? t("dash.riskHigh", { defaultValue: "Priorité haute" })
-                  : visaPrep.level === "medium"
-                    ? t("dash.riskMedium", { defaultValue: "À surveiller" })
-                    : t("dash.riskLow", { defaultValue: "Bon niveau" })}
-              </span>
-            </div>
-            <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
-              {visaPrep.recommendations.slice(0, 3).map((rec, i) => (
-                <li key={i}>{rec}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {(data.timeline?.length ?? 0) > 0 && (
-        <Card data-testid="card-proactive-timeline">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              {t("timeline.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProactiveTimeline milestones={data.timeline!} />
-          </CardContent>
-        </Card>
-      )}
-
 
       <Card>
         <CardContent className="p-6">
@@ -199,6 +151,8 @@ export function StudentDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {showRefusalMap && <RefusalReasonsCard />}
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card data-testid="card-next-actions">

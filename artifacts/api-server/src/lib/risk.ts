@@ -9,8 +9,15 @@ import {
   type Document,
   type RiskScore,
   type Student,
+  financialProofsTable,
+  countriesTable,
+  type VisaRefusalMotifCode,
 } from "@workspace/db";
 import { eq, and, lt, ne } from "drizzle-orm";
+import { computeRefusalMotifFlags, refusalMotifFlagIds } from "./refusalRisk";
+
+const MOTIF_SCORE: Record<VisaRefusalMotifCode, number> = {"1":12,"2":18,"3":10,"4":8,"5":8,"6":20,"7":10};
+const MOTIF_REC: Record<VisaRefusalMotifCode, string> = {"1":"Renforcer identité/passeport","2":"Compléter justificatifs financiers","3":"Assurance conforme","4":"Clarifier le projet","5":"Prouver admission","6":"Finaliser Campus France","7":"Renouveler pièces expirées"};
 
 const STEP_DELAY_THRESHOLD_DAYS = 60;
 const DEPARTURE_OFFSET_DAYS = 30;
@@ -235,6 +242,27 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     appointmentOutsideWindow = !inWindow;
   }
 
+  const country = student.countryId
+    ? (await db.select().from(countriesTable).where(eq(countriesTable.id, student.countryId)))[0]
+    : null;
+  const cfSteps = allSteps.filter((s) => s.isCampusFranceStep);
+  const missingCampusFrance =
+    !!country?.requiresCampusFrance &&
+    cfSteps.length > 0 &&
+    cfSteps.some((s) => s.status === "not_started" || s.status === "blocked");
+
+  const financialProofs = await db
+    .select()
+    .from(financialProofsTable)
+    .where(eq(financialProofsTable.studentId, studentId));
+  const refusalMotifCodes = computeRefusalMotifFlags({
+    docs,
+    missingCampusFrance,
+    hasVisaRefusalHistory: student.hasVisaRefusalHistory,
+    financialProofCount: financialProofs.length,
+  });
+  const refusalMotifFlags = refusalMotifFlagIds(refusalMotifCodes);
+
   const profilePct = profileCompletenessPct(student);
   const lowProfileCompleteness =
     hasStudentProgramProfile(student) && profilePct < PROFILE_COMPLETENESS_THRESHOLD;
@@ -263,12 +291,14 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
   if (signals.missingTlsAppointment) score += 12;
   if (signals.appointmentOutsideWindow) score += 15;
   if (signals.hasVisaRefusal) score += 20;
+  for (const code of refusalMotifCodes) score += MOTIF_SCORE[code];
   if (signals.lowProfileCompleteness) score += 10;
   score = Math.min(100, score);
 
   const level: "low" | "medium" | "high" = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
 
   const recommendations = buildRecommendations(signals, daysToIntake);
+  for (const code of refusalMotifCodes) recommendations.push(MOTIF_REC[code]);
 
   const values = {
     studentId,
@@ -277,9 +307,10 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     missingDocuments: missingDocs,
     overdueTasks: overdueTasks.length,
     rejectedDocuments: rejectedDocs,
-    missingCampusFrance: false,
+    missingCampusFrance,
     missingAppointments: missingTlsAppointment || appointmentOutsideWindow,
     hasVisaRefusal: student.hasVisaRefusalHistory,
+    refusalMotifFlags,
     recommendations,
     calculatedAt: new Date(),
   };

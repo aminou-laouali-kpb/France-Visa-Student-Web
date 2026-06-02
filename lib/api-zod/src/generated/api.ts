@@ -362,6 +362,8 @@ export const GetStudentResponse = zod.object({
       .nullish(),
     arrivalDate: zod.string().nullish(),
     titreExpiryDate: zod.string().nullish(),
+    refusalReasonCode: zod.string().nullish(),
+    refusalNotes: zod.string().nullish(),
     createdAt: zod.coerce.date(),
   }),
   steps: zod.array(
@@ -521,6 +523,7 @@ export const GetStudentResponse = zod.object({
       missingCampusFrance: zod.boolean(),
       missingAppointments: zod.boolean(),
       hasVisaRefusal: zod.boolean(),
+      refusalMotifFlags: zod.array(zod.string()).optional(),
       recommendations: zod.array(zod.string()),
       calculatedAt: zod.coerce.date(),
     })
@@ -630,6 +633,8 @@ export const UpdateStudentResponse = zod.object({
     .nullish(),
   arrivalDate: zod.string().nullish(),
   titreExpiryDate: zod.string().nullish(),
+  refusalReasonCode: zod.string().nullish(),
+  refusalNotes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -673,6 +678,8 @@ export const AssignStudentResponse = zod.object({
     .nullish(),
   arrivalDate: zod.string().nullish(),
   titreExpiryDate: zod.string().nullish(),
+  refusalReasonCode: zod.string().nullish(),
+  refusalNotes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -1593,6 +1600,7 @@ export const GetStudentRiskScoreResponse = zod.object({
   missingCampusFrance: zod.boolean(),
   missingAppointments: zod.boolean(),
   hasVisaRefusal: zod.boolean(),
+  refusalMotifFlags: zod.array(zod.string()).optional(),
   recommendations: zod.array(zod.string()),
   calculatedAt: zod.coerce.date(),
 });
@@ -1615,6 +1623,7 @@ export const RecalculateRiskScoreResponse = zod.object({
   missingCampusFrance: zod.boolean(),
   missingAppointments: zod.boolean(),
   hasVisaRefusal: zod.boolean(),
+  refusalMotifFlags: zod.array(zod.string()).optional(),
   recommendations: zod.array(zod.string()),
   calculatedAt: zod.coerce.date(),
 });
@@ -1728,6 +1737,7 @@ export const GetStudentDashboardResponse = zod.object({
       missingCampusFrance: zod.boolean(),
       missingAppointments: zod.boolean(),
       hasVisaRefusal: zod.boolean(),
+      refusalMotifFlags: zod.array(zod.string()).optional(),
       recommendations: zod.array(zod.string()),
       calculatedAt: zod.coerce.date(),
     })
@@ -1907,6 +1917,24 @@ export const GetAdminDashboardResponse = zod.object({
     }),
   ),
   visaRefused: zod.number(),
+  visaRefusedByMotif: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
+  visaRefusedByCountry: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -1957,6 +1985,13 @@ export const GetPortfolioStatsResponse = zod.object({
       }),
     )
     .optional(),
+  visaRefusedByMotif: zod.array(
+    zod.object({
+      label: zod.string(),
+      count: zod.number(),
+      percentage: zod.number(),
+    }),
+  ),
 });
 
 /**

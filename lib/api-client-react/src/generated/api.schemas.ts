@@ -235,6 +235,10 @@ export interface Student {
   arrivalDate?: string | null;
   /** @nullable */
   titreExpiryDate?: string | null;
+  /** @nullable */
+  refusalReasonCode?: string | null;
+  /** @nullable */
+  refusalNotes?: string | null;
   createdAt: string;
 }
 
@@ -493,6 +497,7 @@ export interface RiskScore {
   missingCampusFrance: boolean;
   missingAppointments: boolean;
   hasVisaRefusal: boolean;
+  refusalMotifFlags?: string[];
   recommendations: string[];
   calculatedAt: string;
 }
@@ -958,6 +963,8 @@ export interface AdminDashboard {
   byIntakeMonth: CountStat[];
   recentAuditLogs: AuditLog[];
   visaRefused: number;
+  visaRefusedByMotif?: CountStat[];
+  visaRefusedByCountry?: CountStat[];
 }
 
 export interface PortfolioStats {
@@ -967,6 +974,7 @@ export interface PortfolioStats {
   bySchool: CountStat[];
   byIntakeMonth: CountStat[];
   byReadinessLevel?: CountStat[];
+  visaRefusedByMotif: CountStat[];
 }
 
 export interface PlaybookStep {
