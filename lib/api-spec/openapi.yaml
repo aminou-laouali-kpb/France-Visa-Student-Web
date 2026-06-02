@@ -62,6 +62,8 @@ tags:
     description: TOTP two-factor authentication
   - name: gdpr
     description: GDPR data export and erasure
+  - name: playbooks
+    description: Advisor playbooks (SOP) catalog and admin CRUD
 
 paths:
   /healthz:
@@ -1251,6 +1253,7 @@ paths:
     get:
       operationId: listStudentPlaybooks
       tags: [students]
+      summary: Contextual playbooks for a student dossier (staff)
       parameters:
         - name: studentId
           in: path
@@ -1263,9 +1266,105 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Playbook"
+                $ref: "#/components/schemas/StudentPlaybooksResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /playbooks:
+    get:
+      operationId: listPlaybooksAdmin
+      tags: [playbooks]
+      summary: List playbooks catalog (admin)
+      responses:
+        "200":
+          description: Playbook catalog
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookCatalogResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createPlaybook
+      tags: [playbooks]
+      summary: Create playbook (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlaybookRequest"
+      responses:
+        "201":
+          description: Created playbook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookAdmin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /playbooks/{playbookId}:
+    patch:
+      operationId: updatePlaybook
+      tags: [playbooks]
+      summary: Update playbook (admin)
+      parameters:
+        - name: playbookId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlaybookRequest"
+      responses:
+        "200":
+          description: Updated playbook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookAdmin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deletePlaybook
+      tags: [playbooks]
+      summary: Delete playbook (admin)
+      parameters:
+        - name: playbookId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # ─── DASHBOARD ───────────────────────────────────────────────────────────────
   /dashboard/student:
@@ -2878,6 +2977,18 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
     HealthStatus:
@@ -4272,8 +4383,9 @@ components:
 
     VisaReadiness:
       type: object
+      description: Visa preparation readiness (higher score = better prepared; distinct from risk score)
       properties:
-        score: { type: integer }
+        score: { type: integer, minimum: 0, maximum: 100 }
         level: { $ref: "#/components/schemas/ReadinessLevel" }
         recommendations:
           type: array
@@ -4316,6 +4428,101 @@ components:
           type: array
           items: { $ref: "#/components/schemas/PlaybookStep" }
       required: [id, title, when, steps]
+
+    StudentPlaybooksResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [static, database]
+        playbooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Playbook"
+      required: [source, playbooks]
+
+    PlaybookAdminStep:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
+        sortOrder: { type: integer }
+        checklist:
+          type: array
+          items: { type: string }
+      required: [title, body, sortOrder]
+
+    PlaybookAdmin:
+      type: object
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookAdminStep" }
+      required: [id, slug, title, phase, isActive, sortOrder, steps]
+
+    PlaybookCatalogResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [static, database]
+        playbooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlaybookAdmin"
+      required: [source, playbooks]
+
+    PlaybookStepInput:
+      type: object
+      properties:
+        title: { type: string }
+        body: { type: string }
+        sortOrder: { type: integer }
+        checklist:
+          type: array
+          items: { type: string }
+      required: [title, body]
+
+    CreatePlaybookRequest:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStepInput" }
+      required: [slug, title, phase]
+
+    UpdatePlaybookRequest:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStepInput" }
 
     DocumentPrecheckSeverity:
       type: string

@@ -154,6 +154,25 @@ export function visaStepGateMessage(docs: Document[], stepName: string): string 
   return `Impossible de valider « ${stepName} » : téléversez ${missing.join(" et ")} avant de poursuivre.`;
 }
 
+/** Higher score = better prepared for visa (inverse of risk score). */
+export function computeVisaReadinessFromRisk(risk: {
+  score: number;
+  recommendations?: string[] | null;
+}): {
+  score: number;
+  level: "low" | "medium" | "high";
+  recommendations: string[];
+} {
+  const score = Math.max(0, Math.min(100, 100 - risk.score));
+  const level: "low" | "medium" | "high" =
+    score >= 70 ? "high" : score >= 40 ? "medium" : "low";
+  return {
+    score,
+    level,
+    recommendations: risk.recommendations ?? [],
+  };
+}
+
 export async function getVisaReadinessSummary(studentId: number): Promise<{
   studentId: number;
   score: number;
@@ -161,12 +180,8 @@ export async function getVisaReadinessSummary(studentId: number): Promise<{
   recommendations: string[];
 }> {
   const risk = await calculateRiskScore(studentId);
-  return {
-    studentId,
-    score: risk.score,
-    level: risk.level,
-    recommendations: risk.recommendations ?? [],
-  };
+  const ready = computeVisaReadinessFromRisk(risk);
+  return { studentId, ...ready };
 }
 
 export async function calculateRiskScore(studentId: number): Promise<RiskScore> {

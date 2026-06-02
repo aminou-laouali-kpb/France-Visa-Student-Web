@@ -21,7 +21,8 @@ export interface MailMessage {
     | "appointment.created"
     | "student.assigned"
     | "visa.obtained"
-    | "visa.refused";
+    | "visa.refused"
+    | "proactive.timeline";
   meta?: Record<string, unknown>;
 }
 

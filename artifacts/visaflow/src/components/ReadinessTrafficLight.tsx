@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 export type ReadinessLevel = "low" | "medium" | "high" | null | undefined;
 
 const STYLES: Record<string, { dot: string; label: string }> = {
-  low: { dot: "bg-emerald-500", label: "text-emerald-800" },
+  high: { dot: "bg-emerald-500", label: "text-emerald-800" },
   medium: { dot: "bg-amber-500", label: "text-amber-800" },
-  high: { dot: "bg-red-500", label: "text-red-800" },
+  low: { dot: "bg-red-500", label: "text-red-800" },
 };
 
 export function ReadinessTrafficLight({
@@ -23,7 +23,7 @@ export function ReadinessTrafficLight({
   }
   const style = STYLES[level] ?? STYLES.medium;
   const labelKey =
-    level === "low"
+    level === "high"
       ? "readiness.green"
       : level === "medium"
         ? "readiness.amber"

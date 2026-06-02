@@ -1628,29 +1628,138 @@ export const RecalculateRiskScoreResponse = zod.object({
   calculatedAt: zod.coerce.date(),
 });
 
+/**
+ * @summary Contextual playbooks for a student dossier (staff)
+ */
 export const ListStudentPlaybooksParams = zod.object({
   studentId: zod.coerce.number(),
 });
 
-export const ListStudentPlaybooksResponseItem = zod.object({
-  id: zod.string(),
-  title: zod.string(),
-  when: zod.string(),
-  steps: zod.array(
+export const ListStudentPlaybooksResponse = zod.object({
+  source: zod.enum(["static", "database"]),
+  playbooks: zod.array(
     zod.object({
-      order: zod.number(),
+      id: zod.string(),
       title: zod.string(),
-      detail: zod.string(),
+      when: zod.string(),
+      steps: zod.array(
+        zod.object({
+          order: zod.number(),
+          title: zod.string(),
+          detail: zod.string(),
+        }),
+      ),
     }),
   ),
 });
-export const ListStudentPlaybooksResponse = zod.array(
-  ListStudentPlaybooksResponseItem,
-);
+
+/**
+ * @summary List playbooks catalog (admin)
+ */
+export const ListPlaybooksAdminResponse = zod.object({
+  source: zod.enum(["static", "database"]),
+  playbooks: zod.array(
+    zod.object({
+      id: zod.number(),
+      slug: zod.string(),
+      title: zod.string(),
+      description: zod.string().nullish(),
+      phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+      isActive: zod.boolean(),
+      sortOrder: zod.number(),
+      steps: zod.array(
+        zod.object({
+          id: zod.number().optional(),
+          title: zod.string(),
+          body: zod.string(),
+          sortOrder: zod.number(),
+          checklist: zod.array(zod.string()).optional(),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
+ * @summary Create playbook (admin)
+ */
+export const CreatePlaybookBody = zod.object({
+  slug: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+  isActive: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+  steps: zod
+    .array(
+      zod.object({
+        title: zod.string(),
+        body: zod.string(),
+        sortOrder: zod.number().optional(),
+        checklist: zod.array(zod.string()).optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * @summary Update playbook (admin)
+ */
+export const UpdatePlaybookParams = zod.object({
+  playbookId: zod.coerce.number(),
+});
+
+export const UpdatePlaybookBody = zod.object({
+  slug: zod.string().optional(),
+  title: zod.string().optional(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]).optional(),
+  isActive: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+  steps: zod
+    .array(
+      zod.object({
+        title: zod.string(),
+        body: zod.string(),
+        sortOrder: zod.number().optional(),
+        checklist: zod.array(zod.string()).optional(),
+      }),
+    )
+    .optional(),
+});
+
+export const UpdatePlaybookResponse = zod.object({
+  id: zod.number(),
+  slug: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+  isActive: zod.boolean(),
+  sortOrder: zod.number(),
+  steps: zod.array(
+    zod.object({
+      id: zod.number().optional(),
+      title: zod.string(),
+      body: zod.string(),
+      sortOrder: zod.number(),
+      checklist: zod.array(zod.string()).optional(),
+    }),
+  ),
+});
+
+/**
+ * @summary Delete playbook (admin)
+ */
+export const DeletePlaybookParams = zod.object({
+  playbookId: zod.coerce.number(),
+});
 
 /**
  * @summary Student's own dashboard summary
  */
+export const getStudentDashboardResponseVisaReadinessScoreMin = 0;
+export const getStudentDashboardResponseVisaReadinessScoreMax = 100;
+
 export const GetStudentDashboardResponse = zod.object({
   studentId: zod.number(),
   completionScore: zod.number(),
@@ -1771,11 +1880,17 @@ export const GetStudentDashboardResponse = zod.object({
     .optional(),
   visaReadiness: zod
     .object({
-      score: zod.number(),
+      score: zod
+        .number()
+        .min(getStudentDashboardResponseVisaReadinessScoreMin)
+        .max(getStudentDashboardResponseVisaReadinessScoreMax),
       level: zod.enum(["low", "medium", "high"]),
       recommendations: zod.array(zod.string()),
     })
-    .optional(),
+    .optional()
+    .describe(
+      "Visa preparation readiness (higher score = better prepared; distinct from risk score)",
+    ),
   timeline: zod
     .array(
       zod.object({

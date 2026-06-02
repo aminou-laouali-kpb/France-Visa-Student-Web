@@ -859,7 +859,14 @@ export interface AuditLog {
   createdAt: string;
 }
 
+/**
+ * Visa preparation readiness (higher score = better prepared; distinct from risk score)
+ */
 export interface VisaReadiness {
+  /**
+   * @minimum 0
+   * @maximum 100
+   */
   score: number;
   level: ReadinessLevel;
   recommendations: string[];
@@ -988,6 +995,111 @@ export interface Playbook {
   title: string;
   when: string;
   steps: PlaybookStep[];
+}
+
+export type StudentPlaybooksResponseSource =
+  (typeof StudentPlaybooksResponseSource)[keyof typeof StudentPlaybooksResponseSource];
+
+export const StudentPlaybooksResponseSource = {
+  static: "static",
+  database: "database",
+} as const;
+
+export interface StudentPlaybooksResponse {
+  source: StudentPlaybooksResponseSource;
+  playbooks: Playbook[];
+}
+
+export interface PlaybookAdminStep {
+  id?: number;
+  title: string;
+  body: string;
+  sortOrder: number;
+  checklist?: string[];
+}
+
+export type PlaybookAdminPhase =
+  (typeof PlaybookAdminPhase)[keyof typeof PlaybookAdminPhase];
+
+export const PlaybookAdminPhase = {
+  admission: "admission",
+  entretien: "entretien",
+  tls: "tls",
+  refus: "refus",
+} as const;
+
+export interface PlaybookAdmin {
+  id: number;
+  slug: string;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  phase: PlaybookAdminPhase;
+  isActive: boolean;
+  sortOrder: number;
+  steps: PlaybookAdminStep[];
+}
+
+export type PlaybookCatalogResponseSource =
+  (typeof PlaybookCatalogResponseSource)[keyof typeof PlaybookCatalogResponseSource];
+
+export const PlaybookCatalogResponseSource = {
+  static: "static",
+  database: "database",
+} as const;
+
+export interface PlaybookCatalogResponse {
+  source: PlaybookCatalogResponseSource;
+  playbooks: PlaybookAdmin[];
+}
+
+export interface PlaybookStepInput {
+  title: string;
+  body: string;
+  sortOrder?: number;
+  checklist?: string[];
+}
+
+export type CreatePlaybookRequestPhase =
+  (typeof CreatePlaybookRequestPhase)[keyof typeof CreatePlaybookRequestPhase];
+
+export const CreatePlaybookRequestPhase = {
+  admission: "admission",
+  entretien: "entretien",
+  tls: "tls",
+  refus: "refus",
+} as const;
+
+export interface CreatePlaybookRequest {
+  slug: string;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  phase: CreatePlaybookRequestPhase;
+  isActive?: boolean;
+  sortOrder?: number;
+  steps?: PlaybookStepInput[];
+}
+
+export type UpdatePlaybookRequestPhase =
+  (typeof UpdatePlaybookRequestPhase)[keyof typeof UpdatePlaybookRequestPhase];
+
+export const UpdatePlaybookRequestPhase = {
+  admission: "admission",
+  entretien: "entretien",
+  tls: "tls",
+  refus: "refus",
+} as const;
+
+export interface UpdatePlaybookRequest {
+  slug?: string;
+  title?: string;
+  /** @nullable */
+  description?: string | null;
+  phase?: UpdatePlaybookRequestPhase;
+  isActive?: boolean;
+  sortOrder?: number;
+  steps?: PlaybookStepInput[];
 }
 
 export type DocumentPrecheckSeverity =
@@ -2433,6 +2545,16 @@ export type UnauthorizedResponse = ErrorResponse;
  * Forbidden
  */
 export type ForbiddenResponse = ErrorResponse;
+
+/**
+ * Bad request
+ */
+export type BadRequestResponse = ErrorResponse;
+
+/**
+ * Not found
+ */
+export type NotFoundResponse = ErrorResponse;
 
 export type ListUsersParams = {
   role?: string;

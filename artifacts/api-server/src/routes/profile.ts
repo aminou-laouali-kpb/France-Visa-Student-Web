@@ -111,6 +111,7 @@ router.put(
 router.get("/students/:studentId/prior-schooling", requireAuth, async (req, res) => {
   const student = await loadStudentOr403(req, res);
   if (!student) return;
+  await ensureAdmissionWish(student);
   const rows = await db
     .select()
     .from(priorSchoolingEntriesTable)
@@ -417,6 +418,24 @@ router.delete(
     res.status(204).end();
   },
 );
+
+
+async function ensureAdmissionWish(student: { id: number; schoolId: number | null; programId: number | null }) {
+  const existing = await db
+    .select({ id: eefWishesTable.id })
+    .from(eefWishesTable)
+    .where(eq(eefWishesTable.studentId, student.id))
+    .limit(1);
+  if (existing.length > 0) return;
+  if (!student.schoolId && !student.programId) return;
+  await db.insert(eefWishesTable).values({
+    studentId: student.id,
+    wishOrder: 1,
+    schoolId: student.schoolId,
+    programId: student.programId,
+    status: "accepted",
+  });
+}
 
 // ─── EEF WISHES ─────────────────────────────────────────────────────────────
 router.get("/students/:studentId/eef-wishes", requireAuth, async (req, res) => {

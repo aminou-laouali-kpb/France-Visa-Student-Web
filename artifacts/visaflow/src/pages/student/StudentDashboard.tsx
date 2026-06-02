@@ -14,6 +14,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
 import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
+import { ProactiveTimeline } from "@/components/ProactiveTimeline";
+import { ReadinessTrafficLight } from "@/components/ReadinessTrafficLight";
 import {
   AlertTriangle,
   ArrowRight,
@@ -153,6 +155,42 @@ export function StudentDashboard() {
       </Card>
 
       {showRefusalMap && <RefusalReasonsCard />}
+
+      {(data.visaReadiness || (data.timeline?.length ?? 0) > 0) && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {data.visaReadiness && (
+            <Card data-testid="card-visa-readiness">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Stamp className="w-4 h-4 text-blue-600" />
+                  {t("dash.visaReadiness", { defaultValue: "Préparation visa" })}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ReadinessTrafficLight
+                  level={data.visaReadiness.level}
+                  score={data.visaReadiness.score}
+                />
+                {(data.visaReadiness.recommendations ?? []).slice(0, 3).map((rec, i) => (
+                  <p key={i} className="text-sm text-slate-700">
+                    {rec}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          {(data.timeline?.length ?? 0) > 0 && (
+            <Card data-testid="card-proactive-timeline">
+              <CardHeader>
+                <CardTitle className="text-base">{t("dash.timeline", { defaultValue: "Échéances" })}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProactiveTimeline milestones={data.timeline!} />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card data-testid="card-next-actions">

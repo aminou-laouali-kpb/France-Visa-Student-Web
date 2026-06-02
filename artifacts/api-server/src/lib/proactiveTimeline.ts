@@ -242,7 +242,7 @@ export async function runProactiveTimelineNotifySweep(
 ): Promise<number> {
   const overdue = milestones.filter((m) => m.status === "overdue").length;
   const blocked = milestones.filter((m) => m.status === "blocked").length;
-  if (overdue === 0 && blocked === 0 && readinessLevel !== "high") return 0;
+  if (overdue === 0 && blocked === 0 && readinessLevel !== "low") return 0;
 
   const { db: database, notificationsTable } = await import("@workspace/db");
   const { eq, and } = await import("drizzle-orm");
@@ -259,14 +259,21 @@ export async function runProactiveTimelineNotifySweep(
     milestones.find((m) => m.status === "blocked") ??
     milestones.find((m) => m.status === "current" && m.urgency === "high");
   const { notify } = await import("./notify");
+  const title =
+    overdue > 0 ? "Échéances dossier en retard" : "Action requise sur votre dossier";
+  const message = headline
+    ? `Votre dossier nécessite une attention prioritaire. Prochain point : ${headline.label}.`
+    : "Votre dossier nécessite une attention prioritaire. Consultez votre tableau de bord.";
+  const { studentSelfLink } = await import("./mailer");
   await notify({
     userId,
     studentId,
-    title: overdue > 0 ? "Échéances dossier en retard" : "Action requise sur votre dossier",
-    message: headline
-      ? `Votre dossier nécessite une attention prioritaire. Prochain point : ${headline.label}.`
-      : "Votre dossier nécessite une attention prioritaire. Consultez votre tableau de bord.",
+    title,
+    message,
     type: dedupeType,
+    event: "proactive.timeline",
+    emailSubject: title,
+    emailHtml: `<p>${message}</p><p><a href="${studentSelfLink()}">Ouvrir mon tableau de bord</a></p>`,
   });
   return 1;
 }
