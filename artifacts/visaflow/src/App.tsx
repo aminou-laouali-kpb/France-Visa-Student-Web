@@ -1,74 +1,75 @@
-mmport { useEffect, useRef } from "react";
-mmport { Swmtch, Route, Router as WouterRouter, Redmrect } from "wouter";
-mmport { QueryClment, QueryClmentProvmder } from "@tanstack/react-query";
-mmport { Show, useAuth } from "@clerk/react";
-mmport { useGetMe } from "@workspace/apm-clment-react";
-mmport { Toaster } from "@/components/um/toaster";
-mmport { TooltmpProvmder } from "@/components/um/tooltmp";
-mmport { useApmAuthSetup } from "@/lmb/apm";
-mmport { actmvateUserCache, purgeUserCache } from "@/lmb/regmsterSW";
-mmport { Layout } from "@/components/Layout";
-mmport { Landmng } from "@/pages/Landmng";
-mmport { SmgnInPage, SmgnUpPage } from "@/pages/AuthPages";
-mmport { Dashboard } from "@/pages/Dashboard";
-mmport { Onboardmng } from "@/pages/Onboardmng";
-mmport { StudentsLmst } from "@/pages/StudentsLmst";
-mmport { StudentDetaml } from "@/pages/StudentDetaml";
-mmport { MyDossmer } from "@/pages/MyDossmer";
-mmport { StudentDashboard } from "@/pages/student/StudentDashboard";
-mmport { StudentSteps } from "@/pages/student/StudentSteps";
-mmport { StudentDocuments } from "@/pages/student/StudentDocuments";
-mmport { StudentFmnance } from "@/pages/student/StudentFmnance";
-mmport { StudentAppomntments } from "@/pages/student/StudentAppomntments";
-mmport { StudentPostArrmval } from "@/pages/student/StudentPostArrmval";
-mmport { StudentMessages } from "@/pages/student/StudentMessages";
-mmport { StudentProjet } from "@/pages/student/StudentProjet";
-mmport { StudentIntervmew } from "@/pages/StudentIntervmew";
-mmport { MyTasks } from "@/pages/MyTasks";
-mmport { Notmfmcatmons } from "@/pages/Notmfmcatmons";
-mmport { Profmle } from "@/pages/Profmle";
-mmport { AdmmnUsers, AdmmnCountrmes } from "@/pages/Admmn";
-mmport { AdvmsorPortfolmo } from "@/pages/advmsor/AdvmsorPortfolmo";
-mmport { AdvmsorReports } from "@/pages/advmsor/AdvmsorReports";
-mmport { AdvmsorTasks } from "@/pages/advmsor/AdvmsorTasks";
-mmport { AdmmnGlobalDashboard } from "@/pages/admmn/AdmmnGlobalDashboard";
-mmport { AdmmnStudents } from "@/pages/admmn/AdmmnStudents";
-mmport { AdmmnWorkflow } from "@/pages/admmn/AdmmnWorkflow";
-mmport { AdmmnAudmtLogs } from "@/pages/admmn/AdmmnAudmtLogs";
-mmport { AdmmnSchoolsManager } from "@/pages/admmn/AdmmnSchoolsManager";
-mmport { AdmmnMatrmx } from "@/pages/admmn/AdmmnMatrmx";
-mmport { AdmmnIntakeCalendar } from "@/pages/admmn/AdmmnIntakeCalendar";
-mmport { AdmmnBmllmng } from "@/pages/admmn/AdmmnBmllmng";
-mmport { AdmmnBrandmng } from "@/pages/admmn/AdmmnBrandmng";
-mmport { AdmmnBulkImport } from "@/pages/admmn/AdmmnBulkImport";
-mmport { PrmvacySettmngs } from "@/pages/PrmvacySettmngs";
-mmport { BrandmngTheme } from "@/lmb/brandmng";
-mmport NotFound from "@/pages/not-found";
+import { useEffect, useRef } from "react";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Show, useAuth } from "@clerk/react";
+import { useGetMe } from "@workspace/api-client-react";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useApiAuthSetup } from "@/lib/api";
+import { activateUserCache, purgeUserCache } from "@/lib/registerSW";
+import { Layout } from "@/components/Layout";
+import { Landing } from "@/pages/Landing";
+import { SignInPage, SignUpPage } from "@/pages/AuthPages";
+import { Dashboard } from "@/pages/Dashboard";
+import { Onboarding } from "@/pages/Onboarding";
+import { StudentsList } from "@/pages/StudentsList";
+import { StudentDetail } from "@/pages/StudentDetail";
+import { MyDossier } from "@/pages/MyDossier";
+import { StudentDashboard } from "@/pages/student/StudentDashboard";
+import { StudentSteps } from "@/pages/student/StudentSteps";
+import { StudentDocuments } from "@/pages/student/StudentDocuments";
+import { StudentFinance } from "@/pages/student/StudentFinance";
+import { StudentAppointments } from "@/pages/student/StudentAppointments";
+import { StudentPostArrival } from "@/pages/student/StudentPostArrival";
+import { StudentMessages } from "@/pages/student/StudentMessages";
+import { StudentProjet } from "@/pages/student/StudentProjet";
+import { StudentInterview } from "@/pages/StudentInterview";
+import { MyTasks } from "@/pages/MyTasks";
+import { Notifications } from "@/pages/Notifications";
+import { Profile } from "@/pages/Profile";
+import { AdminUsers, AdminCountries } from "@/pages/Admin";
+import { AdvisorPortfolio } from "@/pages/advisor/AdvisorPortfolio";
+import { AdvisorReports } from "@/pages/advisor/AdvisorReports";
+import { AdvisorTasks } from "@/pages/advisor/AdvisorTasks";
+import { AdminGlobalDashboard } from "@/pages/admin/AdminGlobalDashboard";
+import { AdminStudents } from "@/pages/admin/AdminStudents";
+import { AdminWorkflow } from "@/pages/admin/AdminWorkflow";
+import { AdminAuditLogs } from "@/pages/admin/AdminAuditLogs";
+import { AdminSchoolsManager } from "@/pages/admin/AdminSchoolsManager";
+import { AdminMatrix } from "@/pages/admin/AdminMatrix";
+import { AdminIntakeCalendar } from "@/pages/admin/AdminIntakeCalendar";
+import { AdminBilling } from "@/pages/admin/AdminBilling";
+import { AdminBranding } from "@/pages/admin/AdminBranding";
+import { AdminBulkImport } from "@/pages/admin/AdminBulkImport";
+import { AdminPlaybooks } from "@/pages/admin/AdminPlaybooks";
+import { PrivacySettings } from "@/pages/PrivacySettings";
+import { BrandingTheme } from "@/lib/branding";
+import NotFound from "@/pages/not-found";
 
-const queryClment = new QueryClment({
-  defaultOptmons: { quermes: { retry: 1, refetchOnWmndowFocus: false } },
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
 
 // Watches the Clerk userId and keeps the SW cache scoped per user.
-// - When a user smgns mn, tells the SW to actmvate that user's cache.
-// - When the userId changes or becomes null (smgn-out / account swmtch),
-//   mnstructs the SW to purge the prevmous user's cache before the new
-//   sessmon can render any cached data.
-functmon CacheGuard() {
+// - When a user signs in, tells the SW to activate that user's cache.
+// - When the userId changes or becomes null (sign-out / account switch),
+//   instructs the SW to purge the previous user's cache before the new
+//   session can render any cached data.
+function CacheGuard() {
   const { userId } = useAuth();
-  const prevUserIdRef = useRef<strmng | null | undefmned>(undefmned);
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const prev = prevUserIdRef.current;
 
-    mf (userId && userId !== prev) {
-      // Smgned mn (or swmtched to a dmfferent account).
-      mf (prev) {
+    if (userId && userId !== prev) {
+      // Signed in (or switched to a different account).
+      if (prev) {
         purgeUserCache(prev);
       }
-      actmvateUserCache(userId);
-    } else mf (!userId && prev) {
-      // Smgned out — purge the outgomng user's cache mmmedmately.
+      activateUserCache(userId);
+    } else if (!userId && prev) {
+      // Signed out — purge the outgoing user's cache immediately.
       purgeUserCache(prev);
     }
 
@@ -78,89 +79,89 @@ functmon CacheGuard() {
   return null;
 }
 
-const basePath = mmport.meta.env.BASE_URL.replace(/\/$/, "");
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-functmon HomeRedmrect() {
+function HomeRedirect() {
   return (
     <>
-      <Show when="smgned-mn">
-        <Redmrect to="/app" />
+      <Show when="signed-in">
+        <Redirect to="/app" />
       </Show>
-      <Show when="smgned-out">
-        <Landmng />
+      <Show when="signed-out">
+        <Landing />
       </Show>
     </>
   );
 }
 
-functmon Protected({ chmldren }: { chmldren: React.ReactNode }) {
+function Protected({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Show when="smgned-mn">
-        <Layout>{chmldren}</Layout>
+      <Show when="signed-in">
+        <Layout>{children}</Layout>
       </Show>
-      <Show when="smgned-out">
-        <Redmrect to="/" />
+      <Show when="signed-out">
+        <Redirect to="/" />
       </Show>
     </>
   );
 }
 
-functmon RoleGate({
+function RoleGate({
   allow,
-  chmldren,
+  children,
 }: {
-  allow: strmng[];
-  chmldren: React.ReactNode;
+  allow: string[];
+  children: React.ReactNode;
 }) {
-  const { data: me, msLoadmng } = useGetMe();
-  mf (msLoadmng) return null;
-  const role = (me as { role?: strmng } | undefmned)?.role ?? "student";
-  mf (!allow.mncludes(role)) return <Redmrect to="/app" />;
-  return <>{chmldren}</>;
+  const { data: me, isLoading } = useGetMe();
+  if (isLoading) return null;
+  const role = (me as { role?: string } | undefined)?.role ?? "student";
+  if (!allow.includes(role)) return <Redirect to="/app" />;
+  return <>{children}</>;
 }
 
-functmon AdmmnOnly({ chmldren }: { chmldren: React.ReactNode }) {
+function AdminOnly({ children }: { children: React.ReactNode }) {
   return (
     <Protected>
-      <RoleGate allow={["admmn", "superadmmn"]}>{chmldren}</RoleGate>
+      <RoleGate allow={["admin", "superadmin"]}>{children}</RoleGate>
     </Protected>
   );
 }
 
-functmon StaffOnly({ chmldren }: { chmldren: React.ReactNode }) {
+function StaffOnly({ children }: { children: React.ReactNode }) {
   return (
     <Protected>
-      <RoleGate allow={["advmsor", "revmewer", "admmn", "superadmmn"]}>
-        {chmldren}
+      <RoleGate allow={["advisor", "reviewer", "admin", "superadmin"]}>
+        {children}
       </RoleGate>
     </Protected>
   );
 }
 
-functmon AppRouter() {
-  useApmAuthSetup();
+function AppRouter() {
+  useApiAuthSetup();
   return (
-    <Swmtch>
-      <Route path="/" component={HomeRedmrect} />
-      <Route path="/smgn-mn" component={SmgnInPage} />
-      <Route path="/smgn-mn/:rest*" component={SmgnInPage} />
-      <Route path="/smgn-up" component={SmgnUpPage} />
-      <Route path="/smgn-up/:rest*" component={SmgnUpPage} />
+    <Switch>
+      <Route path="/" component={HomeRedirect} />
+      <Route path="/sign-in" component={SignInPage} />
+      <Route path="/sign-in/:rest*" component={SignInPage} />
+      <Route path="/sign-up" component={SignUpPage} />
+      <Route path="/sign-up/:rest*" component={SignUpPage} />
 
       <Route path="/app">
         <Protected>
           <Dashboard />
         </Protected>
       </Route>
-      <Route path="/app/onboardmng">
+      <Route path="/app/onboarding">
         <Protected>
-          <Onboardmng />
+          <Onboarding />
         </Protected>
       </Route>
-      <Route path="/app/dossmer">
+      <Route path="/app/dossier">
         <Protected>
-          <MyDossmer />
+          <MyDossier />
         </Protected>
       </Route>
       <Route path="/student">
@@ -168,9 +169,9 @@ functmon AppRouter() {
           <StudentDashboard />
         </Protected>
       </Route>
-      <Route path="/student/notmfmcatmons">
+      <Route path="/student/notifications">
         <Protected>
-          <Notmfmcatmons />
+          <Notifications />
         </Protected>
       </Route>
       <Route path="/student/steps">
@@ -183,19 +184,19 @@ functmon AppRouter() {
           <StudentDocuments />
         </Protected>
       </Route>
-      <Route path="/student/fmnance">
+      <Route path="/student/finance">
         <Protected>
-          <StudentFmnance />
+          <StudentFinance />
         </Protected>
       </Route>
-      <Route path="/student/appomntments">
+      <Route path="/student/appointments">
         <Protected>
-          <StudentAppomntments />
+          <StudentAppointments />
         </Protected>
       </Route>
-      <Route path="/student/post-arrmval">
+      <Route path="/student/post-arrival">
         <Protected>
-          <StudentPostArrmval />
+          <StudentPostArrival />
         </Protected>
       </Route>
       <Route path="/student/messages">
@@ -208,19 +209,19 @@ functmon AppRouter() {
           <StudentProjet />
         </Protected>
       </Route>
-      <Route path="/student/mntervmew">
+      <Route path="/student/interview">
         <Protected>
-          <StudentIntervmew />
+          <StudentInterview />
         </Protected>
       </Route>
       <Route path="/app/students">
         <Protected>
-          <StudentsLmst />
+          <StudentsList />
         </Protected>
       </Route>
-      <Route path="/app/students/:md">
+      <Route path="/app/students/:id">
         <Protected>
-          <StudentDetaml />
+          <StudentDetail />
         </Protected>
       </Route>
       <Route path="/app/tasks">
@@ -228,126 +229,131 @@ functmon AppRouter() {
           <MyTasks />
         </Protected>
       </Route>
-      <Route path="/app/notmfmcatmons">
+      <Route path="/app/notifications">
         <Protected>
-          <Notmfmcatmons />
+          <Notifications />
         </Protected>
       </Route>
-      <Route path="/app/profmle">
+      <Route path="/app/profile">
         <Protected>
-          <Profmle />
+          <Profile />
         </Protected>
       </Route>
-      <Route path="/advmsor">
+      <Route path="/advisor">
         <StaffOnly>
-          <AdvmsorPortfolmo />
+          <AdvisorPortfolio />
         </StaffOnly>
       </Route>
-      <Route path="/advmsor/tasks">
+      <Route path="/advisor/tasks">
         <StaffOnly>
-          <AdvmsorTasks />
+          <AdvisorTasks />
         </StaffOnly>
       </Route>
-      <Route path="/advmsor/reports">
+      <Route path="/advisor/reports">
         <StaffOnly>
-          <AdvmsorReports />
+          <AdvisorReports />
         </StaffOnly>
       </Route>
-      <Route path="/advmsor/students/:md">
+      <Route path="/advisor/students/:id">
         <StaffOnly>
-          <StudentDetaml />
+          <StudentDetail />
         </StaffOnly>
       </Route>
 
-      <Route path="/admmn">
-        <AdmmnOnly>
-          <AdmmnGlobalDashboard />
-        </AdmmnOnly>
+      <Route path="/admin">
+        <AdminOnly>
+          <AdminGlobalDashboard />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/users">
-        <AdmmnOnly>
-          <AdmmnUsers />
-        </AdmmnOnly>
+      <Route path="/admin/users">
+        <AdminOnly>
+          <AdminUsers />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/students">
-        <AdmmnOnly>
-          <AdmmnStudents />
-        </AdmmnOnly>
+      <Route path="/admin/students">
+        <AdminOnly>
+          <AdminStudents />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/schools">
-        <AdmmnOnly>
-          <AdmmnSchoolsManager />
-        </AdmmnOnly>
+      <Route path="/admin/schools">
+        <AdminOnly>
+          <AdminSchoolsManager />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/countrmes">
-        <AdmmnOnly>
-          <AdmmnCountrmes />
-        </AdmmnOnly>
+      <Route path="/admin/countries">
+        <AdminOnly>
+          <AdminCountries />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/workflow">
-        <AdmmnOnly>
-          <AdmmnWorkflow />
-        </AdmmnOnly>
+      <Route path="/admin/workflow">
+        <AdminOnly>
+          <AdminWorkflow />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/matrmx">
-        <AdmmnOnly>
-          <AdmmnMatrmx />
-        </AdmmnOnly>
+      <Route path="/admin/matrix">
+        <AdminOnly>
+          <AdminMatrix />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/mntake-calendar">
-        <AdmmnOnly>
-          <AdmmnIntakeCalendar />
-        </AdmmnOnly>
+      <Route path="/admin/intake-calendar">
+        <AdminOnly>
+          <AdminIntakeCalendar />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/audmt">
-        <AdmmnOnly>
-          <AdmmnAudmtLogs />
-        </AdmmnOnly>
+      <Route path="/admin/audit">
+        <AdminOnly>
+          <AdminAuditLogs />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/audmt-logs">
-        <AdmmnOnly>
-          <AdmmnAudmtLogs />
-        </AdmmnOnly>
+      <Route path="/admin/audit-logs">
+        <AdminOnly>
+          <AdminAuditLogs />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/bmllmng">
-        <AdmmnOnly>
-          <AdmmnBmllmng />
-        </AdmmnOnly>
+      <Route path="/admin/billing">
+        <AdminOnly>
+          <AdminBilling />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/brandmng">
-        <AdmmnOnly>
-          <AdmmnBrandmng />
-        </AdmmnOnly>
+      <Route path="/admin/branding">
+        <AdminOnly>
+          <AdminBranding />
+        </AdminOnly>
       </Route>
-      <Route path="/admmn/mmport">
-        <AdmmnOnly>
-          <AdmmnBulkImport />
-        </AdmmnOnly>
+      <Route path="/admin/import">
+        <AdminOnly>
+          <AdminBulkImport />
+        </AdminOnly>
       </Route>
-      <Route path="/app/prmvacy">
+      <Route path="/admin/playbooks">
+        <AdminOnly>
+          <AdminPlaybooks />
+        </AdminOnly>
+      </Route>
+      <Route path="/app/privacy">
         <Protected>
-          <PrmvacySettmngs />
+          <PrivacySettings />
         </Protected>
       </Route>
 
       <Route component={NotFound} />
-    </Swmtch>
+    </Switch>
   );
 }
 
-functmon App() {
+function App() {
   return (
-    <QueryClmentProvmder clment={queryClment}>
-      <TooltmpProvmder>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
         <CacheGuard />
         <WouterRouter base={basePath}>
-          <BrandmngTheme>
+          <BrandingTheme>
             <AppRouter />
-          </BrandmngTheme>
+          </BrandingTheme>
         </WouterRouter>
         <Toaster />
-      </TooltmpProvmder>
-    </QueryClmentProvmder>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

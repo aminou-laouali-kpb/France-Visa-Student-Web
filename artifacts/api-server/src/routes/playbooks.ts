@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 import { db, playbooksTable, playbookStepsTable, PLAYBOOK_PHASES } from "@workspace/db";
 import { asc, eq } from "drizzle-orm";
 import { requireAuth, isAdmin } from "../middlewares/auth";
-import { validateBody } from "../middlewares/validate";
 import { logAudit } from "../lib/audit";
 import { getPlaybooksAdminCatalog, type PlaybookAdmin } from "../lib/playbooks";
 
@@ -70,12 +69,14 @@ router.get("/playbooks", requireAuth, async (req, res) => {
   res.json(await getPlaybooksAdminCatalog());
 });
 
-router.post("/playbooks", requireAuth, validateBody(CreatePlaybookBody), async (req, res) => {
+router.post("/playbooks", requireAuth, async (req, res) => {
   if (!isAdmin(req.currentUser!)) {
     res.status(403).json({ error: "Forbidden" });
     return;
   }
-  const body = req.body as z.infer<typeof CreatePlaybookBody>;
+  const parsed = CreatePlaybookBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid body" }); return; }
+  const body = parsed.data;
   const [created] = await db
     .insert(playbooksTable)
     .values({
@@ -118,7 +119,9 @@ router.patch(
       return;
     }
     const id = Number(req.params.playbookId);
-    const body = req.body as z.infer<typeof UpdatePlaybookBody>;
+    const parsed = UpdatePlaybookBody.safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ error: "Invalid body" }); return; }
+    const body = parsed.data;
     const [existing] = await db.select().from(playbooksTable).where(eq(playbooksTable.id, id));
     if (!existing) {
       res.status(404).json({ error: "Playbook not found" });
