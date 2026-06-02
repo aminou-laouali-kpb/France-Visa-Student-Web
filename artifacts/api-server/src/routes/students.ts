@@ -79,6 +79,11 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
   }
   if (!tpl) return;
 
+  const country = countryId
+    ? (await db.select().from(countriesTable).where(eq(countriesTable.id, countryId)))[0]
+    : null;
+  const requiresCampusFrance = !!country?.requiresCampusFrance;
+
   const steps = await db
     .select()
     .from(workflowStepsTable)
@@ -89,8 +94,8 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
   const checklistByStepName = new Map(STEPS.map((s) => [s.name, s.checklist]));
 
   for (const step of steps) {
-    // Private-uni workflow: skip inactive and legacy Campus France steps.
-    if (step.isCampusFranceStep || !step.isActive) continue;
+    // Skip Campus France steps for countries that don't require it
+    if (step.isCampusFranceStep && !requiresCampusFrance) continue;
     await db.insert(studentStepsTable).values({
       studentId,
       workflowStepId: step.id,
@@ -595,6 +600,18 @@ router.patch(
             error: `Cannot validate: previous required step "${blocking.stepName}" is not validated`,
           });
           return;
+        }
+        if (!isOverride) {
+          const docs = await db
+            .select()
+            .from(documentsTable)
+            .where(eq(documentsTable.studentId, studentId));
+          const { visaStepGateMessage } = await import("../lib/risk");
+          const gateMsg = visaStepGateMessage(docs, existingStep.stepName);
+          if (gateMsg) {
+            res.status(422).json({ error: "visa_step_gate", message: gateMsg });
+            return;
+          }
         }
       }
       if (status === "blocked" && !blockedReason) {
