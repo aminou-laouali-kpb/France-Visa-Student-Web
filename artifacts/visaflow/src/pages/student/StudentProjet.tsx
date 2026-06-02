@@ -44,18 +44,18 @@ import {
 import { formatDateTime } from "@/lib/utils";
 
 const PROJET_PROMPTS = [
-  "Pourquoi la France et pas un autre pays ?",
-  "Quel est le lien entre vos études passées et le master visé ?",
-  "Quels cours / spécialisations / professeurs vous attirent particulièrement ?",
-  "Quel projet professionnel concret après le diplôme ?",
-  "Comment ce diplôme se valorise-t-il dans votre pays au retour ?",
+  "Pourquoi la France et cette école privée pour votre formation ?",
+  "Quel lien entre vos études passées et le programme pour lequel vous êtes admis ?",
+  "Quels éléments concrets du programme (cours, stages, spécialisations) motivent votre choix ?",
+  "Comment la lettre d'admission confirme-t-elle votre projet ?",
+  "Quel projet professionnel après le diplôme et quel plan de retour ou d'insertion ?",
 ];
 
 const LETTER_PROMPTS = [
-  "Pourquoi cette école / ce programme spécifiquement ?",
-  "Quels cours ou intervenants vous intéressent ?",
-  "Quel est votre projet professionnel après ce master ?",
-  "Quel lien avec votre pays d'origine ?",
+  "Pourquoi cette école privée et ce programme (admission obtenue) ?",
+  "Quels cours, intervenants ou opportunités du programme vous motivent ?",
+  "Comment votre parcours prépare-t-il cette formation ?",
+  "Quel projet professionnel et lien avec votre pays d'origine ?",
 ];
 
 function ScoreBar({ label, value }: { label: string; value?: number | null }) {
@@ -636,10 +636,10 @@ function MotivationLetterEditor({
   };
 
   const w = wish as EefWish & { schoolName?: string | null; programName?: string | null };
-  const wishLabel =
+  const admissionLabel =
     [w.schoolName ?? w.schoolNameFreeText, w.programName ?? w.programNameFreeText]
       .filter(Boolean)
-      .join(" · ") || `Voeu ${wish.wishOrder}`;
+      .join(" · ") || "Votre école et programme d'admission";
 
   return (
     <div className="grid lg:grid-cols-3 gap-6" data-testid={`letter-editor-${wish.id}`}>
@@ -647,9 +647,9 @@ function MotivationLetterEditor({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              Lettre de motivation — Voeu {wish.wishOrder}
+              Lettre de motivation — admission
             </CardTitle>
-            <div className="text-sm text-slate-600">{wishLabel}</div>
+            <div className="text-sm text-slate-600">{admissionLabel}</div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700">
@@ -663,7 +663,7 @@ function MotivationLetterEditor({
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Rédigez ici votre lettre de motivation pour ce voeu…"
+              placeholder="Rédigez ici votre lettre de motivation pour votre admission…"
               rows={18}
               className="font-serif text-base leading-relaxed"
               data-testid={`textarea-letter-${wish.id}`}
@@ -787,7 +787,12 @@ export function StudentProjet() {
     query: { enabled: !!student?.id, queryKey: ["eef-wishes", student?.id ?? 0] },
   });
   const wishes = (wishesRaw ?? []) as unknown as EefWish[];
-  const [activeWishId, setActiveWishId] = useState<number | "projet">("projet");
+  const admissionWish = useMemo(
+    () =>
+      [...wishes].sort((a, b) => a.wishOrder - b.wishOrder)[0] ?? null,
+    [wishes],
+  );
+  const [activeTab, setActiveTab] = useState<"projet" | "lettre">("projet");
 
   if (isLoading) return <div className="p-8">Chargement…</div>;
   if (!student) return null;
@@ -797,53 +802,45 @@ export function StudentProjet() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Projet d'études & motivation</h1>
         <p className="text-slate-600 mt-1">
-          Rédigez votre projet d'études et vos lettres de motivation, avec un coach IA pour
-          vous guider sur la cohérence, le français, la spécificité et le plan de retour.
+          Rédigez votre projet d'études et la lettre de motivation liée à votre admission en
+          école privée. Le coach IA vérifie la cohérence, le français, la spécificité au
+          programme et votre plan de retour.
         </p>
       </div>
 
       <Tabs
-        value={String(activeWishId)}
-        onValueChange={(v) =>
-          setActiveWishId(v === "projet" ? "projet" : Number(v))
-        }
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v === "lettre" ? "lettre" : "projet")}
       >
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="projet" data-testid="tab-projet-etudes">
             Projet d'études
           </TabsTrigger>
-          {wishes.map((w) => (
-            <TabsTrigger
-              key={w.id}
-              value={String(w.id)}
-              data-testid={`tab-letter-${w.id}`}
-            >
-              Voeu {w.wishOrder}
-            </TabsTrigger>
-          ))}
+          <TabsTrigger value="lettre" data-testid="tab-lettre-motivation">
+            Lettre de motivation
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="projet" className="mt-4">
           <ProjetEditor studentId={student.id} />
         </TabsContent>
-        {wishes.map((w) => (
-          <TabsContent key={w.id} value={String(w.id)} className="mt-4">
-            <MotivationLetterEditor studentId={student.id} wish={w} />
-          </TabsContent>
-        ))}
+        <TabsContent value="lettre" className="mt-4">
+          {admissionWish ? (
+            <MotivationLetterEditor studentId={student.id} wish={admissionWish} />
+          ) : (
+            <Card>
+              <CardContent className="p-6 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5" />
+                <div className="text-sm text-slate-700">
+                  Indiquez votre école et votre programme d'admission dans votre profil
+                  dossier pour rédiger la lettre de motivation liée à votre admission.
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
-      {wishes.length === 0 && (
-        <Card>
-          <CardContent className="p-6 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5" />
-            <div className="text-sm text-slate-700">
-              Vous n'avez pas encore enregistré de voeux Études en France. Ajoutez-en
-              dans votre dossier pour rédiger une lettre de motivation par voeu.
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
