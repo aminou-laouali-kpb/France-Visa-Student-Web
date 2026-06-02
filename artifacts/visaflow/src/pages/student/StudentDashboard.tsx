@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
 import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
+import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
 import {
   AlertTriangle,
   ArrowRight,
@@ -113,6 +114,10 @@ export function StudentDashboard() {
     (c: Comment) => !c.isInternal && c.authorRole !== "student",
   );
 
+  const showRefusalMap = ["active", "submitted", "blocked", "visa_refused"].includes(
+    data.student.status,
+  );
+
   return (
     <div className="space-y-6" data-testid="student-dashboard">
       <div>
@@ -145,6 +150,8 @@ export function StudentDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {showRefusalMap && <RefusalReasonsCard />}
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card data-testid="card-next-actions">
