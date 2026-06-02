@@ -16,6 +16,7 @@ import {
 } from "@workspace/db/schema";
 import { eq, and, asc, or, inArray } from "drizzle-orm";
 import { logger } from "./logger";
+import { seedDefaultPlaybooks } from "./playbooks";
 
 const COUNTRIES = [
   { name: "Sénégal", code: "SN", requiresCampusFrance: false, visaCenter: "VFS Dakar" },
@@ -464,6 +465,7 @@ export async function seedReferenceData(): Promise<void> {
     }
 
     await seedScholarships();
+    await seedDefaultPlaybooks();
 
     logger.info(
       {
