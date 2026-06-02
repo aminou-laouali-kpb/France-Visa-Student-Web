@@ -71,16 +71,13 @@ router.get("/audit-logs", requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-// RISK SCORES — staff; students may read their own dossier readiness signals
+// RISK SCORES — staff only (students must not see their own risk score)
 router.get(
   "/students/:studentId/risk-score",
   requireAuth,
   requireStudentAccess("studentId", "read"),
   async (req, res) => {
-    const u = req.currentUser!;
-    const ownDossier =
-      u.role === "student" && req.targetStudent?.userId === u.id;
-    if (!isStaff(u) && !ownDossier) {
+    if (!isStaff(req.currentUser!)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
@@ -176,7 +173,9 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     .find((s) => s.status !== "validated");
   const rejectedDocs = docs.filter((d) => d.status === "rejected");
   const blockedSteps = steps.filter((s) => s.status === "blocked");
-  const nextActions: string[] = [];
+  const { getVisaReadinessSummary } = await import("../lib/risk");
+  const visaReadiness = await getVisaReadinessSummary(student.id);
+  const nextActions: string[] = [...visaReadiness.recommendations];
   if (rejectedDocs.length > 0)
     nextActions.push(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`);
   if (blockedSteps.length > 0)
@@ -206,7 +205,7 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     pendingDocuments: docs.filter((d) => d.status === "missing" || d.status === "rejected").length,
     upcomingAppointments: apts,
     unreadNotifications: unreadNotifs.length,
-    nextActions,
+    nextActions: nextActions.slice(0, 8),
     recentComments,
     postArrivalSteps,
   });

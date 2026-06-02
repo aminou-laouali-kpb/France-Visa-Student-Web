@@ -12,6 +12,7 @@ import {
   riskScoresTable,
   notificationsTable,
   tasksTable,
+  documentsTable,
   usersTable,
   type Student,
   type User,
@@ -600,18 +601,6 @@ router.patch(
             error: `Cannot validate: previous required step "${blocking.stepName}" is not validated`,
           });
           return;
-        }
-        if (!isOverride) {
-          const docs = await db
-            .select()
-            .from(documentsTable)
-            .where(eq(documentsTable.studentId, studentId));
-          const { visaStepGateMessage } = await import("../lib/risk");
-          const gateMsg = visaStepGateMessage(docs, existingStep.stepName);
-          if (gateMsg) {
-            res.status(422).json({ error: "visa_step_gate", message: gateMsg });
-            return;
-          }
         }
       }
       if (status === "blocked" && !blockedReason) {
