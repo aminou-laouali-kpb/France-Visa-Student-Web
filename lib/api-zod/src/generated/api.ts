@@ -268,6 +268,7 @@ export const ListStudentsQueryParams = zod.object({
   schoolId: zod.coerce.number().nullish(),
   search: zod.coerce.string().optional(),
   riskLevel: zod.coerce.string().optional(),
+  readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
 });
 
 export const ListStudentsResponseItem = zod.object({
@@ -294,6 +295,8 @@ export const ListStudentsResponseItem = zod.object({
   intakeDate: zod.string().nullish(),
   currentStepName: zod.string().nullish(),
   lastActivityAt: zod.coerce.date().nullish(),
+  readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
+  readinessScore: zod.number().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListStudentsResponse = zod.array(ListStudentsResponseItem);
@@ -795,6 +798,20 @@ export const UpdateChecklistItemResponse = zod.object({
   checkedAt: zod.coerce.date().nullish(),
   checkedBy: zod.number().nullish(),
   order: zod.number(),
+});
+
+export const GetStudentDocumentPrecheckParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetStudentDocumentPrecheckResponse = zod.object({
+  warnings: zod.array(
+    zod.object({
+      code: zod.string(),
+      severity: zod.enum(["error", "warning"]),
+      message: zod.string(),
+    }),
+  ),
 });
 
 /**
@@ -1602,6 +1619,26 @@ export const RecalculateRiskScoreResponse = zod.object({
   calculatedAt: zod.coerce.date(),
 });
 
+export const ListStudentPlaybooksParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListStudentPlaybooksResponseItem = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  when: zod.string(),
+  steps: zod.array(
+    zod.object({
+      order: zod.number(),
+      title: zod.string(),
+      detail: zod.string(),
+    }),
+  ),
+});
+export const ListStudentPlaybooksResponse = zod.array(
+  ListStudentPlaybooksResponseItem,
+);
+
 /**
  * @summary Student's own dashboard summary
  */
@@ -1722,6 +1759,32 @@ export const GetStudentDashboardResponse = zod.object({
       }),
     )
     .optional(),
+  visaReadiness: zod
+    .object({
+      score: zod.number(),
+      level: zod.enum(["low", "medium", "high"]),
+      recommendations: zod.array(zod.string()),
+    })
+    .optional(),
+  timeline: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        label: zod.string(),
+        status: zod.enum(["done", "current", "upcoming", "overdue", "blocked"]),
+        dueDate: zod.string().nullish(),
+        href: zod.string().nullish(),
+        urgency: zod.enum(["low", "medium", "high"]),
+        kind: zod.enum([
+          "step",
+          "document",
+          "appointment",
+          "deadline",
+          "intake",
+        ]),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -1735,6 +1798,9 @@ export const GetAdvisorDashboardResponse = zod.object({
   highRiskStudents: zod.number(),
   todayAppointments: zod.number(),
   unresponsiveStudents: zod.number(),
+  readinessGreen: zod.number().optional(),
+  readinessAmber: zod.number().optional(),
+  readinessRed: zod.number().optional(),
   urgentStudents: zod.array(
     zod.object({
       id: zod.number(),
@@ -1760,6 +1826,8 @@ export const GetAdvisorDashboardResponse = zod.object({
       intakeDate: zod.string().nullish(),
       currentStepName: zod.string().nullish(),
       lastActivityAt: zod.coerce.date().nullish(),
+      readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
+      readinessScore: zod.number().nullish(),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -1880,6 +1948,15 @@ export const GetPortfolioStatsResponse = zod.object({
       percentage: zod.number(),
     }),
   ),
+  byReadinessLevel: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
 });
 
 /**

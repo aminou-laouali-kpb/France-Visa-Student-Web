@@ -374,6 +374,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: readinessLevel
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReadinessLevel"
       responses:
         "200":
           description: List of students
@@ -578,6 +582,24 @@ paths:
                 $ref: "#/components/schemas/ChecklistItem"
 
   # ─── DOCUMENTS ───────────────────────────────────────────────────────────────
+  /students/{studentId}/document-precheck:
+    get:
+      operationId: getStudentDocumentPrecheck
+      tags: [documents]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document precheck warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentPrecheckResponse"
+
   /students/{studentId}/documents:
     get:
       operationId: listDocuments
@@ -1224,6 +1246,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RiskScore"
+
+  /students/{studentId}/playbooks:
+    get:
+      operationId: listStudentPlaybooks
+      tags: [students]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contextual playbooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Playbook"
 
   # ─── DASHBOARD ───────────────────────────────────────────────────────────────
   /dashboard/student:
@@ -3115,6 +3157,10 @@ components:
         lastActivityAt:
           type: ["string", "null"]
           format: date-time
+        readinessLevel:
+          $ref: "#/components/schemas/ReadinessLevel"
+        readinessScore:
+          type: ["integer", "null"]
         createdAt:
           type: string
           format: date-time
@@ -4043,6 +4089,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PostArrivalStep"
+        visaReadiness:
+          $ref: "#/components/schemas/VisaReadiness"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProactiveMilestone"
       required:
         - studentId
         - completionScore
@@ -4071,6 +4123,12 @@ components:
         todayAppointments:
           type: integer
         unresponsiveStudents:
+          type: integer
+        readinessGreen:
+          type: integer
+        readinessAmber:
+          type: integer
+        readinessRed:
           type: integer
         urgentStudents:
           type: array
@@ -4176,12 +4234,87 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CountStat"
+        byReadinessLevel:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
       required:
         - byStatus
         - byRiskLevel
         - byCountry
         - bySchool
         - byIntakeMonth
+
+    ReadinessLevel:
+      type: string
+      enum: [low, medium, high]
+
+    VisaReadiness:
+      type: object
+      properties:
+        score: { type: integer }
+        level: { $ref: "#/components/schemas/ReadinessLevel" }
+        recommendations:
+          type: array
+          items: { type: string }
+      required: [score, level, recommendations]
+
+    ProactiveMilestone:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        status:
+          type: string
+          enum: [done, current, upcoming, overdue, blocked]
+        dueDate: { type: ["string", "null"] }
+        href: { type: ["string", "null"] }
+        urgency:
+          type: string
+          enum: [low, medium, high]
+        kind:
+          type: string
+          enum: [step, document, appointment, deadline, intake]
+      required: [id, label, status, urgency, kind]
+
+    PlaybookStep:
+      type: object
+      properties:
+        order: { type: integer }
+        title: { type: string }
+        detail: { type: string }
+      required: [order, title, detail]
+
+    Playbook:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        when: { type: string }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStep" }
+      required: [id, title, when, steps]
+
+    DocumentPrecheckSeverity:
+      type: string
+      enum: [error, warning]
+
+    DocumentPrecheckWarning:
+      type: object
+      properties:
+        code: { type: string }
+        severity: { $ref: "#/components/schemas/DocumentPrecheckSeverity" }
+        message: { type: string }
+      required: [code, severity, message]
+
+    DocumentPrecheckResponse:
+      type: object
+      properties:
+        warnings:
+          type: array
+          items: { $ref: "#/components/schemas/DocumentPrecheckWarning" }
+      required: [warnings]
 
     CountStat:
       type: object
@@ -4196,7 +4329,6 @@ components:
         - label
         - count
         - percentage
-
     # ── Workflow Template ─────────────────────────────────────────────────────
     WorkflowTemplate:
       type: object

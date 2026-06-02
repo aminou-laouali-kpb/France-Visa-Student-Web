@@ -11,6 +11,13 @@ import type {
   WorkflowTemplate as ApiWorkflowTemplate,
   WorkflowStep,
   CountStat as ApiCountStat,
+  VisaReadiness,
+  ProactiveMilestone,
+  Playbook,
+  DocumentPrecheckResponse,
+  DocumentPrecheckWarning,
+  ReadinessLevel,
+  ProactiveMilestoneStatus,
 } from "@workspace/api-client-react";
 
 export type Role = "student" | "advisor" | "reviewer" | "admin" | "superadmin";
@@ -27,6 +34,8 @@ export type PortfolioStatsData = PortfolioStats;
 export type WorkflowTemplate = ApiWorkflowTemplate;
 export type WorkflowTemplateStep = WorkflowStep;
 export type CountStat = ApiCountStat;
+export type { VisaReadiness, ProactiveMilestone, Playbook, DocumentPrecheckResponse, DocumentPrecheckWarning, ReadinessLevel };
+export type MilestoneStatus = ProactiveMilestoneStatus;
 
 export interface Student {
   id: number;
@@ -195,23 +204,6 @@ export interface StudentFormData {
   titreExpiryDate?: string | null;
 }
 
-export interface VisaReadinessSummary {
-  score: number;
-  level: "low" | "medium" | "high";
-  recommendations: string[];
-}
-
-export type MilestoneStatus = "done" | "current" | "upcoming" | "overdue" | "blocked";
-
-export interface ProactiveMilestone {
-  id: string;
-  label: string;
-  status: MilestoneStatus;
-  dueDate: string | null;
-  href: string | null;
-  urgency: "low" | "medium" | "high";
-  kind: "step" | "document" | "appointment" | "deadline" | "intake";
-}
 
 export interface StudentDashboardData {
   student: Student | null;
@@ -224,7 +216,7 @@ export interface StudentDashboardData {
   upcomingAppointments?: Appointment[];
   currentStep?: Step | null;
   nextActions?: string[];
-  visaReadiness?: VisaReadinessSummary;
+  visaReadiness?: VisaReadiness;
   timeline?: ProactiveMilestone[];
   recentComments?: Comment[];
   postArrivalSteps?: PostArrivalStep[];
