@@ -15,9 +15,9 @@ export interface Playbook {
   steps: PlaybookStep[];
 }
 
-const PLAYBOOKS: Playbook[] = [
+export const PLAYBOOKS: Playbook[] = [
   {
-    id: "admission-privee",
+    id: "admission",
     title: "Admission école privée confirmée",
     when: "Lettre d'admission reçue, dossier actif",
     steps: [
@@ -41,7 +41,7 @@ const PLAYBOOKS: Playbook[] = [
     ],
   },
   {
-    id: "prep-entretien",
+    id: "entretien",
     title: "Préparation entretien de motivation",
     when: "Étape entretien ou avant RDV consulaire",
     steps: [
@@ -63,7 +63,7 @@ const PLAYBOOKS: Playbook[] = [
     ],
   },
   {
-    id: "depot-tls",
+    id: "tls",
     title: "Dépôt TLS/VFS et dossier consulaire",
     when: "Avant validation des étapes TLS ou dépôt visa",
     steps: [
@@ -85,7 +85,7 @@ const PLAYBOOKS: Playbook[] = [
     ],
   },
   {
-    id: "visa-refuse",
+    id: "refus",
     title: "Suite à un refus de visa",
     when: "Statut visa_refused",
     steps: [
@@ -122,20 +122,20 @@ export function resolvePlaybooksForStudent(opts: {
   const step = opts.currentStepName ?? "";
 
   if (["active", "submitted", "prospect"].includes(opts.status)) {
-    out.push(PLAYBOOKS.find((p) => p.id === "admission-privee")!);
+    out.push(PLAYBOOKS.find((p) => p.id === "admission")!);
   }
   if (
     stepNameMatches(step, "entretien") ||
     stepNameMatches(step, "motivation") ||
     stepNameMatches(step, "tls")
   ) {
-    out.push(PLAYBOOKS.find((p) => p.id === "prep-entretien")!);
+    out.push(PLAYBOOKS.find((p) => p.id === "entretien")!);
   }
   if (stepNameMatches(step, "tls") || stepNameMatches(step, "depot") || stepNameMatches(step, "visa")) {
-    out.push(PLAYBOOKS.find((p) => p.id === "depot-tls")!);
+    out.push(PLAYBOOKS.find((p) => p.id === "tls")!);
   }
   if (opts.status === "visa_refused") {
-    out.push(PLAYBOOKS.find((p) => p.id === "visa-refuse")!);
+    out.push(PLAYBOOKS.find((p) => p.id === "refus")!);
   }
 
   const seen = new Set<string>();
@@ -144,4 +144,46 @@ export function resolvePlaybooksForStudent(opts: {
     seen.add(p.id);
     return true;
   });
+}
+
+import { db, playbooksTable, playbookStepsTable, type PlaybookPhase } from "@workspace/db";
+import { asc, eq } from "drizzle-orm";
+export type PlaybookAdminStep = { id?: number; title: string; body: string; sortOrder: number; checklist: string[] };
+export type PlaybookAdmin = { id?: number; slug: string; title: string; description: string | null; phase: PlaybookPhase; isActive: boolean; sortOrder: number; steps: PlaybookAdminStep[] };
+function rowToAdvisor(slug: string, title: string, description: string | null, steps: { sortOrder: number; title: string; body: string }[]): Playbook {
+  return { id: slug, title, when: description ?? "", steps: steps.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(s=>({order:s.sortOrder,title:s.title,detail:s.body})) };
+}
+function rowToAdmin(playbook: typeof playbooksTable.$inferSelect, steps: (typeof playbookStepsTable.$inferSelect)[]): PlaybookAdmin {
+  return { id: playbook.id, slug: playbook.slug, title: playbook.title, description: playbook.description, phase: playbook.phase as PlaybookPhase, isActive: playbook.isActive, sortOrder: playbook.sortOrder, steps: steps.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(s=>({id:s.id,title:s.title,body:s.body,sortOrder:s.sortOrder,checklist:s.checklist??[]})) };
+}
+export async function loadPlaybooksFromDb(): Promise<PlaybookAdmin[]|null> {
+  const playbooks = await db.select().from(playbooksTable).orderBy(asc(playbooksTable.sortOrder), asc(playbooksTable.id));
+  if (!playbooks.length) return null;
+  const allSteps = await db.select().from(playbookStepsTable).orderBy(asc(playbookStepsTable.sortOrder), asc(playbookStepsTable.id));
+  const by = new Map<number, typeof allSteps>();
+  for (const s of allSteps) { const l = by.get(s.playbookId) ?? []; l.push(s); by.set(s.playbookId, l); }
+  return playbooks.map(p => rowToAdmin(p, by.get(p.id) ?? []));
+}
+export function staticToAdminCatalog(): PlaybookAdmin[] {
+  return PLAYBOOKS.map((p, idx) => ({ slug: p.id, title: p.title, description: p.when, phase: p.id as PlaybookPhase, isActive: true, sortOrder: idx+1, steps: p.steps.map(s=>({title:s.title,body:s.detail,sortOrder:s.order,checklist:[] as string[]})) }));
+}
+export async function getPlaybooksAdminCatalog() { const fromDb = await loadPlaybooksFromDb(); return fromDb ? { source: "database" as const, playbooks: fromDb } : { source: "static" as const, playbooks: staticToAdminCatalog() }; }
+async function loadAdvisorFromDb(): Promise<Playbook[]|null> {
+  const admin = await loadPlaybooksFromDb(); if (!admin) return null;
+  return admin.filter(p=>p.isActive).map(p=>rowToAdvisor(p.slug,p.title,p.description,p.steps.map(s=>({sortOrder:s.sortOrder,title:s.title,body:s.body}))));
+}
+export async function resolvePlaybooksForStudentAsync(opts: { status: string; currentStepName: string | null }) {
+  const playbooks = resolvePlaybooksForStudent(opts);
+  const fromDb = await loadAdvisorFromDb();
+  if (!fromDb) return { source: "static" as const, playbooks };
+  const byId = new Map(fromDb.map(p=>[p.id,p]));
+  return { source: "database" as const, playbooks: playbooks.map(p=>byId.get(p.id) ?? p) };
+}
+export async function seedDefaultPlaybooks(): Promise<void> {
+  const existing = new Set((await db.select({ slug: playbooksTable.slug }).from(playbooksTable)).map(r=>r.slug));
+  for (const pb of staticToAdminCatalog()) {
+    if (existing.has(pb.slug)) continue;
+    const [created] = await db.insert(playbooksTable).values({ slug: pb.slug, title: pb.title, description: pb.description, phase: pb.phase, isActive: pb.isActive, sortOrder: pb.sortOrder }).returning();
+    if (pb.steps.length) await db.insert(playbookStepsTable).values(pb.steps.map(s=>({ playbookId: created.id, title: s.title, body: s.body, sortOrder: s.sortOrder, checklist: s.checklist })));
+  }
 }

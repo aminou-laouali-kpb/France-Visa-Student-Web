@@ -26,7 +26,8 @@ async function fetchPlaybooks(
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("playbooks");
-  return res.json() as Promise<Playbook[]>;
+  const data = (await res.json()) as Playbook[] | { playbooks: Playbook[] };
+  return Array.isArray(data) ? data : data.playbooks;
 }
 
 export function PlaybookPanel({ studentId }: { studentId: number }) {

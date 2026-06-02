@@ -329,13 +329,11 @@ router.get("/students/:studentId/playbooks", requireAuth, async (req, res) => {
   const next = steps
     .sort((a, b) => a.stepOrder - b.stepOrder)
     .find((s) => s.status !== "validated");
-  const { resolvePlaybooksForStudent } = await import("../lib/playbooks");
-  res.json(
-    resolvePlaybooksForStudent({
-      status: student.status,
-      currentStepName: next?.stepName ?? null,
-    }),
-  );
+  const { resolvePlaybooksForStudentAsync } = await import("../lib/playbooks");
+  res.json(await resolvePlaybooksForStudentAsync({
+    status: student.status,
+    currentStepName: next?.stepName ?? null,
+  }));
 });
 
 router.patch("/students/:studentId", requireAuth, validateBody(UpdateStudentBody), async (req, res) => {

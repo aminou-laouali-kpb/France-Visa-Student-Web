@@ -22,6 +22,7 @@ import calendarRouter from "./calendar";
 import dossierPdfRouter from "./dossierPdf";
 import bulkImportRouter from "./bulkImport";
 import notifyPrefsRouter from "./notifyPrefs";
+import playbooksRouter from "./playbooks";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(calendarRouter);
 router.use(dossierPdfRouter);
 router.use(bulkImportRouter);
 router.use(notifyPrefsRouter);
+router.use(playbooksRouter);
 
 export default router;
