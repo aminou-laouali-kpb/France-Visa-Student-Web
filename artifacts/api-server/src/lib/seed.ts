@@ -91,7 +91,7 @@ interface SeedStep {
 
 export const STEPS: SeedStep[] = [
   {
-    name: "Création du compte VisaFlow",
+    name: "Création compte",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Compte créé et e-mail vérifié", isRequired: true },
@@ -99,7 +99,7 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Renseignement du profil étudiant",
+    name: "Profil",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Identité et état civil renseignés", isRequired: true },
@@ -109,7 +109,7 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Confirmation de l'admission (école privée)",
+    name: "Confirmation admission (école privée)",
     isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"],
     checklist: [
       { label: "Lettre d'admission définitive reçue", isRequired: true },
@@ -118,7 +118,7 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Téléversement du passeport",
+    name: "Passeport",
     isCampusFranceStep: false, requiredDocumentCategories: ["passeport"],
     checklist: [
       { label: "Passeport valide >18 mois après l'arrivée", isRequired: true },
@@ -126,24 +126,23 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Téléversement des diplômes et relevés",
-    isCampusFranceStep: false, requiredDocumentCategories: ["diplome", "releve_notes"],
+    name: "Diplômes",
+    isCampusFranceStep: false, requiredDocumentCategories: ["diplome"],
     checklist: [
       { label: "Dernier diplôme obtenu téléversé", isRequired: true },
-      { label: "Relevés de notes des 3 dernières années", isRequired: true },
-      { label: "Traduction certifiée si non francophone", isRequired: false },
+            { label: "Traduction certifiée si non francophone", isRequired: false },
     ],
   },
   {
-    name: "Test de langue (DELF/TCF/IELTS)",
+    name: "Test langue",
     isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"],
     checklist: [
+      { label: "Inscription au test effectuée", isRequired: true },
       { label: "Résultat obtenu et téléversé", isRequired: true },
-      { label: "Niveau conforme aux exigences de l'école", isRequired: true },
     ],
   },
   {
-    name: "Justificatif financier (compte bloqué/garant)",
+    name: "Finances",
     isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"],
     checklist: [
       { label: "Compte bloqué ouvert ou attestation de garant", isRequired: true },
@@ -151,14 +150,14 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Justificatif d'hébergement",
+    name: "Hébergement",
     isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"],
     checklist: [
       { label: "Hébergement confirmé (résidence / location)", isRequired: true },
     ],
   },
   {
-    name: "Souscription assurance santé",
+    name: "Assurance",
     isCampusFranceStep: false, requiredDocumentCategories: ["assurance"],
     checklist: [
       { label: "Police d'assurance souscrite", isRequired: true },
@@ -173,14 +172,14 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Prise de rendez-vous TLS/VFS",
+    name: "RDV TLS/VFS",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Rendez-vous biométrique fixé", isRequired: true },
     ],
   },
   {
-    name: "Constitution du dossier consulaire",
+    name: "Dossier consulaire",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Formulaire France-Visas complété", isRequired: true },
@@ -188,7 +187,7 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Dépôt du dossier visa",
+    name: "Dépôt visa",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Dossier déposé au centre TLS/VFS", isRequired: true },
@@ -203,14 +202,14 @@ export const STEPS: SeedStep[] = [
     ],
   },
   {
-    name: "Réservation billet d'avion",
+    name: "Billet",
     isCampusFranceStep: false, requiredDocumentCategories: ["billet_avion"],
     checklist: [
       { label: "Billet réservé après obtention du visa", isRequired: true },
     ],
   },
   {
-    name: "Validation OFII et installation",
+    name: "OFII",
     isCampusFranceStep: false, requiredDocumentCategories: [],
     checklist: [
       { label: "Formulaire OFII envoyé à l'arrivée", isRequired: true },

@@ -79,11 +79,6 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
   }
   if (!tpl) return;
 
-  const country = countryId
-    ? (await db.select().from(countriesTable).where(eq(countriesTable.id, countryId)))[0]
-    : null;
-  const requiresCampusFrance = !!country?.requiresCampusFrance;
-
   const steps = await db
     .select()
     .from(workflowStepsTable)
@@ -94,8 +89,8 @@ async function provisionWorkflowForStudent(studentId: number, countryId: number 
   const checklistByStepName = new Map(STEPS.map((s) => [s.name, s.checklist]));
 
   for (const step of steps) {
-    // Skip Campus France steps for countries that don't require it
-    if (step.isCampusFranceStep && !requiresCampusFrance) continue;
+    // Private-uni workflow: never provision Campus France steps.
+    if (step.isCampusFranceStep || !step.isActive) continue;
     await db.insert(studentStepsTable).values({
       studentId,
       workflowStepId: step.id,

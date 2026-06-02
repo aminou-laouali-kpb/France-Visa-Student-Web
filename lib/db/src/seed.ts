@@ -85,22 +85,22 @@ const LEGACY_WORKFLOW_STEP_NAMES = [
 
 // Private-university visa workflow — must stay aligned with api-server seed.
 const STEPS = [
-  { name: "Création du compte VisaFlow", isCampusFranceStep: false, requiredDocumentCategories: [] as string[] },
-  { name: "Renseignement du profil étudiant", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Confirmation de l'admission (école privée)", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
-  { name: "Téléversement du passeport", isCampusFranceStep: false, requiredDocumentCategories: ["passeport"] },
-  { name: "Téléversement des diplômes et relevés", isCampusFranceStep: false, requiredDocumentCategories: ["diplome", "releve_notes"] },
-  { name: "Test de langue (DELF/TCF/IELTS)", isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"] },
-  { name: "Justificatif financier (compte bloqué/garant)", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"] },
-  { name: "Justificatif d'hébergement", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"] },
-  { name: "Souscription assurance santé", isCampusFranceStep: false, requiredDocumentCategories: ["assurance"] },
+  { name: "Création compte", isCampusFranceStep: false, requiredDocumentCategories: [] as string[] },
+  { name: "Profil", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Confirmation admission (école privée)", isCampusFranceStep: false, requiredDocumentCategories: ["lettre_admission"] },
+  { name: "Passeport", isCampusFranceStep: false, requiredDocumentCategories: ["passeport"] },
+  { name: "Diplômes", isCampusFranceStep: false, requiredDocumentCategories: ["diplome"] },
+  { name: "Test langue", isCampusFranceStep: false, requiredDocumentCategories: ["test_langue"] },
+  { name: "Finances", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_financier"] },
+  { name: "Hébergement", isCampusFranceStep: false, requiredDocumentCategories: ["justificatif_hebergement"] },
+  { name: "Assurance", isCampusFranceStep: false, requiredDocumentCategories: ["assurance"] },
   { name: "Préparation à l'entretien de motivation", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Prise de rendez-vous TLS/VFS", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Constitution du dossier consulaire", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Dépôt du dossier visa", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "RDV TLS/VFS", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Dossier consulaire", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Dépôt visa", isCampusFranceStep: false, requiredDocumentCategories: [] },
   { name: "Décision visa", isCampusFranceStep: false, requiredDocumentCategories: [] },
-  { name: "Réservation billet d'avion", isCampusFranceStep: false, requiredDocumentCategories: ["billet_avion"] },
-  { name: "Validation OFII et installation", isCampusFranceStep: false, requiredDocumentCategories: [] },
+  { name: "Billet", isCampusFranceStep: false, requiredDocumentCategories: ["billet_avion"] },
+  { name: "OFII", isCampusFranceStep: false, requiredDocumentCategories: [] },
 ];
 
 async function seed() {
