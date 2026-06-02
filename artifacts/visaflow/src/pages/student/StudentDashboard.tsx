@@ -78,6 +78,7 @@ export function StudentDashboard() {
     steps.find((s) => s.status === "in_progress") ??
     steps.find((s) => s.status === "pending");
 
+  const apiActionItems = data.nextActionItems ?? [];
   const apiActions = data.nextActions ?? [];
   const derivedActions: { label: string; href: string; icon: typeof FileText }[] = [];
   if (rejectedDocs.length > 0) {
@@ -208,19 +209,27 @@ export function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {apiActions.length === 0 && derivedActions.length === 0 ? (
+            {apiActionItems.length === 0 && apiActions.length === 0 && derivedActions.length === 0 ? (
               <div className="text-sm text-slate-500 flex items-center gap-2 py-4">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 {t("dash.allUpToDate")}
               </div>
             ) : (
               <>
-                {apiActions.map((action, i) => (
-                  <div
-                    key={`api-${i}`}
-                    className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800"
-                    data-testid={`next-action-api-${i}`}
-                  >
+                {apiActionItems.map((action, i) => (
+                  <Link key={`api-item-${i}`} href={action.href}>
+                    <a
+                      className={`flex items-center gap-2 p-3 rounded-lg text-sm transition-colors ${action.urgency === "high" ? "bg-amber-50 hover:bg-amber-100 text-amber-950" : "bg-slate-50 hover:bg-slate-100 text-slate-800"}`}
+                      data-testid={`next-action-api-${i}`}
+                    >
+                      <ArrowRight className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="flex-1">{action.label}</span>
+                      <ArrowRight className="w-4 h-4 text-slate-400" />
+                    </a>
+                  </Link>
+                ))}
+                {apiActionItems.length === 0 && apiActions.map((action, i) => (
+                  <div key={`api-${i}`} className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800" data-testid={`next-action-api-${i}`}>
                     <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 shrink-0" />
                     <span>{action}</span>
                   </div>

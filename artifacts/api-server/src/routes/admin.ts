@@ -174,16 +174,41 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
   const rejectedDocs = docs.filter((d) => d.status === "rejected");
   const blockedSteps = steps.filter((s) => s.status === "blocked");
   const { getVisaReadinessSummary } = await import("../lib/risk");
-  const { getProactiveMilestones } = await import("../lib/proactiveTimeline");
+  const {
+    getProactiveMilestones,
+    milestonesToNextActionItems,
+    runProactiveTimelineNotifySweep,
+  } = await import("../lib/proactiveTimeline");
   const visaReadiness = await getVisaReadinessSummary(student.id);
   const timeline = await getProactiveMilestones(student.id);
+  try {
+    await runProactiveTimelineNotifySweep(student.id, u.id, timeline, visaReadiness.level);
+  } catch {
+    /* best-effort */
+  }
   const nextActions: string[] = [...visaReadiness.recommendations];
+  const nextActionItems: { label: string; href: string; urgency: "low" | "medium" | "high" }[] = [];
+  const pushAction = (
+    label: string,
+    href: string,
+    urgency: "low" | "medium" | "high" = "medium",
+  ) => {
+    if (!nextActions.includes(label)) nextActions.push(label);
+    if (!nextActionItems.some((a) => a.label === label && a.href === href)) {
+      nextActionItems.push({ label, href, urgency });
+    }
+  };
   if (rejectedDocs.length > 0)
-    nextActions.push(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`);
+    pushAction(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`, "/student/documents", "high");
   if (blockedSteps.length > 0)
-    nextActions.push(`Débloquer ${blockedSteps.length} étape(s)`);
-  if (currentStep) nextActions.push(`Avancer sur : ${currentStep.stepName}`);
-  if (apts.length > 0) nextActions.push(`Préparer ${apts.length} rendez-vous à venir`);
+    pushAction(`Débloquer ${blockedSteps.length} étape(s)`, "/student/steps", "high");
+  if (currentStep)
+    pushAction(`Avancer sur : ${currentStep.stepName}`, "/student/steps", "medium");
+  if (apts.length > 0)
+    pushAction(`Préparer ${apts.length} rendez-vous à venir`, "/student/appointments", "medium");
+  for (const item of milestonesToNextActionItems(timeline)) {
+    pushAction(item.label, item.href, item.urgency);
+  }
   const recentComments = comments
     .filter((c) => c.authorRole !== "student")
     .map((c) => ({
@@ -208,6 +233,7 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     upcomingAppointments: apts,
     unreadNotifications: unreadNotifs.length,
     nextActions: nextActions.slice(0, 8),
+    nextActionItems: nextActionItems.slice(0, 8),
     visaReadiness: {
       score: visaReadiness.score,
       level: visaReadiness.level,
