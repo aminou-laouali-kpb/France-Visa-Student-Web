@@ -48,7 +48,7 @@ export function StudentDashboard() {
     query: { enabled: !!studentId, queryKey: ["steps", studentId] },
   });
   const { data: riskScore } = useGetStudentRiskScore(studentId, {
-    query: { enabled: !!studentId, retry: false },
+    query: { enabled: !!studentId, retry: false, queryKey: ["risk", studentId] },
   });
 
   if (me && me.role !== "student") return <Redirect to="/app" />;

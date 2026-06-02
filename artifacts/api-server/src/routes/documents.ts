@@ -23,6 +23,7 @@ import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { sendMail, studentSelfLink } from "../lib/mailer";
 import { notify } from "../lib/notify";
+import { precheckStudentDocuments } from "../lib/documentPrecheck";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateDocumentBody,
@@ -87,6 +88,17 @@ function verifyUploadToken(
     return false;
   }
 }
+
+router.get(
+  "/students/:studentId/document-precheck",
+  requireAuth,
+  requireStudentAccess("studentId", "read"),
+  async (req, res) => {
+    const studentId = Number(req.params.studentId);
+    const warnings = await precheckStudentDocuments(studentId);
+    res.json({ warnings });
+  },
+);
 
 router.get(
   "/students/:studentId/documents",

@@ -49,6 +49,32 @@ function Inner() {
   const studentId = student!.id;
   const { data: docs = [], refetch } = useListDocuments(studentId);
   const list = docs as unknown as Document[];
+  const { getToken } = useAuth();
+  const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+  const [precheckWarnings, setPrecheckWarnings] = useState<
+    { code: string; severity: "error" | "warning"; message: string }[]
+  >([]);
+
+  const refreshPrecheck = async () => {
+    try {
+      const token = (await getToken()) ?? "";
+      const res = await fetch(`${apiBase}/students/${studentId}/document-precheck`, {
+        method: "GET",
+        credentials: "include",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      setPrecheckWarnings(Array.isArray(json?.warnings) ? json.warnings : []);
+    } catch {
+      // Best-effort
+    }
+  };
+
+  useEffect(() => {
+    refreshPrecheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
 
   const DOCUMENT_CATEGORIES = DOCUMENT_CATEGORY_VALUES.map((v) => ({
     value: v,
@@ -70,6 +96,31 @@ function Inner() {
         <h1 className="text-3xl font-bold text-slate-900">{t("documents.title")}</h1>
         <p className="text-slate-600 mt-1">{t("documents.subtitle")}</p>
       </div>
+
+      {precheckWarnings.length > 0 && (
+        <Card
+          className={
+            "border p-0 " +
+            (precheckWarnings.some((w) => w.severity === "error")
+              ? "border-rose-200 bg-rose-50/50"
+              : "border-amber-200 bg-amber-50/50")
+          }
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-900">
+              <AlertCircle className="w-5 h-5 text-slate-900" />
+              Pré-contrôle consulaire
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="list-disc pl-5 space-y-1 text-sm text-slate-800">
+              {precheckWarnings.map((w) => (
+                <li key={w.code}>{w.message}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {rejected.length > 0 && (
         <Card className="border-rose-200 bg-rose-50/50">
@@ -111,7 +162,10 @@ function Inner() {
 
       <UploadDropzone
         studentId={studentId}
-        onUploaded={refetch}
+        onUploaded={async () => {
+          await refetch();
+          await refreshPrecheck();
+        }}
         prefillCategory={prefillCategory}
         categories={DOCUMENT_CATEGORIES}
       />

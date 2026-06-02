@@ -6,16 +6,161 @@ import {
   appointmentsTable,
   studentStepsTable,
   riskScoresTable,
+  type Document,
   type RiskScore,
+  type Student,
 } from "@workspace/db";
 import { eq, and, lt, ne } from "drizzle-orm";
 
-// How close to the intake/departure date a step is considered late if it has
-// not progressed past "not_started". Intake is the school start (rentrée);
-// students are expected to depart ~30 days before intake.
-const STEP_DELAY_THRESHOLD_DAYS = 60; // within 60 days of rentrée, not_started steps are "delayed"
-const DEPARTURE_OFFSET_DAYS = 30; // students typically depart 30 days before intake
-const APPOINTMENT_PROXIMITY_DAYS = 30; // appointments must be booked within 30 days of departure
+const STEP_DELAY_THRESHOLD_DAYS = 60;
+const DEPARTURE_OFFSET_DAYS = 30;
+const APPOINTMENT_PROXIMITY_DAYS = 30;
+const TLS_INTAKE_LOOKAHEAD_DAYS = 120;
+const PROFILE_COMPLETENESS_THRESHOLD = 70;
+
+export const TLS_STEP_NAME = "Prise de rendez-vous TLS/VFS";
+export const VISA_DEPOSIT_STEP_NAME = "Dépôt du dossier visa";
+
+const PROFILE_FIELDS: (keyof Student)[] = [
+  "phone",
+  "dateOfBirth",
+  "nationalityCode",
+  "passportNumber",
+  "passportExpiry",
+  "financingType",
+  "visaType",
+  "countryId",
+];
+
+type VisaSignals = {
+  missingDocs: number;
+  rejectedDocs: number;
+  missingLettreAdmission: boolean;
+  missingJustificatifFinancier: boolean;
+  overdueTasks: number;
+  delayedSteps: number;
+  missingTlsAppointment: boolean;
+  appointmentOutsideWindow: boolean;
+  hasVisaRefusal: boolean;
+  lowProfileCompleteness: boolean;
+  profilePct: number;
+};
+
+function documentCategoryIsMissing(docs: Document[], category: string): boolean {
+  const inCat = docs.filter((d) => d.category === category);
+  if (inCat.length === 0) return true;
+  return inCat.every((d) => d.status === "missing");
+}
+
+function profileCompletenessPct(student: Student): number {
+  const filled = PROFILE_FIELDS.filter((k) => {
+    const v = student[k];
+    return v !== null && v !== undefined && String(v).trim() !== "";
+  }).length;
+  return PROFILE_FIELDS.length > 0 ? Math.round((filled / PROFILE_FIELDS.length) * 100) : 100;
+}
+
+function hasStudentProgramProfile(student: Student): boolean {
+  return !!(student.schoolId && student.programId && student.intakeDate);
+}
+
+function buildRecommendations(signals: VisaSignals, daysToIntake: number | null): string[] {
+  const candidates: Array<{ p: number; t: string }> = [];
+
+  if (signals.missingLettreAdmission) {
+    candidates.push({
+      p: 95,
+      t: "Téléverser la lettre d'admission officielle (PDF lisible, en français ou avec traduction).",
+    });
+  }
+  if (signals.missingJustificatifFinancier) {
+    candidates.push({
+      p: 93,
+      t: "Téléverser un justificatif financier récent conforme au montant requis (compte bloqué, garant ou ressources).",
+    });
+  }
+  if (signals.rejectedDocs > 0) {
+    candidates.push({
+      p: 90,
+      t: `Corriger et re-soumettre ${signals.rejectedDocs} document(s) rejeté(s) en suivant les commentaires du conseiller.`,
+    });
+  }
+  if (signals.missingTlsAppointment) {
+    candidates.push({
+      p: 85,
+      t: "Réserver un rendez-vous TLS/VFS (ou Capago) et l'enregistrer dans VisaFlow.",
+    });
+  }
+  if (signals.missingDocs > 0) {
+    candidates.push({
+      p: 80,
+      t: `Compléter ${signals.missingDocs} document(s) manquant(s) dans l'onglet Documents avant le dépôt consulaire.`,
+    });
+  }
+  if (signals.delayedSteps > 0 && daysToIntake !== null) {
+    candidates.push({
+      p: 75,
+      t: `Finaliser ${signals.delayedSteps} étape(s) requise(s) en retard — rentrée dans ${daysToIntake} jour(s).`,
+    });
+  }
+  if (signals.overdueTasks > 0) {
+    candidates.push({
+      p: 70,
+      t: `Traiter ${signals.overdueTasks} tâche(s) en retard dans votre tableau de bord.`,
+    });
+  }
+  if (signals.hasVisaRefusal) {
+    candidates.push({
+      p: 60,
+      t: "Préparer une lettre explicative détaillée sur le refus précédent et les éléments renforcés du nouveau dossier.",
+    });
+  }
+  if (signals.lowProfileCompleteness) {
+    candidates.push({
+      p: 55,
+      t: `Compléter votre profil dossier (${signals.profilePct}% renseigné) : passeport, financement et coordonnées à jour.`,
+    });
+  }
+
+  const picked = candidates
+    .sort((a, b) => b.p - a.p)
+    .slice(0, 5)
+    .map((c) => c.t);
+
+  if (picked.length === 0) {
+    return ["Dossier en bonne voie — continuer le suivi régulier."];
+  }
+  if (picked.length < 3) {
+    picked.push("Vérifier l'ensemble des pièces et le calendrier avant le dépôt.");
+  }
+  return picked;
+}
+
+export function visaStepGateMessage(docs: Document[], stepName: string): string | null {
+  if (stepName !== TLS_STEP_NAME && stepName !== VISA_DEPOSIT_STEP_NAME) return null;
+
+  const missing: string[] = [];
+  if (documentCategoryIsMissing(docs, "lettre_admission")) missing.push("la lettre d'admission");
+  if (documentCategoryIsMissing(docs, "justificatif_financier")) missing.push("le justificatif financier");
+
+  if (missing.length === 0) return null;
+  return `Impossible de valider « ${stepName} » : téléversez ${missing.join(" et ")} avant de poursuivre.`;
+}
+
+export async function getVisaReadinessSummary(studentId: number): Promise<{
+  studentId: number;
+  score: number;
+  level: "low" | "medium" | "high";
+  recommendations: string[];
+}> {
+  const risk = await calculateRiskScore(studentId);
+  return {
+    studentId,
+    score: risk.score,
+    level: risk.level,
+    recommendations: risk.recommendations ?? [],
+  };
+}
 
 export async function calculateRiskScore(studentId: number): Promise<RiskScore> {
   const [student] = await db.select().from(studentsTable).where(eq(studentsTable.id, studentId));
@@ -40,15 +185,7 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     .select()
     .from(studentStepsTable)
     .where(eq(studentStepsTable.studentId, studentId));
-  const admissionDoc = docs.find(
-    (d) => d.category === "lettre_admission" || d.category === "lettre_admission_definitive",
-  );
-  const missingAdmissionLetter =
-    !admissionDoc ||
-    admissionDoc.status === "missing" ||
-    admissionDoc.status === "rejected";
 
-  // Step delays vs intake/rentrée timeline ----------------------------------
   const now = new Date();
   let intakeDate: Date | null = null;
   if (student.intakeDate) {
@@ -66,16 +203,10 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     : null;
 
   let delayedSteps = 0;
-  let intakeOverdue = false;
-  if (intakeDate) {
-    if (daysToIntake !== null && daysToIntake < 0 && student.status === "active") {
-      intakeOverdue = true;
-    }
-    if (daysToIntake !== null && daysToIntake <= STEP_DELAY_THRESHOLD_DAYS) {
-      delayedSteps = allSteps.filter(
-        (s) => s.isRequired && (s.status === "not_started" || s.status === "blocked"),
-      ).length;
-    }
+  if (intakeDate && daysToIntake !== null && daysToIntake <= STEP_DELAY_THRESHOLD_DAYS) {
+    delayedSteps = allSteps.filter(
+      (s) => s.isRequired && (s.status === "not_started" || s.status === "blocked"),
+    ).length;
   }
 
   const upcomingApts = await db
@@ -84,9 +215,16 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     .where(
       and(eq(appointmentsTable.studentId, studentId), eq(appointmentsTable.status, "upcoming")),
     );
-  const missingAppointments = upcomingApts.length === 0 && student.status === "active";
 
-  let appointmentNotInProximityWindow = false;
+  const tlsStep = allSteps.find((s) => s.stepName === TLS_STEP_NAME);
+  const tlsStepPending = tlsStep && tlsStep.status !== "validated";
+  const hasTlsAppointment = upcomingApts.some((a) => a.type === "tls_vfs" || a.type === "capago");
+  const nearIntake =
+    daysToIntake === null || (daysToIntake <= TLS_INTAKE_LOOKAHEAD_DAYS && daysToIntake >= 0);
+  const missingTlsAppointment =
+    student.status === "active" && !!tlsStepPending && !hasTlsAppointment && nearIntake;
+
+  let appointmentOutsideWindow = false;
   if (expectedDeparture && upcomingApts.length > 0 && daysToDeparture !== null && daysToDeparture > 0) {
     const minMs = (daysToDeparture - APPOINTMENT_PROXIMITY_DAYS) * 86400000;
     const maxMs = (daysToDeparture + APPOINTMENT_PROXIMITY_DAYS) * 86400000;
@@ -94,50 +232,43 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
       const delta = a.scheduledAt.getTime() - now.getTime();
       return delta >= minMs && delta <= maxMs;
     });
-    appointmentNotInProximityWindow = !inWindow;
+    appointmentOutsideWindow = !inWindow;
   }
 
-  const hasVisaRefusal = student.hasVisaRefusalHistory;
+  const profilePct = profileCompletenessPct(student);
+  const lowProfileCompleteness =
+    hasStudentProgramProfile(student) && profilePct < PROFILE_COMPLETENESS_THRESHOLD;
+
+  const signals: VisaSignals = {
+    missingDocs,
+    rejectedDocs,
+    missingLettreAdmission: documentCategoryIsMissing(docs, "lettre_admission"),
+    missingJustificatifFinancier: documentCategoryIsMissing(docs, "justificatif_financier"),
+    overdueTasks: overdueTasks.length,
+    delayedSteps,
+    missingTlsAppointment,
+    appointmentOutsideWindow,
+    hasVisaRefusal: student.hasVisaRefusalHistory,
+    lowProfileCompleteness,
+    profilePct,
+  };
 
   let score = 0;
-  score += missingDocs * 8;
-  score += rejectedDocs * 12;
-  score += overdueTasks.length * 10;
-  if (missingAdmissionLetter) score += 25;
-  if (missingAppointments) score += 8;
-  if (hasVisaRefusal) score += 20;
-  score += delayedSteps * 5;
-  if (intakeOverdue) score += 30;
-  if (appointmentNotInProximityWindow) score += 15;
+  score += signals.missingDocs * 8;
+  score += signals.rejectedDocs * 12;
+  if (signals.missingLettreAdmission) score += 15;
+  if (signals.missingJustificatifFinancier) score += 12;
+  score += signals.overdueTasks * 10;
+  score += signals.delayedSteps * 5;
+  if (signals.missingTlsAppointment) score += 12;
+  if (signals.appointmentOutsideWindow) score += 15;
+  if (signals.hasVisaRefusal) score += 20;
+  if (signals.lowProfileCompleteness) score += 10;
   score = Math.min(100, score);
 
   const level: "low" | "medium" | "high" = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
 
-  const recommendations: string[] = [];
-  if (missingDocs > 0) recommendations.push(`Téléverser ${missingDocs} document(s) manquant(s)`);
-  if (rejectedDocs > 0)
-    recommendations.push(`Corriger ${rejectedDocs} document(s) rejeté(s)`);
-  if (overdueTasks.length > 0)
-    recommendations.push(`Compléter ${overdueTasks.length} tâche(s) en retard`);
-  if (missingAdmissionLetter)
-    recommendations.push("Téléverser la lettre d'admission de l'école privée");
-  if (missingAppointments) recommendations.push("Planifier les prochains rendez-vous");
-  if (hasVisaRefusal)
-    recommendations.push("Joindre une lettre explicative liée au refus précédent");
-  if (delayedSteps > 0 && daysToIntake !== null) {
-    recommendations.push(
-      `Accélérer ${delayedSteps} étape(s) requise(s) — rentrée dans ${daysToIntake} jour(s)`,
-    );
-  }
-  if (intakeOverdue) {
-    recommendations.push("Date de rentrée dépassée — réviser le calendrier ou changer d'intake");
-  }
-  if (appointmentNotInProximityWindow) {
-    recommendations.push(
-      `Replanifier un rendez-vous dans la fenêtre de ${APPOINTMENT_PROXIMITY_DAYS} jours autour du départ`,
-    );
-  }
-  if (recommendations.length === 0) recommendations.push("Dossier en bonne voie — continuer le suivi régulier");
+  const recommendations = buildRecommendations(signals, daysToIntake);
 
   const values = {
     studentId,
@@ -147,8 +278,8 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
     overdueTasks: overdueTasks.length,
     rejectedDocuments: rejectedDocs,
     missingCampusFrance: false,
-    missingAppointments: missingAppointments || appointmentNotInProximityWindow,
-    hasVisaRefusal,
+    missingAppointments: missingTlsAppointment || appointmentOutsideWindow,
+    hasVisaRefusal: student.hasVisaRefusalHistory,
     recommendations,
     calculatedAt: new Date(),
   };
@@ -166,6 +297,7 @@ export async function calculateRiskScore(studentId: number): Promise<RiskScore> 
       .returning();
     return updated;
   }
+
   const [created] = await db.insert(riskScoresTable).values(values).returning();
   return created;
 }
