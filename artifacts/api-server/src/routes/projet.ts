@@ -86,11 +86,11 @@ const PROJET_RUBRIC = `Tu es un conseiller visa étudiant spécialisé dans les 
 Tu dois aussi fournir une critique en français, des points forts (strengths), des points faibles (weaknesses), et des suggestions d'amélioration concrètes.
 Réponds STRICTEMENT en JSON valide selon ce schéma : { "score": { "coherence": n, "french": n, "specificity": n, "returnPlan": n, "overall": n }, "critique": "...", "strengths": ["..."], "weaknesses": ["..."], "suggestions": ["..."] }.`;
 
-const LETTER_RUBRIC = `Tu es un expert Campus France qui évalue la lettre de motivation d'un étudiant pour un voeu Études en France. Note de 0 à 10 chaque axe :
-- coherence: lien entre parcours et programme visé
+const LETTER_RUBRIC = `Tu es un expert en dossiers visa étudiant pour une admission en école privée française. Tu évalues la lettre de motivation liée à une admission unique (pas de vœux Études en France). Note de 0 à 10 chaque axe :
+- coherence: lien entre parcours, admission obtenue et programme visé
 - french: niveau et qualité du français écrit
-- specificity: spécificité au programme et à l'école (cours, projets, spécialisations citées)
-- returnPlan: lien avec le projet professionnel et de retour
+- specificity: précision sur l'école, le programme, les cours et le projet professionnel
+- returnPlan: crédibilité du projet de retour ou d'insertion après le diplôme
 - overall: note globale
 Réponds STRICTEMENT en JSON valide : { "score": {...}, "critique": "...", "strengths": [...], "weaknesses": [...], "suggestions": [...] }. Tout en français.`;
 
@@ -512,7 +512,7 @@ router.post(
           {
             role: "system",
             content:
-              "Tu es un coach d'écriture pour Campus France. Réécris le paragraphe pour le rendre plus précis, structuré et adapté à un dossier visa étudiant français. Réponds STRICTEMENT en JSON : { \"improved\": \"...\", \"rationale\": \"...\" } en français.",
+              "Tu es un coach d'écriture pour un projet d'études visa école privée (admission déjà obtenue). Réécris le paragraphe pour le rendre plus précis, structuré et aligné sur la lettre d'admission et le dépôt consulaire. Réponds STRICTEMENT en JSON : { \"improved\": \"...\", \"rationale\": \"...\" } en français.",
           },
           {
             role: "user",
@@ -689,7 +689,7 @@ async function buildLetterCritiquePayload(opts: {
       .where(eq(programsTable.id, wish.programId));
     if (p?.name) programName = p.name;
   }
-  const contextPrefix = `Contexte du voeu : école = ${schoolName ?? "(non précisée)"}, programme = ${programName ?? "(non précisé)"}.\n\n`;
+  const contextPrefix = `Contexte de l'admission : école = ${schoolName ?? "(non précisée)"}, programme = ${programName ?? "(non précisé)"}.\n\n`;
   return {
     contextPrefix,
     meta: { letterId: letter.id, wishId: wish.id },
@@ -869,7 +869,7 @@ router.post(
           {
             role: "system",
             content:
-              "Tu es un coach d'écriture pour les lettres de motivation Études en France. Réécris le paragraphe en français, plus spécifique au programme visé. Réponds en JSON : { \"improved\": \"...\", \"rationale\": \"...\" }.",
+              "Tu es un coach d'écriture pour une lettre de motivation visa (école privée, admission unique). Réécris le paragraphe en français, plus spécifique à l'école et au programme admis. Réponds en JSON : { \"improved\": \"...\", \"rationale\": \"...\" }.",
           },
           {
             role: "user",
