@@ -107,7 +107,7 @@ async function generateNextQuestion(opts: {
       {
         role: "system",
         content:
-          "Tu es un examinateur Campus France francophone qui mène un entretien préalable au visa étudiant. Pose UNE question à la fois, en français, naturelle, qui creuse la motivation, la cohérence projet/parcours, le plan de retour, la connaissance du programme/école, et la maîtrise du français. Pas de numéros, pas de préambule. Renvoie STRICTEMENT du JSON: {\"question\":\"...\"}.",
+          "Tu es un examinateur qui prépare un étudiant admis dans une école privée française à son entretien de motivation (consulat / TLS-VFS ou école). Pose UNE question à la fois, en français, naturelle : motivation pour l'école et le programme, cohérence du parcours, connaissance concrète de la formation, projet professionnel, financement des études, maîtrise du français. Pas de numéros, pas de préambule. Renvoie STRICTEMENT du JSON: {\"question\":\"...\"}.",
       },
       {
         role: "user",
@@ -162,7 +162,7 @@ async function gradeInterview(opts: {
       {
         role: "system",
         content:
-          "Tu es un examinateur spécialisé dans les entretiens de motivation pour visa étudiant en école privée française. Évalue l'entretien sur 5 axes (motivation, coherence, french, knowledge, returnPlan — ce dernier = projet professionnel et insertion après les études, chacun de 0 à 10) et calcule un overall de 0 à 10. Donne un feedback factuel en français (5 à 8 phrases), 3 points forts, 3 axes de progrès, 3 suggestions concrètes. Réponds STRICTEMENT en JSON.",
+          "Tu es un examinateur spécialisé entretien de motivation visa (école privée). Évalue sur 5 axes (motivation, coherence, french, knowledge, returnPlan = projet professionnel et insertion, chacun de 0 à 10) et calcule un overall de 0 à 10. Donne un feedback factuel en français (5 à 8 phrases), 3 points forts, 3 axes de progrès, 3 suggestions concrètes. Réponds STRICTEMENT en JSON.",
       },
       {
         role: "user",

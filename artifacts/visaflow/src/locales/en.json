@@ -12,7 +12,7 @@
     "appointments": "Appointments",
     "postArrival": "After arrival",
     "messages": "Messages",
-    "interview": "Interview simulator",
+    "interview": "Motivation interview",
     "portfolio": "My portfolio",
     "tasks": "My tasks",
     "stats": "Statistics",
@@ -328,13 +328,17 @@
     "nTasksPlural": "{{n}} tasks",
     "dueOn": "Due: {{date}}",
     "completedSection": "Completed ({{n}})",
-    "unblockSteps": "Unlock {{n}} step(s)",
-    "advanceStep": "Advance on: {{name}}",
-    "prepareAppts": "Prepare {{n}} appointment(s)",
-    "completed": "completed",
+    "unblockSteps": "Unblock {{n}} step(s)",
+    "advanceStep": "Continue: {{name}}",
+    "prepareAppts": "Prepare for {{n}} appointment(s)",
+    "completed": "Completed",
     "view": "View",
     "todayAppts": "Today's appts",
-    "createDossierHint": "Let's create your student visa application to start your journey in France."
+    "createDossierHint": "Let's create your student visa application to start your journey in France.",
+    "visaPrepTitle": "Visa preparation",
+    "riskHigh": "High priority",
+    "riskMedium": "Needs attention",
+    "riskLow": "On track"
   },
   "stepDetail": {
     "back": "Back to list",
@@ -399,7 +403,10 @@
     "unknownError": "Unknown error"
   },
   "steps": {
-    "subtitle": "The 21 steps of your French student visa file."
+    "subtitle": "Your student visa journey (private school, no Campus France).",
+    "interviewCtaTitle": "Practice your motivation interview",
+    "interviewCtaBody": "The consulate or school may ask about your project, finances, and program. Use the simulator to prepare.",
+    "interviewCtaButton": "Open simulator"
   },
   "postArrival": {
     "title": "After arrival",
@@ -681,8 +688,8 @@
     "notRequired": "Not required"
   },
   "interview": {
-    "title": "Campus France Interview Simulator",
-    "subtitle": "Practice the pre-visa interview. The AI plays the examiner, evaluates you and gives detailed feedback.",
+    "title": "Motivation interview simulator",
+    "subtitle": "Practice for your visa-related interview (consulate, TLS/VFS, or school). AI plays the examiner and gives detailed feedback.",
     "modeText": "Text mode",
     "modeVoice": "Voice mode",
     "modeTextDesc": "Read the question, answer in writing. Ideal for structuring your thoughts.",
@@ -719,7 +726,7 @@
     "axeCoherence": "Coherence",
     "axeFrench": "French",
     "axeKnowledge": "Programme knowledge",
-    "axeReturnPlan": "Return plan"
+    "axeReturnPlan": "Career plan"
   },
   "depth": {
     "maritalStatus": "Marital status",

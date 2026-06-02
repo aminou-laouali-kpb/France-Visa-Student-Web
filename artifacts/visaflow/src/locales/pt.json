@@ -12,7 +12,7 @@
     "appointments": "Compromissos",
     "postArrival": "Após a chegada",
     "messages": "Mensagens",
-    "interview": "Simulador de entrevista",
+    "interview": "Entrevista de motivação",
     "portfolio": "Meu portefólio",
     "tasks": "Minhas tarefas",
     "stats": "Estatísticas",
@@ -298,7 +298,7 @@
     "visaPrepRisk": "Nível de vigilância",
     "visaPrepActions": "Ações recomendadas",
     "visaPrepOnTrack": "O seu dossiê está no bom caminho — continue com o seu conselheiro.",
-    "visaPrepSeeSteps": "Ver o meu percurso",
+    "visaPrepSeeSteps": "Ver meu percurso",
     "hello": "Olá, {{name}} 👋",
     "advisorSubtitle": "Está atualmente a acompanhar {{n}} estudante(s)",
     "studentsToFollow": "Estudantes a acompanhar",
@@ -328,13 +328,17 @@
     "nTasksPlural": "{{n}} tarefas",
     "dueOn": "Prazo: {{date}}",
     "completedSection": "Concluídas ({{n}})",
-    "unblockSteps": "Desbloquear {{n}} etapa(s)",
-    "advanceStep": "Avançar em: {{name}}",
-    "prepareAppts": "Preparar {{n}} consulta(s)",
-    "completed": "concluído",
+    "unblockSteps": "Unblock {{n}} step(s)",
+    "advanceStep": "Continue: {{name}}",
+    "prepareAppts": "Prepare for {{n}} appointment(s)",
+    "completed": "Completed",
     "view": "Ver",
     "todayAppts": "Consultas hoje",
-    "createDossierHint": "Vamos criar o seu processo de visto estudantil para iniciar a sua jornada em França."
+    "createDossierHint": "Vamos criar o seu processo de visto estudantil para iniciar a sua jornada em França.",
+    "visaPrepTitle": "Preparação do visto",
+    "riskHigh": "Prioridade alta",
+    "riskMedium": "Acompanhar",
+    "riskLow": "Bom nível"
   },
   "stepDetail": {
     "back": "Voltar à lista",
@@ -399,7 +403,10 @@
     "unknownError": "Erro desconhecido"
   },
   "steps": {
-    "subtitle": "As 21 etapas do seu processo de visto de estudante para França."
+    "subtitle": "Etapas do seu visto (escola privada, sem Campus France).",
+    "interviewCtaTitle": "Treine a entrevista de motivação",
+    "interviewCtaBody": "O consulado ou a escola pode perguntar sobre o seu projeto e finanças. Use o simulador.",
+    "interviewCtaButton": "Abrir simulador"
   },
   "postArrival": {
     "title": "Após a chegada",
@@ -681,8 +688,8 @@
     "notRequired": "Não necessário"
   },
   "interview": {
-    "title": "Simulador de entrevista Campus France",
-    "subtitle": "Pratique a entrevista pré-visto. A IA faz o papel de examinador.",
+    "title": "Simulador de entrevista de motivação",
+    "subtitle": "Treine para a entrevista do visto (consulado, TLS/VFS ou escola).",
     "modeText": "Modo texto",
     "modeVoice": "Modo voz",
     "modeTextDesc": "Leia a pergunta, responda por escrito.",
@@ -719,7 +726,7 @@
     "axeCoherence": "Coerência",
     "axeFrench": "Francês",
     "axeKnowledge": "Conhecimento do programa",
-    "axeReturnPlan": "Plano de regresso"
+    "axeReturnPlan": "Projeto profissional"
   },
   "depth": {
     "maritalStatus": "Estado civil",

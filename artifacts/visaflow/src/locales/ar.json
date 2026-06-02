@@ -12,7 +12,7 @@
     "appointments": "المواعيد",
     "postArrival": "بعد الوصول",
     "messages": "الرسائل",
-    "interview": "محاكاة المقابلة",
+    "interview": "مقابلة الدافع",
     "portfolio": "محفظتي",
     "tasks": "مهامي",
     "stats": "الإحصاءات",
@@ -328,13 +328,17 @@
     "nTasksPlural": "{{n}} مهام",
     "dueOn": "الموعد: {{date}}",
     "completedSection": "منجزة ({{n}})",
-    "unblockSteps": "فتح {{n}} خطوة(خطوات)",
-    "advanceStep": "المتابعة في: {{name}}",
-    "prepareAppts": "التحضير لـ {{n}} موعد(مواعيد)",
-    "completed": "مكتمل",
+    "unblockSteps": "Unblock {{n}} step(s)",
+    "advanceStep": "Continue: {{name}}",
+    "prepareAppts": "Prepare for {{n}} appointment(s)",
+    "completed": "Completed",
     "view": "عرض",
     "todayAppts": "مواعيد اليوم",
-    "createDossierHint": "لنبدأ بإنشاء ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا."
+    "createDossierHint": "لنبدأ بإنشاء ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا.",
+    "visaPrepTitle": "التحضير للتأشيرة",
+    "riskHigh": "أولوية عالية",
+    "riskMedium": "يحتاج متابعة",
+    "riskLow": "مستوى جيد"
   },
   "stepDetail": {
     "back": "العودة إلى القائمة",
@@ -399,7 +403,10 @@
     "unknownError": "خطأ غير معروف"
   },
   "steps": {
-    "subtitle": "الخطوات الـ 21 لملف تأشيرة الطالب الفرنسية."
+    "subtitle": "خطوات ملف التأشيرة (مدرسة خاصة، بدون Campus France).",
+    "interviewCtaTitle": "تدرب على مقابلة الدافع",
+    "interviewCtaBody": "قد يسألك القنصل أو المدرسة عن مشروعك وماليتك. استخدم المحاكي للتحضير.",
+    "interviewCtaButton": "فتح المحاكي"
   },
   "postArrival": {
     "title": "بعد الوصول",
@@ -681,8 +688,8 @@
     "notRequired": "غير مطلوب"
   },
   "interview": {
-    "title": "محاكي مقابلة كامبوس فرانس",
-    "subtitle": "تدرّب على مقابلة ما قبل التأشيرة.",
+    "title": "محاكاة مقابلة الدافع",
+    "subtitle": "تدرب على مقابلة التأشيرة. الذكاء الاصطناعي يلعب دور الممتحن.",
     "modeText": "الوضع النصي",
     "modeVoice": "الوضع الصوتي",
     "modeTextDesc": "اقرأ السؤال وأجب كتابةً.",
@@ -719,7 +726,7 @@
     "axeCoherence": "التماسك",
     "axeFrench": "اللغة الفرنسية",
     "axeKnowledge": "معرفة البرنامج",
-    "axeReturnPlan": "خطة العودة"
+    "axeReturnPlan": "المشروع المهني"
   },
   "depth": {
     "maritalStatus": "الحالة الاجتماعية",

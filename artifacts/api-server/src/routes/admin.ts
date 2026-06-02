@@ -206,6 +206,11 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     upcomingAppointments: apts,
     unreadNotifications: unreadNotifs.length,
     nextActions: nextActions.slice(0, 8),
+    visaReadiness: {
+      score: visaReadiness.score,
+      level: visaReadiness.level,
+      recommendations: visaReadiness.recommendations.slice(0, 5),
+    },
     recentComments,
     postArrivalSteps,
   });

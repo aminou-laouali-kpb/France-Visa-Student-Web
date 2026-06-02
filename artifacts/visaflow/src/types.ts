@@ -195,6 +195,12 @@ export interface StudentFormData {
   titreExpiryDate?: string | null;
 }
 
+export interface VisaReadinessSummary {
+  score: number;
+  level: "low" | "medium" | "high";
+  recommendations: string[];
+}
+
 export interface StudentDashboardData {
   student: Student | null;
   totalSteps: number;
@@ -206,6 +212,7 @@ export interface StudentDashboardData {
   upcomingAppointments?: Appointment[];
   currentStep?: Step | null;
   nextActions?: string[];
+  visaReadiness?: VisaReadinessSummary;
   recentComments?: Comment[];
   postArrivalSteps?: PostArrivalStep[];
 }

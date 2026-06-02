@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "wouter";
 import {
   useListStudentSteps,
   useGetStepChecklist,
@@ -9,24 +8,18 @@ import {
 import type { ChecklistItem } from "@workspace/api-client-react";
 import type { Step, Document } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import {
-  CheckCircle2,
-  Circle,
-  AlertCircle,
-  FileText,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, FileText, Sparkles } from "lucide-react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { formatDate } from "@/lib/utils";
-import { shouldShowMotivationInterviewCta } from "@/lib/interviewCta";
 import { useTranslation } from "react-i18next";
 
-/** Legacy Campus France steps are identified by name, not the isCampusFranceStep flag. */
-function isCampusFranceStepLabel(stepName: string): boolean {
+
+function isMotivationInterviewStep(stepName: string): boolean {
   const n = stepName.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-  return n.includes("campus france") || n.includes("etudes en france");
+  return n.includes("entretien") && n.includes("motivation");
 }
 
 export function StudentSteps() {
@@ -52,11 +45,29 @@ function Inner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">
-          {t("dashboard.myJourney")}
-        </h1>
-        <p className="text-slate-600 mt-1">{t("steps.subtitle")}</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("dashboard.myJourney")}</h1>
+        <p className="text-slate-600 mt-1">
+          {t("steps.subtitle")}
+        </p>
       </div>
+
+      {list.some((s) => isMotivationInterviewStep(s.stepName) && s.status !== "validated") && (
+        <Card className="border-violet-200 bg-violet-50/60" data-testid="banner-interview-simulator">
+          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <Sparkles className="w-5 h-5 text-violet-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-medium text-slate-900">{t("steps.interviewCtaTitle")}</div>
+                <p className="text-sm text-slate-600 mt-1">{t("steps.interviewCtaBody")}</p>
+              </div>
+            </div>
+            <Link href="/student/interview">
+              <Button data-testid="button-go-interview-simulator">{t("steps.interviewCtaButton")}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
 
       <Card>
         <CardContent className="p-0">
@@ -95,7 +106,9 @@ function Inner() {
                     aria-expanded={isExpanded}
                     aria-controls={`student-step-checklist-${step.id}`}
                     className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-                    onClick={() => setExpandedId(isExpanded ? null : step.id)}
+                    onClick={() =>
+                      setExpandedId(isExpanded ? null : step.id)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -109,7 +122,7 @@ function Inner() {
                           <span className="text-sm text-slate-500">
                             {t("stepDetail.stepN", { n: step.stepOrder })}
                           </span>
-                          {isCampusFranceStepLabel(step.stepName) && (
+                          {step.isCampusFranceStep && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
                               {t("detail.campusFranceStep")}
                             </span>
@@ -132,15 +145,17 @@ function Inner() {
                       id={`student-step-checklist-${step.id}`}
                       className="mt-3 space-y-3"
                     >
-                      <StepChecklist studentId={studentId} stepId={step.id} />
+                      <StepChecklist
+                        studentId={studentId}
+                        stepId={step.id}
+                      />
                       <StepDocuments
                         documents={documents}
                         stepName={step.stepName}
                       />
                       {step.notes && (
                         <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded">
-                          <strong>{t("stepDetail.advisorNote")}</strong>{" "}
-                          {step.notes}
+                          <strong>{t("stepDetail.advisorNote")}</strong> {step.notes}
                         </div>
                       )}
                     </div>
@@ -199,11 +214,15 @@ function StepChecklist({
           />
           <span
             className={
-              it.isChecked ? "line-through text-slate-400" : "text-slate-700"
+              it.isChecked
+                ? "line-through text-slate-400"
+                : "text-slate-700"
             }
           >
             {it.label}
-            {it.isRequired && <span className="text-rose-600 ml-1">*</span>}
+            {it.isRequired && (
+              <span className="text-rose-600 ml-1">*</span>
+            )}
           </span>
         </label>
       ))}
@@ -223,11 +242,7 @@ function StepDocuments({
   const matched = documents.filter((d) => {
     const cat = d.category.toLowerCase();
     const name = d.name.toLowerCase();
-    return (
-      lower.includes(cat) ||
-      cat.split("_").some((p) => lower.includes(p)) ||
-      (name && lower.includes(name))
-    );
+    return lower.includes(cat) || cat.split("_").some((p) => lower.includes(p)) || name && lower.includes(name);
   });
   if (matched.length === 0) return null;
   return (

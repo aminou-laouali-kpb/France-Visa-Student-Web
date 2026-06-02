@@ -12,7 +12,7 @@
     "appointments": "Rendez-vous",
     "postArrival": "Après l'arrivée",
     "messages": "Messages",
-    "interview": "Simulateur d'entretien",
+    "interview": "Entretien de motivation",
     "portfolio": "Mon portefeuille",
     "tasks": "Mes tâches",
     "stats": "Statistiques",
@@ -329,12 +329,16 @@
     "dueOn": "Échéance : {{date}}",
     "completedSection": "Terminées ({{n}})",
     "unblockSteps": "Débloquer {{n}} étape(s)",
-    "advanceStep": "Avancer sur : {{name}}",
+    "advanceStep": "Avancer : {{name}}",
     "prepareAppts": "Préparer {{n}} rendez-vous",
-    "completed": "complété",
+    "completed": "Complété",
     "view": "Voir",
     "todayAppts": "RDV aujourd'hui",
-    "createDossierHint": "Créons votre dossier visa étudiant pour démarrer votre parcours en France."
+    "createDossierHint": "Créons votre dossier visa étudiant pour démarrer votre parcours en France.",
+    "visaPrepTitle": "Préparation visa",
+    "riskHigh": "Priorité haute",
+    "riskMedium": "À surveiller",
+    "riskLow": "Bon niveau"
   },
   "stepDetail": {
     "back": "Retour à la liste",
@@ -399,7 +403,10 @@
     "unknownError": "Erreur inconnue"
   },
   "steps": {
-    "subtitle": "Les 21 étapes de votre dossier visa étudiant France."
+    "subtitle": "Les étapes de votre dossier visa (école privée, hors Campus France).",
+    "interviewCtaTitle": "Entraînez-vous à l'entretien de motivation",
+    "interviewCtaBody": "Le consulat ou l'école peut vous questionner sur votre projet, vos finances et votre formation. Utilisez le simulateur pour vous préparer.",
+    "interviewCtaButton": "Lancer le simulateur"
   },
   "postArrival": {
     "title": "Après l'arrivée",
@@ -681,8 +688,8 @@
     "notRequired": "Non requis"
   },
   "interview": {
-    "title": "Simulateur d'entretien Campus France",
-    "subtitle": "Entraînez-vous à l'entretien préalable au visa. L'IA joue l'examinateur, vous évalue et vous donne un retour détaillé.",
+    "title": "Simulateur d'entretien de motivation",
+    "subtitle": "Entraînez-vous à l'entretien lié à votre visa (consulat, TLS/VFS ou école). L'IA joue l'examinateur et vous donne un retour détaillé.",
     "modeText": "Mode texte",
     "modeVoice": "Mode voix",
     "modeTextDesc": "Lisez la question, répondez par écrit. Idéal pour structurer vos idées.",
@@ -719,7 +726,7 @@
     "axeCoherence": "Cohérence",
     "axeFrench": "Français",
     "axeKnowledge": "Connaissance du programme",
-    "axeReturnPlan": "Plan de retour"
+    "axeReturnPlan": "Projet professionnel"
   },
   "depth": {
     "maritalStatus": "État civil",

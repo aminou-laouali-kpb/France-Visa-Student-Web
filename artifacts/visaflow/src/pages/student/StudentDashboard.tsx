@@ -2,7 +2,6 @@ import { Link, Redirect } from "wouter";
 import {
   useGetMe,
   useGetStudentDashboard,
-  useGetStudentRiskScore,
   useListDocuments,
   useListStudentSteps,
 } from "@workspace/api-client-react";
@@ -27,7 +26,6 @@ import {
   MessageSquare,
   Plane,
   Stamp,
-  ShieldAlert,
 } from "lucide-react";
 import type { Appointment, PostArrivalStep } from "@/types";
 import { useTranslation } from "react-i18next";
@@ -47,9 +45,6 @@ export function StudentDashboard() {
   const { data: stepsRaw } = useListStudentSteps(studentId, {
     query: { enabled: !!studentId, queryKey: ["steps", studentId] },
   });
-  const { data: riskScore } = useGetStudentRiskScore(studentId, {
-    query: { enabled: !!studentId, retry: false, queryKey: ["risk", studentId] },
-  });
 
   if (me && me.role !== "student") return <Redirect to="/app" />;
   if (isLoading) return <div className="p-8">{t("dash.loading")}</div>;
@@ -59,10 +54,10 @@ export function StudentDashboard() {
       <Card>
         <CardContent className="p-12 text-center">
           <GraduationCap className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">
-            {t("dashboard.welcome")}
-          </h2>
-          <p className="text-slate-600 mb-6">{t("dash.studentWelcome")}</p>
+          <h2 className="text-xl font-semibold mb-2">{t("dashboard.welcome")}</h2>
+          <p className="text-slate-600 mb-6">
+            {t("dash.studentWelcome")}
+          </p>
           <Link href="/app/onboarding">
             <Button size="lg" data-testid="button-create-dossier">
               {t("dash.createDossier")}
@@ -83,11 +78,7 @@ export function StudentDashboard() {
     steps.find((s) => s.status === "pending");
 
   const apiActions = data.nextActions ?? [];
-  const derivedActions: {
-    label: string;
-    href: string;
-    icon: typeof FileText;
-  }[] = [];
+  const derivedActions: { label: string; href: string; icon: typeof FileText }[] = [];
   if (rejectedDocs.length > 0) {
     derivedActions.push({
       label: t("dash.docsToCorrect", { n: rejectedDocs.length }),
@@ -121,37 +112,64 @@ export function StudentDashboard() {
     (c: Comment) => !c.isInternal && c.authorRole !== "student",
   );
 
+  const visaPrep = data.visaReadiness;
+
   return (
     <div className="space-y-6" data-testid="student-dashboard">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">
-          {t("dashboard.myJourney")}
-        </h1>
+        <h1 className="text-3xl font-bold text-slate-900">{t("dashboard.myJourney")}</h1>
         <p className="text-slate-600 mt-1">
-          {t("dash.stepsValidated", {
-            completed: data.completedSteps,
-            total: data.totalSteps,
-          })}
+          {t("dash.stepsValidated", { completed: data.completedSteps, total: data.totalSteps })}
         </p>
       </div>
+
+      {visaPrep && (
+        <Card className="border-blue-200 bg-blue-50/50" data-testid="card-visa-readiness">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Stamp className="w-4 h-4 text-blue-600" />
+              {t("dash.visaPrepTitle", { defaultValue: "Préparation visa" })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-2xl font-bold text-slate-900">{visaPrep.score}/100</span>
+              <span
+                className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                  visaPrep.level === "high"
+                    ? "bg-red-100 text-red-800"
+                    : visaPrep.level === "medium"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-emerald-100 text-emerald-800"
+                }`}
+              >
+                {visaPrep.level === "high"
+                  ? t("dash.riskHigh", { defaultValue: "Priorité haute" })
+                  : visaPrep.level === "medium"
+                    ? t("dash.riskMedium", { defaultValue: "À surveiller" })
+                    : t("dash.riskLow", { defaultValue: "Bon niveau" })}
+              </span>
+            </div>
+            <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
+              {visaPrep.recommendations.slice(0, 3).map((rec, i) => (
+                <li key={i}>{rec}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between gap-6">
-            <ProgressRing
-              value={data.completionScore}
-              label={t("dash.completed")}
-            />
+            <ProgressRing value={data.completionScore} label={t("dash.completed")} />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm text-slate-600">
-                  {t("dash.dossierStatus")}
-                </div>
+                <div className="text-sm text-slate-600">{t("dash.dossierStatus")}</div>
                 <StatusBadge status={data.student.status} />
               </div>
               <div className="text-lg font-semibold text-slate-900">
-                {data.completedSteps} / {data.totalSteps}{" "}
-                {t("dash.stepsCompleted")}
+                {data.completedSteps} / {data.totalSteps} {t("dash.stepsCompleted")}
               </div>
               <Progress value={data.completionScore} className="h-2 mt-2" />
               {data.pendingDocuments > 0 && (
@@ -162,75 +180,6 @@ export function StudentDashboard() {
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card data-testid="card-visa-preparation">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-indigo-600" />
-            {t("dash.visaPreparation")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-6">
-            <ProgressRing
-              value={data.completionScore}
-              label={t("dash.visaPrepCompletion")}
-            />
-            <div className="flex-1 min-w-[12rem]">
-              <div className="text-sm text-slate-600">
-                {t("dash.visaPrepCompletion")}
-              </div>
-              <div className="text-2xl font-bold text-slate-900">
-                {data.completionScore}%
-              </div>
-              <Progress value={data.completionScore} className="h-2 mt-2" />
-              {riskScore?.level && (
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-sm text-slate-600">
-                    {t("dash.visaPrepRisk")}
-                  </span>
-                  <StatusBadge status={riskScore.level} />
-                </div>
-              )}
-            </div>
-          </div>
-          {(riskScore?.recommendations?.length ?? 0) > 0 ? (
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                {t("dash.visaPrepActions")}
-              </div>
-              <ul className="space-y-2">
-                {(riskScore?.recommendations ?? [])
-                  .slice(0, 3)
-                  .map((rec, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800"
-                      data-testid={`visa-prep-action-${i}`}
-                    >
-                      <ArrowRight className="w-4 h-4 mt-0.5 text-indigo-600 shrink-0" />
-                      <span>{rec}</span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="text-sm text-slate-500 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              {t("dash.visaPrepOnTrack")}
-            </div>
-          )}
-          <Link href="/student/steps">
-            <a
-              className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
-              data-testid="link-visa-prep-steps"
-            >
-              {t("dash.visaPrepSeeSteps")}
-              <ArrowRight className="w-3 h-3" />
-            </a>
-          </Link>
         </CardContent>
       </Card>
 
@@ -300,10 +249,7 @@ export function StudentDashboard() {
                     <div className="text-sm font-medium text-slate-900">
                       {c.authorName}
                       <span className="ml-1 text-xs text-slate-500 font-normal">
-                        ·{" "}
-                        {t(`role.${c.authorRole}`, {
-                          defaultValue: c.authorRole,
-                        })}
+                        · {t(`role.${c.authorRole}`, { defaultValue: c.authorRole })}
                       </span>
                     </div>
                     <div className="text-xs text-slate-500">
@@ -343,9 +289,7 @@ export function StudentDashboard() {
                 {nextStep.stepOrder}
               </div>
               <div className="flex-1">
-                <div className="font-medium text-slate-900">
-                  {nextStep.stepName}
-                </div>
+                <div className="font-medium text-slate-900">{nextStep.stepName}</div>
                 <div className="mt-1">
                   <StatusBadge status={nextStep.status} />
                 </div>
@@ -362,11 +306,7 @@ export function StudentDashboard() {
                 )}
               </div>
               <Link href="/student/steps">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  data-testid="button-view-step"
-                >
+                <Button variant="outline" size="sm" data-testid="button-view-step">
                   {t("dash.seeStep")}
                 </Button>
               </Link>
@@ -394,9 +334,7 @@ export function StudentDashboard() {
               const Icon =
                 apt.type === "campus_france"
                   ? Building2
-                  : apt.type === "tls" ||
-                      apt.type === "vfs" ||
-                      apt.type === "tls_vfs"
+                  : apt.type === "tls" || apt.type === "vfs" || apt.type === "tls_vfs"
                     ? Stamp
                     : Calendar;
               return (
@@ -407,9 +345,7 @@ export function StudentDashboard() {
                 >
                   <Icon className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-slate-900">
-                      {apt.title}
-                    </div>
+                    <div className="font-medium text-slate-900">{apt.title}</div>
                     <div className="text-xs text-slate-600 mt-0.5">
                       {formatDateTime(apt.scheduledAt)}
                     </div>
@@ -465,9 +401,7 @@ export function StudentDashboard() {
                     <div className="font-medium text-slate-900">{s.label}</div>
                     {s.dueDate && (
                       <div className="text-xs text-slate-600 mt-0.5">
-                        {t("postArrival.dueBy", {
-                          date: new Date(s.dueDate).toLocaleDateString(),
-                        })}
+                        {t("postArrival.dueBy", { date: new Date(s.dueDate).toLocaleDateString() })}
                       </div>
                     )}
                   </div>
@@ -492,9 +426,7 @@ export function StudentDashboard() {
           <CardContent className="p-5">
             <FileText className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.documentsCount}</div>
-            <div className="text-sm text-slate-600">
-              {t("dash.uploadsCount")}
-            </div>
+            <div className="text-sm text-slate-600">{t("dash.uploadsCount")}</div>
           </CardContent>
         </Card>
         <Card>
@@ -503,18 +435,14 @@ export function StudentDashboard() {
             <div className="text-2xl font-bold">
               {data.upcomingAppointments?.length ?? 0}
             </div>
-            <div className="text-sm text-slate-600">
-              {t("dash.upcomingAppts")}
-            </div>
+            <div className="text-sm text-slate-600">{t("dash.upcomingAppts")}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
             <ListChecks className="w-6 h-6 text-blue-600 mb-2" />
             <div className="text-2xl font-bold">{data.completedSteps}</div>
-            <div className="text-sm text-slate-600">
-              {t("dash.stepsCompleted")}
-            </div>
+            <div className="text-sm text-slate-600">{t("dash.stepsCompleted")}</div>
           </CardContent>
         </Card>
       </div>
