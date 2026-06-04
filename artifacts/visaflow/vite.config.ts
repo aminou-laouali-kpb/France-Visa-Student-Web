@@ -52,6 +52,17 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // Local / E2E: forward /api to the Express server (Replit cartographer does this in REPL_ID env).
+    ...(process.env.VITE_DEV_API_PROXY
+      ? {
+          proxy: {
+            "/api": {
+              target: process.env.VITE_DEV_API_PROXY,
+              changeOrigin: true,
+            },
+          },
+        }
+      : {}),
   },
   preview: {
     port,

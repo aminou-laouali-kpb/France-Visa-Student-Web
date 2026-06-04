@@ -2,12 +2,21 @@ import { test as setup, expect } from "@playwright/test";
 import { clerkSetup } from "@clerk/testing/playwright";
 import { createClerkClient } from "@clerk/backend";
 import { Client } from "pg";
+import {
+  resolveClerkPublishableKey,
+  verifyClerkSecretKey,
+} from "./fixtures/clerkEnv";
 import { ROLE_EMAILS, TEST_PASSWORD, requireEnv } from "./fixtures/env";
 
 setup("clerk + seed users + assign roles", async () => {
+  const secretKey = requireEnv("CLERK_SECRET_KEY");
+  const publishableKey = resolveClerkPublishableKey();
+  process.env.CLERK_PUBLISHABLE_KEY ??= publishableKey;
+  process.env.VITE_CLERK_PUBLISHABLE_KEY ??= publishableKey;
+
+  await verifyClerkSecretKey(secretKey, publishableKey);
   await clerkSetup();
 
-  const secretKey = requireEnv("CLERK_SECRET_KEY");
   const databaseUrl = requireEnv("DATABASE_URL");
 
   const clerk = createClerkClient({ secretKey });
