@@ -23,6 +23,8 @@ import { logAudit } from "../lib/audit";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { sendMail, studentSelfLink } from "../lib/mailer";
 import { notify } from "../lib/notify";
+import { precheckStudentDocuments } from "../lib/documentPrecheck";
+import { z } from "zod";
 import { validateBody } from "../middlewares/validate";
 import {
   CreateDocumentBody,
@@ -30,6 +32,9 @@ import {
   ReviewDocumentBody,
   RequestUploadUrlBody,
 } from "@workspace/api-zod";
+import { aviExpiryFromCertificateDate, runDocumentFreshnessPrecheck } from "../lib/documentPrecheck";
+
+const CreateDocumentBodyExtended = CreateDocumentBody.extend({ uploadToken: z.string(), aviProvider: z.string().optional(), aviCertificateNumber: z.string().optional(), aviCertificateDate: z.string().optional(), aviAmountEur: z.number().optional() });
 
 const router: IRouter = Router();
 const storage = new ObjectStorageService();
@@ -89,6 +94,17 @@ function verifyUploadToken(
 }
 
 router.get(
+  "/students/:studentId/document-precheck",
+  requireAuth,
+  requireStudentAccess("studentId", "read"),
+  async (req, res) => {
+    const studentId = Number(req.params.studentId);
+    const warnings = await precheckStudentDocuments(studentId);
+    res.json({ warnings });
+  },
+);
+
+router.get(
   "/students/:studentId/documents",
   requireAuth,
   requireStudentAccess("studentId", "read"),
@@ -109,10 +125,10 @@ router.post(
   "/students/:studentId/documents",
   requireAuth,
   requireStudentAccess("studentId", "read"),
-  validateBody(CreateDocumentBody),
+  validateBody(CreateDocumentBodyExtended),
   async (req, res) => {
     const studentId = Number(req.params.studentId);
-    const { category, name, fileName, objectPath, uploadToken, mimeType, sizeBytes } =
+    const { category, name, fileName, objectPath, uploadToken, mimeType, sizeBytes, aviProvider, aviCertificateNumber, aviCertificateDate, aviAmountEur } =
       req.body ?? {};
     if (!objectPath || !category || !name) {
       res.status(400).json({ error: "Missing required fields" });
@@ -155,23 +171,18 @@ router.post(
       .from(documentsTable)
       .where(and(eq(documentsTable.studentId, studentId), eq(documentsTable.category, category)));
     const version = existing.length + 1;
-
-    const [doc] = await db
-      .insert(documentsTable)
-      .values({
-        studentId,
-        uploadedById: req.currentUser!.id,
-        category,
-        name,
-        fileName: fileName ?? name,
-        objectPath,
-        mimeType: actualMime ?? mimeType ?? null,
-        sizeBytes: actualSize ?? (typeof sizeBytes === "number" ? sizeBytes : null),
-        status: "received",
-        version,
-      })
-      .returning();
-
+    let extractedData: Record<string, unknown> | null = null;
+    let expiryDate: string | null = null;
+    if (category === "avi") {
+      extractedData = { aviProvider: aviProvider ?? null, aviCertificateNumber: aviCertificateNumber ?? null, aviCertificateDate: aviCertificateDate ?? null, aviAmountEur: aviAmountEur ?? null, issueDate: aviCertificateDate ?? null };
+      expiryDate = aviExpiryFromCertificateDate(aviCertificateDate);
+    }
+    let [doc] = await db.insert(documentsTable).values({ studentId, uploadedById: req.currentUser!.id, category, name, fileName: fileName ?? name, objectPath, mimeType: actualMime ?? mimeType ?? null, sizeBytes: actualSize ?? (typeof sizeBytes === "number" ? sizeBytes : null), status: "received", version, extractedData, expiryDate }).returning();
+    const freshness = runDocumentFreshnessPrecheck(doc);
+    if (freshness.length > 0) {
+      const merged = { ...(typeof doc.extractedData === "object" && doc.extractedData !== null ? (doc.extractedData as Record<string, unknown>) : {}), precheckWarnings: freshness };
+      [doc] = await db.update(documentsTable).set({ extractedData: merged }).where(eq(documentsTable.id, doc.id)).returning();
+    }
     const student = req.targetStudent!;
     const notifyIds = [student.reviewerId, student.advisorId].filter(
       (id): id is number => id !== null && id !== req.currentUser!.id,

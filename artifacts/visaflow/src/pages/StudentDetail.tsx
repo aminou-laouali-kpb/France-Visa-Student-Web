@@ -59,7 +59,9 @@ import { ProjetReviewTab } from "./ProjetReviewTab";
 import { DossierExportButtons } from "@/components/DossierExportButtons";
 import { CommentBody } from "@/components/CommentBubble";
 import { AdvisorCopilotPanel } from "@/components/AdvisorCopilotPanel";
+import { PlaybookPanel } from "@/components/PlaybookPanel";
 import { RiskNarrativeCard } from "@/components/RiskNarrativeCard";
+import { RefusalContextCard } from "@/components/RefusalContextCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +94,7 @@ import {
   Sparkles,
   UserCog,
 } from "lucide-react";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function StudentDetail() {
   const params = useParams<{ id: string }>();
@@ -160,6 +163,13 @@ export function StudentDetail() {
           )}
         </div>
       </div>
+
+      {isStaff && student.status === "visa_refused" && (
+        <RefusalContextCard
+          refusalReasonCode={(student as { refusalReasonCode?: string | null }).refusalReasonCode}
+          refusalNotes={(student as { refusalNotes?: string | null }).refusalNotes}
+        />
+      )}
 
       <Tabs defaultValue="steps">
         <TabsList>
@@ -464,6 +474,7 @@ const DOCUMENT_CATEGORY_VALUES = [
   "lettre_admission",
   "attestation_campus_france",
   "justificatif_financier",
+  "avi",
   "justificatif_hebergement",
   "assurance",
   "billet_avion",
@@ -1362,6 +1373,16 @@ function RiskScoreSection({ studentId }: { studentId: number }) {
               label={t("detail.visaRefusal")}
               value={score.hasVisaRefusal ? t("detail.yes") : t("detail.no")}
             />
+            {((score as { refusalMotifFlags?: string[] }).refusalMotifFlags ?? []).length > 0 && (
+              <div className="pt-2 border-t">
+                <div className="text-xs text-slate-500 mb-1">{t("refusal.riskFlags")}</div>
+                <div className="flex flex-wrap gap-1">
+                  {((score as { refusalMotifFlags?: string[] }).refusalMotifFlags ?? []).map((f) => (
+                    <span key={f} className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded">{f}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -1450,6 +1471,8 @@ function ProfileTab({
   const allUsers = users as unknown as UserRow[];
   const advisors = allUsers.filter((u) => u.role === "advisor");
   const reviewers = allUsers.filter((u) => u.role === "reviewer");
+  const passportShort = isPassportTooShortForIntake(form.passportExpiry, form.intakeDate);
+  const passportRequiredUntil = minimumPassportExpiryForIntake(form.intakeDate);
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -1498,12 +1521,9 @@ function ProfileTab({
             />
           </Field>
           <Field label={t("profile.passportExpiry")}>
-            <Input
-              type="date"
-              value={form.passportExpiry ?? ""}
-              onChange={(e) => setForm({ ...form, passportExpiry: e.target.value })}
-            />
+            <Input type="date" value={form.passportExpiry ?? ""} onChange={(e) => setForm({ ...form, passportExpiry: e.target.value })} />
           </Field>
+          {passportShort && (<div className="text-sm rounded-lg px-3 py-2 bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2" data-testid="passport-validity-warning"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>{t("dash.passportTooShortBody", { expiry: form.passportExpiry ?? "—", required: passportRequiredUntil?.toISOString().slice(0, 10) ?? "—" })}</span></div>)}
           <Button onClick={handleSave} data-testid="button-save-profile">
             {t("common.save")}
           </Button>
@@ -1620,6 +1640,31 @@ function ProfileTab({
                   ))}
                 </select>
               </Field>
+              {form.status === "visa_refused" && (
+                <>
+                  <Field label={t("refusal.reasonCode")}>
+                    <select
+                      className="w-full border rounded-lg px-3 py-2 bg-white"
+                      value={(form as { refusalReasonCode?: string }).refusalReasonCode ?? ""}
+                      onChange={(e) => setForm({ ...form, refusalReasonCode: e.target.value || null } as typeof form)}
+                      data-testid="select-refusal-reason"
+                    >
+                      <option value="">—</option>
+                      {["1","2","3","4","5","6","7"].map((c) => (
+                        <option key={c} value={c}>{t(`refusal.motifs.${c}.label`)}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label={t("refusal.notes")}>
+                    <Textarea
+                      value={(form as { refusalNotes?: string }).refusalNotes ?? ""}
+                      onChange={(e) => setForm({ ...form, refusalNotes: e.target.value } as typeof form)}
+                      rows={3}
+                      data-testid="textarea-refusal-notes"
+                    />
+                  </Field>
+                </>
+              )}
               <Field label={t("profile.dossierStatus")}>
                 <select
                   className="w-full border rounded-lg px-3 py-2 bg-white"

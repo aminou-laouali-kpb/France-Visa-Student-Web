@@ -16,6 +16,7 @@ export const riskScoresTable = pgTable("risk_scores", {
   missingCampusFrance: boolean("missing_campus_france").notNull().default(false),
   missingAppointments: boolean("missing_appointments").notNull().default(false),
   hasVisaRefusal: boolean("has_visa_refusal").notNull().default(false),
+  refusalMotifFlags: jsonb("refusal_motif_flags").$type<string[]>().notNull().default([]),
   recommendations: jsonb("recommendations").$type<string[]>().notNull().default([]),
   // AI-generated narrative explanation, cached per signals hash. When the
   // hash matches the latest computed signals we can return the cached text

@@ -41,6 +41,7 @@ import { AdminIntakeCalendar } from "@/pages/admin/AdminIntakeCalendar";
 import { AdminBilling } from "@/pages/admin/AdminBilling";
 import { AdminBranding } from "@/pages/admin/AdminBranding";
 import { AdminBulkImport } from "@/pages/admin/AdminBulkImport";
+import { AdminPlaybooks } from "@/pages/admin/AdminPlaybooks";
 import { PrivacySettings } from "@/pages/PrivacySettings";
 import { BrandingTheme } from "@/lib/branding";
 import NotFound from "@/pages/not-found";
@@ -322,6 +323,11 @@ function AppRouter() {
       <Route path="/admin/import">
         <AdminOnly>
           <AdminBulkImport />
+        </AdminOnly>
+      </Route>
+      <Route path="/admin/playbooks">
+        <AdminOnly>
+          <AdminPlaybooks />
         </AdminOnly>
       </Route>
       <Route path="/app/privacy">

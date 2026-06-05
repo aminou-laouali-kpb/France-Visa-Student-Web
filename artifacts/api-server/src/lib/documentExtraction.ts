@@ -4,6 +4,7 @@ import { z } from "zod";
 import { vision, isGroqConfigured } from "@workspace/ai";
 import { ObjectStorageService } from "./objectStorage";
 import { logger } from "./logger";
+import { runDocumentFreshnessPrecheck } from "./documentPrecheck";
 
 const KNOWN_CATEGORIES = [
   "passeport",
@@ -14,6 +15,7 @@ const KNOWN_CATEGORIES = [
   "lettre_admission",
   "attestation_campus_france",
   "justificatif_financier",
+  "avi",
   "justificatif_hebergement",
   "assurance",
   "billet_avion",
@@ -211,11 +213,13 @@ export async function runDocumentExtraction(
         : "autre";
       const expiry = sanitizeDate(fields.expiryDate ?? null);
       const dob = sanitizeDate(fields.dateOfBirth ?? null);
+      const issueDate = sanitizeDate(fields.issueDate ?? null);
+      const mergedExtracted: Record<string, unknown> = { ...(data as unknown as Record<string, unknown>), issueDate };
       await db
         .update(documentsTable)
         .set({
           extractionStatus: "done",
-          extractedData: data as unknown as Record<string, unknown>,
+          extractedData: mergedExtracted,
           aiCategory: cls,
           aiConfidence: data.classification.confidence.toFixed(3),
           expiryDate: expiry,
@@ -226,6 +230,8 @@ export async function runDocumentExtraction(
           extractedAt: new Date(),
         })
         .where(eq(documentsTable.id, documentId));
+      const [updated] = await db.select().from(documentsTable).where(eq(documentsTable.id, documentId));
+      if (updated) { const freshness = runDocumentFreshnessPrecheck(updated); if (freshness.length > 0) { await db.update(documentsTable).set({ extractedData: { ...mergedExtracted, precheckWarnings: freshness } }).where(eq(documentsTable.id, documentId)); } }
       return { ok: true };
     } catch (err) {
       lastErr = err;

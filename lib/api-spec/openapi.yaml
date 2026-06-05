@@ -62,6 +62,8 @@ tags:
     description: TOTP two-factor authentication
   - name: gdpr
     description: GDPR data export and erasure
+  - name: playbooks
+    description: Advisor playbooks (SOP) catalog and admin CRUD
 
 paths:
   /healthz:
@@ -374,6 +376,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: readinessLevel
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReadinessLevel"
       responses:
         "200":
           description: List of students
@@ -578,6 +584,24 @@ paths:
                 $ref: "#/components/schemas/ChecklistItem"
 
   # ─── DOCUMENTS ───────────────────────────────────────────────────────────────
+  /students/{studentId}/document-precheck:
+    get:
+      operationId: getStudentDocumentPrecheck
+      tags: [documents]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document precheck warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentPrecheckResponse"
+
   /students/{studentId}/documents:
     get:
       operationId: listDocuments
@@ -1224,6 +1248,123 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RiskScore"
+
+  /students/{studentId}/playbooks:
+    get:
+      operationId: listStudentPlaybooks
+      tags: [students]
+      summary: Contextual playbooks for a student dossier (staff)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contextual playbooks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentPlaybooksResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /playbooks:
+    get:
+      operationId: listPlaybooksAdmin
+      tags: [playbooks]
+      summary: List playbooks catalog (admin)
+      responses:
+        "200":
+          description: Playbook catalog
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookCatalogResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createPlaybook
+      tags: [playbooks]
+      summary: Create playbook (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlaybookRequest"
+      responses:
+        "201":
+          description: Created playbook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookAdmin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /playbooks/{playbookId}:
+    patch:
+      operationId: updatePlaybook
+      tags: [playbooks]
+      summary: Update playbook (admin)
+      parameters:
+        - name: playbookId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlaybookRequest"
+      responses:
+        "200":
+          description: Updated playbook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybookAdmin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deletePlaybook
+      tags: [playbooks]
+      summary: Delete playbook (admin)
+      parameters:
+        - name: playbookId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # ─── DASHBOARD ───────────────────────────────────────────────────────────────
   /dashboard/student:
@@ -2836,6 +2977,18 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
     HealthStatus:
@@ -3115,6 +3268,10 @@ components:
         lastActivityAt:
           type: ["string", "null"]
           format: date-time
+        readinessLevel:
+          $ref: "#/components/schemas/ReadinessLevel"
+        readinessScore:
+          type: ["integer", "null"]
         createdAt:
           type: string
           format: date-time
@@ -3180,6 +3337,10 @@ components:
         arrivalDate:
           type: ["string", "null"]
         titreExpiryDate:
+          type: ["string", "null"]
+        refusalReasonCode:
+          type: ["string", "null"]
+        refusalNotes:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -3982,6 +4143,10 @@ components:
           type: boolean
         hasVisaRefusal:
           type: boolean
+        refusalMotifFlags:
+          type: array
+          items:
+            type: string
         recommendations:
           type: array
           items:
@@ -4043,6 +4208,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PostArrivalStep"
+        visaReadiness:
+          $ref: "#/components/schemas/VisaReadiness"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProactiveMilestone"
       required:
         - studentId
         - completionScore
@@ -4071,6 +4242,12 @@ components:
         todayAppointments:
           type: integer
         unresponsiveStudents:
+          type: integer
+        readinessGreen:
+          type: integer
+        readinessAmber:
+          type: integer
+        readinessRed:
           type: integer
         urgentStudents:
           type: array
@@ -4136,6 +4313,14 @@ components:
             $ref: "#/components/schemas/AuditLog"
         visaRefused:
           type: integer
+        visaRefusedByMotif:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        visaRefusedByCountry:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
       required:
         - totalStudents
         - totalAdvisors
@@ -4176,12 +4361,188 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CountStat"
+        byReadinessLevel:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
+        visaRefusedByMotif:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountStat"
       required:
         - byStatus
         - byRiskLevel
         - byCountry
         - bySchool
         - byIntakeMonth
+        - visaRefusedByMotif
+
+    ReadinessLevel:
+      type: string
+      enum: [low, medium, high]
+
+    VisaReadiness:
+      type: object
+      description: Visa preparation readiness (higher score = better prepared; distinct from risk score)
+      properties:
+        score: { type: integer, minimum: 0, maximum: 100 }
+        level: { $ref: "#/components/schemas/ReadinessLevel" }
+        recommendations:
+          type: array
+          items: { type: string }
+      required: [score, level, recommendations]
+
+    ProactiveMilestone:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        status:
+          type: string
+          enum: [done, current, upcoming, overdue, blocked]
+        dueDate: { type: ["string", "null"] }
+        href: { type: ["string", "null"] }
+        urgency:
+          type: string
+          enum: [low, medium, high]
+        kind:
+          type: string
+          enum: [step, document, appointment, deadline, intake]
+      required: [id, label, status, urgency, kind]
+
+    PlaybookStep:
+      type: object
+      properties:
+        order: { type: integer }
+        title: { type: string }
+        detail: { type: string }
+      required: [order, title, detail]
+
+    Playbook:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        when: { type: string }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStep" }
+      required: [id, title, when, steps]
+
+    StudentPlaybooksResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [static, database]
+        playbooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Playbook"
+      required: [source, playbooks]
+
+    PlaybookAdminStep:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
+        sortOrder: { type: integer }
+        checklist:
+          type: array
+          items: { type: string }
+      required: [title, body, sortOrder]
+
+    PlaybookAdmin:
+      type: object
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookAdminStep" }
+      required: [id, slug, title, phase, isActive, sortOrder, steps]
+
+    PlaybookCatalogResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [static, database]
+        playbooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlaybookAdmin"
+      required: [source, playbooks]
+
+    PlaybookStepInput:
+      type: object
+      properties:
+        title: { type: string }
+        body: { type: string }
+        sortOrder: { type: integer }
+        checklist:
+          type: array
+          items: { type: string }
+      required: [title, body]
+
+    CreatePlaybookRequest:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStepInput" }
+      required: [slug, title, phase]
+
+    UpdatePlaybookRequest:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        phase:
+          type: string
+          enum: [admission, entretien, tls, refus]
+        isActive: { type: boolean }
+        sortOrder: { type: integer }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/PlaybookStepInput" }
+
+    DocumentPrecheckSeverity:
+      type: string
+      enum: [error, warning]
+
+    DocumentPrecheckWarning:
+      type: object
+      properties:
+        code: { type: string }
+        severity: { $ref: "#/components/schemas/DocumentPrecheckSeverity" }
+        message: { type: string }
+      required: [code, severity, message]
+
+    DocumentPrecheckResponse:
+      type: object
+      properties:
+        warnings:
+          type: array
+          items: { $ref: "#/components/schemas/DocumentPrecheckWarning" }
+      required: [warnings]
 
     CountStat:
       type: object
@@ -4196,7 +4557,6 @@ components:
         - label
         - count
         - percentage
-
     # ── Workflow Template ─────────────────────────────────────────────────────
     WorkflowTemplate:
       type: object

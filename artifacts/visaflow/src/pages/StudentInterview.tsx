@@ -22,10 +22,8 @@ import type { InterviewUI, InterviewTurnUI } from "@/types";
 import { useTranslation } from "react-i18next";
 
 /**
- * Campus France interview simulator.
- * - Student-facing: wraps in <StudentGate> and routes the user's own dossier.
- * - Staff-facing: usable from /app/students/:id/interview when needed (the
- *   route below is /student/interview; staff shadow can be added later).
+ * Motivation interview simulator (visa / private school).
+ * Student-facing: wraps in <StudentGate> and routes the user's own dossier.
  */
 export function StudentInterview() {
   return (

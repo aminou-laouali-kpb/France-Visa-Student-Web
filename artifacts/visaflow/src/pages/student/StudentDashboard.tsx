@@ -13,6 +13,9 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/utils";
 import { StudentIntakeCalendarWidget } from "@/components/StudentIntakeCalendarWidget";
+import { RefusalReasonsCard } from "@/components/RefusalReasonsCard";
+import { ProactiveTimeline } from "@/components/ProactiveTimeline";
+import { ReadinessTrafficLight } from "@/components/ReadinessTrafficLight";
 import {
   AlertTriangle,
   ArrowRight,
@@ -29,6 +32,7 @@ import {
 } from "lucide-react";
 import type { Appointment, PostArrivalStep } from "@/types";
 import { useTranslation } from "react-i18next";
+import { isPassportTooShortForIntake, minimumPassportExpiryForIntake } from "@/lib/passportValidity";
 
 export function StudentDashboard() {
   const { t } = useTranslation();
@@ -77,6 +81,7 @@ export function StudentDashboard() {
     steps.find((s) => s.status === "in_progress") ??
     steps.find((s) => s.status === "pending");
 
+  const apiActionItems = data.nextActionItems ?? [];
   const apiActions = data.nextActions ?? [];
   const derivedActions: { label: string; href: string; icon: typeof FileText }[] = [];
   if (rejectedDocs.length > 0) {
@@ -112,6 +117,10 @@ export function StudentDashboard() {
     (c: Comment) => !c.isInternal && c.authorRole !== "student",
   );
 
+  const showRefusalMap = ["active", "submitted", "blocked", "visa_refused"].includes(
+    data.student.status,
+  );
+
   return (
     <div className="space-y-6" data-testid="student-dashboard">
       <div>
@@ -145,6 +154,44 @@ export function StudentDashboard() {
         </CardContent>
       </Card>
 
+      {showRefusalMap && <RefusalReasonsCard />}
+
+      {(data.visaReadiness || (data.timeline?.length ?? 0) > 0) && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {data.visaReadiness && (
+            <Card data-testid="card-visa-readiness">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Stamp className="w-4 h-4 text-blue-600" />
+                  {t("dash.visaReadiness", { defaultValue: "Préparation visa" })}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ReadinessTrafficLight
+                  level={data.visaReadiness.level}
+                  score={data.visaReadiness.score}
+                />
+                {(data.visaReadiness.recommendations ?? []).slice(0, 3).map((rec, i) => (
+                  <p key={i} className="text-sm text-slate-700">
+                    {rec}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          {(data.timeline?.length ?? 0) > 0 && (
+            <Card data-testid="card-proactive-timeline">
+              <CardHeader>
+                <CardTitle className="text-base">{t("dash.timeline", { defaultValue: "Échéances" })}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProactiveTimeline milestones={data.timeline!} />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card data-testid="card-next-actions">
           <CardHeader>
@@ -154,19 +201,27 @@ export function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {apiActions.length === 0 && derivedActions.length === 0 ? (
+            {apiActionItems.length === 0 && apiActions.length === 0 && derivedActions.length === 0 ? (
               <div className="text-sm text-slate-500 flex items-center gap-2 py-4">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 {t("dash.allUpToDate")}
               </div>
             ) : (
               <>
-                {apiActions.map((action, i) => (
-                  <div
-                    key={`api-${i}`}
-                    className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800"
-                    data-testid={`next-action-api-${i}`}
-                  >
+                {apiActionItems.map((action, i) => (
+                  <Link key={`api-item-${i}`} href={action.href}>
+                    <a
+                      className={`flex items-center gap-2 p-3 rounded-lg text-sm transition-colors ${action.urgency === "high" ? "bg-amber-50 hover:bg-amber-100 text-amber-950" : "bg-slate-50 hover:bg-slate-100 text-slate-800"}`}
+                      data-testid={`next-action-api-${i}`}
+                    >
+                      <ArrowRight className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="flex-1">{action.label}</span>
+                      <ArrowRight className="w-4 h-4 text-slate-400" />
+                    </a>
+                  </Link>
+                ))}
+                {apiActionItems.length === 0 && apiActions.map((action, i) => (
+                  <div key={`api-${i}`} className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 text-sm text-slate-800" data-testid={`next-action-api-${i}`}>
                     <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 shrink-0" />
                     <span>{action}</span>
                   </div>

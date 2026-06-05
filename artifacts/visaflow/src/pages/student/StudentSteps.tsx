@@ -9,10 +9,18 @@ import type { ChecklistItem } from "@workspace/api-client-react";
 import type { Step, Document } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { CheckCircle2, Circle, AlertCircle, FileText } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, FileText, Sparkles } from "lucide-react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import { StudentGate, useMyStudent } from "./StudentLayout";
 import { formatDate } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+
+
+function isMotivationInterviewStep(stepName: string): boolean {
+  const n = stepName.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  return n.includes("entretien") && n.includes("motivation");
+}
 
 export function StudentSteps() {
   return (
@@ -42,6 +50,24 @@ function Inner() {
           {t("steps.subtitle")}
         </p>
       </div>
+
+      {list.some((s) => isMotivationInterviewStep(s.stepName) && s.status !== "validated") && (
+        <Card className="border-violet-200 bg-violet-50/60" data-testid="banner-interview-simulator">
+          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <Sparkles className="w-5 h-5 text-violet-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-medium text-slate-900">{t("steps.interviewCtaTitle")}</div>
+                <p className="text-sm text-slate-600 mt-1">{t("steps.interviewCtaBody")}</p>
+              </div>
+            </div>
+            <Link href="/student/interview">
+              <Button data-testid="button-go-interview-simulator">{t("steps.interviewCtaButton")}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
 
       <Card>
         <CardContent className="p-0">

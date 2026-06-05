@@ -24,6 +24,7 @@ import type {
   Appointment,
   AssignStudentBody,
   AuditLog,
+  BadRequestResponse,
   BillingPlansResponse,
   Challenge2FA200,
   Challenge2FABody,
@@ -44,6 +45,7 @@ import type {
   CreateEefWishBody,
   CreateFinancialProofBody,
   CreateLanguageTestBody,
+  CreatePlaybookRequest,
   CreatePriorSchoolingEntryBody,
   CreateProgramBody,
   CreateSchoolBody,
@@ -59,6 +61,7 @@ import type {
   Document,
   DocumentMatrixEntry,
   DocumentMatrixReference,
+  DocumentPrecheckResponse,
   DocumentReview,
   DownloadUrlResponse,
   EefWish,
@@ -88,7 +91,10 @@ import type {
   ListUsersParams,
   MotivationLetter,
   MotivationLetterVersion,
+  NotFoundResponse,
   Notification,
+  PlaybookAdmin,
+  PlaybookCatalogResponse,
   PortfolioStats,
   PostArrivalStep,
   PriorSchoolingEntry,
@@ -112,6 +118,7 @@ import type {
   StudentCivilStatus,
   StudentDashboard,
   StudentDossier,
+  StudentPlaybooksResponse,
   StudentProfileDepth,
   StudentStep,
   StudentSummary,
@@ -133,6 +140,7 @@ import type {
   UpdateEefWishBody,
   UpdateFinancialProofBody,
   UpdateLanguageTestBody,
+  UpdatePlaybookRequest,
   UpdatePostArrivalStepBody,
   UpdatePriorSchoolingEntryBody,
   UpdateStudentBody,
@@ -2218,6 +2226,94 @@ export const useUpdateChecklistItem = <
 > => {
   return useMutation(getUpdateChecklistItemMutationOptions(options));
 };
+
+export const getGetStudentDocumentPrecheckUrl = (studentId: number) => {
+  return `/api/students/${studentId}/document-precheck`;
+};
+
+export const getStudentDocumentPrecheck = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<DocumentPrecheckResponse> => {
+  return customFetch<DocumentPrecheckResponse>(
+    getGetStudentDocumentPrecheckUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetStudentDocumentPrecheckQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/document-precheck`] as const;
+};
+
+export const getGetStudentDocumentPrecheckQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetStudentDocumentPrecheckQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStudentDocumentPrecheck>>
+  > = ({ signal }) =>
+    getStudentDocumentPrecheck(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStudentDocumentPrecheckQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStudentDocumentPrecheck>>
+>;
+export type GetStudentDocumentPrecheckQueryError = ErrorType<unknown>;
+
+export function useGetStudentDocumentPrecheck<
+  TData = Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+  TError = ErrorType<unknown>,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStudentDocumentPrecheck>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStudentDocumentPrecheckQueryOptions(
+    studentId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List documents for student
@@ -4815,6 +4911,465 @@ export const useRecalculateRiskScore = <
   TContext
 > => {
   return useMutation(getRecalculateRiskScoreMutationOptions(options));
+};
+
+/**
+ * @summary Contextual playbooks for a student dossier (staff)
+ */
+export const getListStudentPlaybooksUrl = (studentId: number) => {
+  return `/api/students/${studentId}/playbooks`;
+};
+
+export const listStudentPlaybooks = async (
+  studentId: number,
+  options?: RequestInit,
+): Promise<StudentPlaybooksResponse> => {
+  return customFetch<StudentPlaybooksResponse>(
+    getListStudentPlaybooksUrl(studentId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListStudentPlaybooksQueryKey = (studentId: number) => {
+  return [`/api/students/${studentId}/playbooks`] as const;
+};
+
+export const getListStudentPlaybooksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStudentPlaybooks>>,
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentPlaybooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListStudentPlaybooksQueryKey(studentId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStudentPlaybooks>>
+  > = ({ signal }) =>
+    listStudentPlaybooks(studentId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!studentId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStudentPlaybooks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStudentPlaybooksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStudentPlaybooks>>
+>;
+export type ListStudentPlaybooksQueryError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Contextual playbooks for a student dossier (staff)
+ */
+
+export function useListStudentPlaybooks<
+  TData = Awaited<ReturnType<typeof listStudentPlaybooks>>,
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+>(
+  studentId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStudentPlaybooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStudentPlaybooksQueryOptions(studentId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List playbooks catalog (admin)
+ */
+export const getListPlaybooksAdminUrl = () => {
+  return `/api/playbooks`;
+};
+
+export const listPlaybooksAdmin = async (
+  options?: RequestInit,
+): Promise<PlaybookCatalogResponse> => {
+  return customFetch<PlaybookCatalogResponse>(getListPlaybooksAdminUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPlaybooksAdminQueryKey = () => {
+  return [`/api/playbooks`] as const;
+};
+
+export const getListPlaybooksAdminQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPlaybooksAdmin>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPlaybooksAdmin>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPlaybooksAdminQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPlaybooksAdmin>>
+  > = ({ signal }) => listPlaybooksAdmin({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPlaybooksAdmin>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPlaybooksAdminQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPlaybooksAdmin>>
+>;
+export type ListPlaybooksAdminQueryError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary List playbooks catalog (admin)
+ */
+
+export function useListPlaybooksAdmin<
+  TData = Awaited<ReturnType<typeof listPlaybooksAdmin>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPlaybooksAdmin>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPlaybooksAdminQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create playbook (admin)
+ */
+export const getCreatePlaybookUrl = () => {
+  return `/api/playbooks`;
+};
+
+export const createPlaybook = async (
+  createPlaybookRequest: CreatePlaybookRequest,
+  options?: RequestInit,
+): Promise<PlaybookAdmin> => {
+  return customFetch<PlaybookAdmin>(getCreatePlaybookUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPlaybookRequest),
+  });
+};
+
+export const getCreatePlaybookMutationOptions = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | ForbiddenResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPlaybook>>,
+    TError,
+    { data: BodyType<CreatePlaybookRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPlaybook>>,
+  TError,
+  { data: BodyType<CreatePlaybookRequest> },
+  TContext
+> => {
+  const mutationKey = ["createPlaybook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPlaybook>>,
+    { data: BodyType<CreatePlaybookRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPlaybook(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePlaybookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPlaybook>>
+>;
+export type CreatePlaybookMutationBody = BodyType<CreatePlaybookRequest>;
+export type CreatePlaybookMutationError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary Create playbook (admin)
+ */
+export const useCreatePlaybook = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | ForbiddenResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPlaybook>>,
+    TError,
+    { data: BodyType<CreatePlaybookRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPlaybook>>,
+  TError,
+  { data: BodyType<CreatePlaybookRequest> },
+  TContext
+> => {
+  return useMutation(getCreatePlaybookMutationOptions(options));
+};
+
+/**
+ * @summary Update playbook (admin)
+ */
+export const getUpdatePlaybookUrl = (playbookId: number) => {
+  return `/api/playbooks/${playbookId}`;
+};
+
+export const updatePlaybook = async (
+  playbookId: number,
+  updatePlaybookRequest: UpdatePlaybookRequest,
+  options?: RequestInit,
+): Promise<PlaybookAdmin> => {
+  return customFetch<PlaybookAdmin>(getUpdatePlaybookUrl(playbookId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updatePlaybookRequest),
+  });
+};
+
+export const getUpdatePlaybookMutationOptions = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePlaybook>>,
+    TError,
+    { playbookId: number; data: BodyType<UpdatePlaybookRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePlaybook>>,
+  TError,
+  { playbookId: number; data: BodyType<UpdatePlaybookRequest> },
+  TContext
+> => {
+  const mutationKey = ["updatePlaybook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePlaybook>>,
+    { playbookId: number; data: BodyType<UpdatePlaybookRequest> }
+  > = (props) => {
+    const { playbookId, data } = props ?? {};
+
+    return updatePlaybook(playbookId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePlaybookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePlaybook>>
+>;
+export type UpdatePlaybookMutationBody = BodyType<UpdatePlaybookRequest>;
+export type UpdatePlaybookMutationError = ErrorType<
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+>;
+
+/**
+ * @summary Update playbook (admin)
+ */
+export const useUpdatePlaybook = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePlaybook>>,
+    TError,
+    { playbookId: number; data: BodyType<UpdatePlaybookRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePlaybook>>,
+  TError,
+  { playbookId: number; data: BodyType<UpdatePlaybookRequest> },
+  TContext
+> => {
+  return useMutation(getUpdatePlaybookMutationOptions(options));
+};
+
+/**
+ * @summary Delete playbook (admin)
+ */
+export const getDeletePlaybookUrl = (playbookId: number) => {
+  return `/api/playbooks/${playbookId}`;
+};
+
+export const deletePlaybook = async (
+  playbookId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeletePlaybookUrl(playbookId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeletePlaybookMutationOptions = <
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePlaybook>>,
+    TError,
+    { playbookId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePlaybook>>,
+  TError,
+  { playbookId: number },
+  TContext
+> => {
+  const mutationKey = ["deletePlaybook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePlaybook>>,
+    { playbookId: number }
+  > = (props) => {
+    const { playbookId } = props ?? {};
+
+    return deletePlaybook(playbookId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePlaybookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePlaybook>>
+>;
+
+export type DeletePlaybookMutationError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Delete playbook (admin)
+ */
+export const useDeletePlaybook = <
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePlaybook>>,
+    TError,
+    { playbookId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePlaybook>>,
+  TError,
+  { playbookId: number },
+  TContext
+> => {
+  return useMutation(getDeletePlaybookMutationOptions(options));
 };
 
 /**

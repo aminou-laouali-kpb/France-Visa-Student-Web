@@ -32,18 +32,27 @@ const router: IRouter = Router();
 // Document categories the matrix editor can pick from. These mirror the
 // categories that workflow steps' requiredDocumentCategories already use,
 // plus a few consulate-only categories that admins can add per nationality.
-export const MATRIX_DOCUMENT_CATEGORIES: { value: string; label: string }[] = [
+export const MATRIX_DOCUMENT_CATEGORIES: {
+  value: string;
+  label: string;
+  deprecated?: boolean;
+}[] = [
   { value: "passeport", label: "Passeport" },
   { value: "extrait_naissance", label: "Extrait d'acte de naissance" },
   { value: "photo_identite", label: "Photo d'identité" },
   { value: "diplome", label: "Diplômes" },
   { value: "releve_notes", label: "Relevés de notes" },
   { value: "test_langue", label: "Test de langue (DELF/TCF)" },
-  { value: "attestation_campus_france", label: "Attestation Campus France" },
+  {
+    value: "attestation_campus_france",
+    label: "Attestation Campus France (déprécié)",
+    deprecated: true,
+  },
   { value: "lettre_admission", label: "Lettre d'admission" },
   { value: "lettre_motivation", label: "Lettre de motivation" },
   { value: "cv", label: "CV" },
   { value: "justificatif_financier", label: "Justificatif financier" },
+  { value: "avi", label: "Attestation AVI (compte bloqué)" },
   { value: "justificatif_hebergement", label: "Justificatif d'hébergement" },
   { value: "assurance", label: "Assurance santé" },
   { value: "casier_judiciaire", label: "Casier judiciaire" },

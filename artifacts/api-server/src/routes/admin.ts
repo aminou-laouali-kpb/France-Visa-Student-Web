@@ -173,13 +173,49 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     .find((s) => s.status !== "validated");
   const rejectedDocs = docs.filter((d) => d.status === "rejected");
   const blockedSteps = steps.filter((s) => s.status === "blocked");
-  const nextActions: string[] = [];
+  const { getVisaReadinessSummary } = await import("../lib/risk");
+  const {
+    getProactiveMilestones,
+    milestonesToNextActionItems,
+    runProactiveTimelineNotifySweep,
+  } = await import("../lib/proactiveTimeline");
+  const visaReadiness = await getVisaReadinessSummary(student.id);
+  const timeline = await getProactiveMilestones(student.id);
+  try {
+    await runProactiveTimelineNotifySweep(student.id, u.id, timeline, visaReadiness.level);
+  } catch {
+    /* best-effort */
+  }
+  const nextActions: string[] = [...visaReadiness.recommendations];
+  const nextActionItems: { label: string; href: string; urgency: "low" | "medium" | "high" }[] = [];
+  const pushAction = (
+    label: string,
+    href: string,
+    urgency: "low" | "medium" | "high" = "medium",
+  ) => {
+    if (!nextActions.includes(label)) nextActions.push(label);
+    if (!nextActionItems.some((a) => a.label === label && a.href === href)) {
+      nextActionItems.push({ label, href, urgency });
+    }
+  };
   if (rejectedDocs.length > 0)
-    nextActions.push(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`);
+    pushAction(`Corriger ${rejectedDocs.length} document(s) rejeté(s)`, "/student/documents", "high");
   if (blockedSteps.length > 0)
-    nextActions.push(`Débloquer ${blockedSteps.length} étape(s)`);
-  if (currentStep) nextActions.push(`Avancer sur : ${currentStep.stepName}`);
-  if (apts.length > 0) nextActions.push(`Préparer ${apts.length} rendez-vous à venir`);
+    pushAction(`Débloquer ${blockedSteps.length} étape(s)`, "/student/steps", "high");
+  if (currentStep)
+    pushAction(`Avancer sur : ${currentStep.stepName}`, "/student/steps", "medium");
+  if (apts.length > 0)
+    pushAction(`Préparer ${apts.length} rendez-vous à venir`, "/student/appointments", "medium");
+  for (const item of milestonesToNextActionItems(timeline)) {
+    pushAction(item.label, item.href, item.urgency);
+  }
+
+  const { checkPassportValidityForIntake } = await import("../lib/passportValidity");
+  const passportWarn = checkPassportValidityForIntake(
+    student.passportExpiry,
+    student.intakeDate,
+  );
+  if (passportWarn) pushAction(passportWarn.message, "/student/profile", "high");
   const recentComments = comments
     .filter((c) => c.authorRole !== "student")
     .map((c) => ({
@@ -203,7 +239,14 @@ router.get("/dashboard/student", requireAuth, async (req, res) => {
     pendingDocuments: docs.filter((d) => d.status === "missing" || d.status === "rejected").length,
     upcomingAppointments: apts,
     unreadNotifications: unreadNotifs.length,
-    nextActions,
+    nextActions: nextActions.slice(0, 8),
+    nextActionItems: nextActionItems.slice(0, 8),
+    visaReadiness: {
+      score: visaReadiness.score,
+      level: visaReadiness.level,
+      recommendations: visaReadiness.recommendations.slice(0, 5),
+    },
+    timeline,
     recentComments,
     postArrivalSteps,
   });
@@ -374,6 +417,17 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
       percentage: Math.round((count / total) * 100),
     }));
 
+  const refused = students.filter((s) => s.status === "visa_refused");
+  const refusedTotal = refused.length || 1;
+  const byRefusalMotif: Record<string, number> = {};
+  const byRefusalCountry: Record<string, number> = {};
+  for (const s of refused) {
+    const motif = s.refusalReasonCode?.trim() || "—";
+    byRefusalMotif[`Motif ${motif}`] = (byRefusalMotif[`Motif ${motif}`] ?? 0) + 1;
+    const c = countries.find((x) => x.id === s.countryId)?.name ?? "—";
+    byRefusalCountry[c] = (byRefusalCountry[c] ?? 0) + 1;
+  }
+  const refusalStat = (g: Record<string, number>) => Object.entries(g).map(([label, count]) => ({ label, count, percentage: Math.round((count / refusedTotal) * 100) })).sort((a, b) => b.count - a.count);
   const payload = GetAdminDashboardResponse.parse({
     totalStudents: students.length,
     totalAdvisors: users.filter((u) => u.role === "advisor" && u.isActive).length,
@@ -396,6 +450,8 @@ router.get("/dashboard/admin", requireAuth, async (req, res) => {
     byStep: stat(byStep),
     byAdvisor: stat(byAdvisor),
     byIntakeMonth,
+    visaRefusedByMotif: refusalStat(byRefusalMotif),
+    visaRefusedByCountry: refusalStat(byRefusalCountry),
     recentAuditLogs: recentLogs,
   });
   res.json(payload);
@@ -450,6 +506,11 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
   for (const r of risks) {
     byRiskLevel[r.level] = (byRiskLevel[r.level] ?? 0) + 1;
   }
+  const refusedP = students.filter((s) => s.status === "visa_refused");
+  const refusedTotalP = refusedP.length || 1;
+  const byRefusalMotifP: Record<string, number> = {};
+  for (const s of refusedP) { const motif = s.refusalReasonCode?.trim() || "—"; byRefusalMotifP[`Motif ${motif}`] = (byRefusalMotifP[`Motif ${motif}`] ?? 0) + 1; }
+  const refusalStatP = (g: Record<string, number>) => Object.entries(g).map(([label, count]) => ({ label, count, percentage: Math.round((count / refusedTotalP) * 100) })).sort((a, b) => b.count - a.count);
   const payload = GetPortfolioStatsResponse.parse({
     byStatus: tally(byStatus),
     byRiskLevel: tally(byRiskLevel),
@@ -463,6 +524,7 @@ router.get("/dashboard/portfolio", requireAuth, async (req, res) => {
         count,
         percentage: Math.round((count / total) * 100),
       })),
+    visaRefusedByMotif: refusalStatP(byRefusalMotifP),
   });
   res.json(payload);
 });

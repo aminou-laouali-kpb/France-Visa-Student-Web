@@ -12,7 +12,7 @@
     "appointments": "المواعيد",
     "postArrival": "بعد الوصول",
     "messages": "الرسائل",
-    "interview": "محاكاة المقابلة",
+    "interview": "مقابلة الدافع",
     "portfolio": "محفظتي",
     "tasks": "مهامي",
     "stats": "الإحصاءات",
@@ -148,7 +148,7 @@
     "noDeadlines": "لا توجد مواعيد نهائية مسجلة لجنسيتك.",
     "today": "اليوم",
     "daysLeft": "ي−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "إجراء التأشيرة",
     "deadlineType_visa_appointment": "موعد التأشيرة",
     "deadlineType_school_application": "طلب الالتحاق بالمدرسة",
     "deadlineType_other": "أخرى",
@@ -162,7 +162,7 @@
     "editEntry": "تعديل الموعد",
     "newEntry": "موعد جديد",
     "newEntryBtn": "موعد جديد",
-    "adminSubtitle": "مواعيد كامبوس فرانس والتأشيرة حسب الجنسية.",
+    "adminSubtitle": "مواعيد إجراء التأشيرة والقبول حسب الجنسية.",
     "adminTitle": "تقويم القبول",
     "entryCount": "{{n}} موعد",
     "sortOrder": "ترتيب العرض",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "مواعيدي",
-    "subtitle": "مقابلات Campus France والمواعيد القنصلية الخاصة بك.",
+    "subtitle": "مواعيد TLS/VFS والقنصلية والبيومترية الخاصة بك.",
     "upcoming": "القادمة ({{n}})",
     "past": "الماضية ({{n}})",
     "noUpcoming": "لا توجد مواعيد قادمة",
@@ -249,7 +249,8 @@
     "riskLow": "خطر منخفض",
     "riskMedium": "خطر متوسط",
     "riskHigh": "خطر مرتفع",
-    "reset": "إعادة تعيين"
+    "reset": "إعادة تعيين",
+    "allReadiness": "كل الجاهزية"
   },
   "table": {
     "student": "الطالب",
@@ -269,7 +270,8 @@
     "file": "ملف",
     "status": "الحالة",
     "registered": "تاريخ التسجيل",
-    "site": "الموقع"
+    "site": "الموقع",
+    "readiness": "جاهزية التأشيرة"
   },
   "dash": {
     "studentWelcome": "لنُنشئ ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا.",
@@ -293,6 +295,12 @@
     "postArrival": "بعد الوصول إلى فرنسا",
     "seeAllSteps": "عرض كل الإجراءات",
     "stepsCompleted": "الخطوات المُعتمدة",
+    "visaPreparation": "التحضير للتأشيرة",
+    "visaPrepCompletion": "تقدم الملف",
+    "visaPrepRisk": "مستوى اليقظة",
+    "visaPrepActions": "الإجراءات الموصى بها",
+    "visaPrepOnTrack": "ملفك على المسار الصحيح — تابع مع مستشارك.",
+    "visaPrepSeeSteps": "عرض مساري",
     "hello": "مرحباً {{name}} 👋",
     "advisorSubtitle": "أنت تتابع حالياً {{n}} طالب/طلاب",
     "studentsToFollow": "الطلاب المتابَعون",
@@ -322,13 +330,17 @@
     "nTasksPlural": "{{n}} مهام",
     "dueOn": "الموعد: {{date}}",
     "completedSection": "منجزة ({{n}})",
-    "unblockSteps": "فتح {{n}} خطوة(خطوات)",
-    "advanceStep": "المتابعة في: {{name}}",
-    "prepareAppts": "التحضير لـ {{n}} موعد(مواعيد)",
-    "completed": "مكتمل",
+    "unblockSteps": "Unblock {{n}} step(s)",
+    "advanceStep": "Continue: {{name}}",
+    "prepareAppts": "Prepare for {{n}} appointment(s)",
+    "completed": "Completed",
     "view": "عرض",
     "todayAppts": "مواعيد اليوم",
-    "createDossierHint": "لنبدأ بإنشاء ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا."
+    "createDossierHint": "لنبدأ بإنشاء ملف تأشيرة الطالب الخاص بك لبدء رحلتك في فرنسا.",
+    "visaPrepTitle": "التحضير للتأشيرة",
+    "riskHigh": "أولوية عالية",
+    "riskMedium": "يحتاج متابعة",
+    "riskLow": "مستوى جيد"
   },
   "stepDetail": {
     "back": "العودة إلى القائمة",
@@ -390,10 +402,22 @@
     "dropzoneAria": "اسحب وأفلت ملفاً هنا أو انقر للتصفح",
     "uploadFailed": "فشل الرفع",
     "saveFailed": "فشل الحفظ",
-    "unknownError": "خطأ غير معروف"
+    "unknownError": "خطأ غير معروف",
+    "aviProvider": "مقدم AVI",
+    "aviNumber": "رقم الشهادة",
+    "aviNumberPh": "مثال AVI-2024-12345",
+    "aviDate": "تاريخ الشهادة",
+    "aviAmount": "المبلغ المحجوز (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "وثيقة أقدم من 3 أشهر — يلزم إثبات حديث.",
+    "threeMonthExpired": "وثيقة منتهية أو شهادة AVI منتهية — يرجى التجديد."
   },
   "steps": {
-    "subtitle": "الخطوات الـ 21 لملف تأشيرة الطالب الفرنسية."
+    "subtitle": "الخطوات الـ 16 لملف تأشيرة الطالب (مدرسة خاصة).",
+    "interviewCtaTitle": "تدرب على مقابلة الدافع",
+    "interviewCtaBody": "قد يسألك القنصل أو المدرسة عن مشروعك وماليتك. استخدم المحاكي للتحضير.",
+    "interviewCtaButton": "فتح المحاكي"
   },
   "postArrival": {
     "title": "بعد الوصول",
@@ -435,7 +459,9 @@
     "nStudents": "{{n}} طالب",
     "nStudentsPlural": "{{n}} طلاب",
     "highRisk": "خطر مرتفع",
-    "students": "الطلاب"
+    "students": "الطلاب",
+    "readinessGreen": "جاهزية — أخضر",
+    "readinessAmber": "جاهزية — برتقالي"
   },
   "advisorTasks": {
     "title": "مهامي",
@@ -456,7 +482,8 @@
     "byCountry": "الطلاب حسب البلد",
     "byRisk": "مستوى الخطر",
     "byCompletion": "توزيع التقدم",
-    "noData": "لا توجد بيانات"
+    "noData": "لا توجد بيانات",
+    "byReadiness": "جاهزية التأشيرة"
   },
   "adminStudents": {
     "title": "كل الطلاب",
@@ -570,7 +597,7 @@
     "missingDocs": "وثائق مفقودة",
     "rejectedDocs": "وثائق مرفوضة",
     "overdueTasks": "مهام متأخرة",
-    "missingCF": "خطوات Campus France مفقودة",
+    "missingCF": "خطوات إجراء التأشيرة (البلد) مفقودة",
     "missingAppts": "لا توجد مواعيد قادمة",
     "visaRefusal": "سابقة رفض تأشيرة",
     "yes": "نعم",
@@ -584,11 +611,11 @@
     "noMessages": "لا توجد رسائل بعد",
     "checklistUpdated": "تم تحديث القائمة:\n+ {{added}} وثيقة(وثائق) مضافة\n- {{removed}} محذوفة\n{{skipped}} خطوة(خطوات) غير مطلوبة\n{{restored}} خطوة(خطوات) مستعادة",
     "checklistRefreshError": "خطأ أثناء التحديث.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "إجراء التأشيرة (البلد)",
+    "aptCampusFrance": "إجراء التأشيرة (البلد)",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "لا يمكن تقديم الملف.",
-    "campusFranceRequired": "(Campus France مطلوب)"
+    "campusFranceRequired": "(إجراء التأشيرة في البلد مطلوب)"
   },
   "docCategory": {
     "passeport": "جواز السفر",
@@ -597,8 +624,9 @@
     "releve_notes": "كشف العلامات",
     "test_langue": "اختبار اللغة",
     "lettre_admission": "خطاب القبول",
-    "attestation_campus_france": "شهادة Campus France",
+    "attestation_campus_france": "شهادة إجراء التأشيرة",
     "justificatif_financier": "إثبات مالي",
+    "avi": "شهادة AVI (حساب مجمد)",
     "justificatif_hebergement": "إثبات السكن",
     "assurance": "التأمين الصحي",
     "billet_avion": "تذكرة الطيران",
@@ -631,7 +659,7 @@
     "saved": "تم الحفظ ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "إجراء التأشيرة (البلد)",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "المحافظة",
@@ -670,13 +698,13 @@
     "addCountry": "إضافة دولة",
     "colCode": "الرمز",
     "colVisaCenter": "مركز التأشيرة",
-    "colCampusFrance": "كامبوس فرانس",
+    "colCampusFrance": "إجراء التأشيرة",
     "required": "مطلوب",
     "notRequired": "غير مطلوب"
   },
   "interview": {
-    "title": "محاكي مقابلة كامبوس فرانس",
-    "subtitle": "تدرّب على مقابلة ما قبل التأشيرة.",
+    "title": "محاكاة مقابلة الدافع",
+    "subtitle": "تدرب على مقابلة التأشيرة. الذكاء الاصطناعي يلعب دور الممتحن.",
     "modeText": "الوضع النصي",
     "modeVoice": "الوضع الصوتي",
     "modeTextDesc": "اقرأ السؤال وأجب كتابةً.",
@@ -713,7 +741,7 @@
     "axeCoherence": "التماسك",
     "axeFrench": "اللغة الفرنسية",
     "axeKnowledge": "معرفة البرنامج",
-    "axeReturnPlan": "خطة العودة"
+    "axeReturnPlan": "المشروع المهني"
   },
   "depth": {
     "maritalStatus": "الحالة الاجتماعية",
@@ -779,7 +807,7 @@
     "equivEquivalent": "معادل: {{level}}",
     "equivRefShort": "مرجع. {{ref}}",
     "equivStatusLabel": "الحالة: {{status}}",
-    "wishCardTitle": "رغبات كامبوس فرانس ({{count}}/{{max}})",
+    "wishCardTitle": "طلبات المدرسة ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— أو نص حر أدناه —",
     "wishEntry": "الرغبة رقم {{order}} —",
     "wishStatusLabel": "الحالة: {{status}}"
@@ -829,5 +857,23 @@
     "specificity": "التحديد",
     "returnPlan": "خطة العودة",
     "overall": "النتيجة الإجمالية"
+  },
+  "timeline": {
+    "title": "جدول التحضير",
+    "empty": "لا معالم للعرض حالياً.",
+    "status_done": "منجز",
+    "status_current": "جاري",
+    "status_upcoming": "قادم",
+    "status_overdue": "متأخر",
+    "status_blocked": "محظور"
+  },
+  "readiness": {
+    "green": "مستوى جيد",
+    "amber": "يحتاج متابعة",
+    "red": "أولوية عالية"
+  },
+  "playbook": {
+    "title": "أدلة المستشار",
+    "subtitle": "إجراءات موصى بها حسب مرحلة الملف."
   }
 }

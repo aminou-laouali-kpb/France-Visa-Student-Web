@@ -268,6 +268,7 @@ export const ListStudentsQueryParams = zod.object({
   schoolId: zod.coerce.number().nullish(),
   search: zod.coerce.string().optional(),
   riskLevel: zod.coerce.string().optional(),
+  readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
 });
 
 export const ListStudentsResponseItem = zod.object({
@@ -294,6 +295,8 @@ export const ListStudentsResponseItem = zod.object({
   intakeDate: zod.string().nullish(),
   currentStepName: zod.string().nullish(),
   lastActivityAt: zod.coerce.date().nullish(),
+  readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
+  readinessScore: zod.number().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListStudentsResponse = zod.array(ListStudentsResponseItem);
@@ -359,6 +362,8 @@ export const GetStudentResponse = zod.object({
       .nullish(),
     arrivalDate: zod.string().nullish(),
     titreExpiryDate: zod.string().nullish(),
+    refusalReasonCode: zod.string().nullish(),
+    refusalNotes: zod.string().nullish(),
     createdAt: zod.coerce.date(),
   }),
   steps: zod.array(
@@ -518,6 +523,7 @@ export const GetStudentResponse = zod.object({
       missingCampusFrance: zod.boolean(),
       missingAppointments: zod.boolean(),
       hasVisaRefusal: zod.boolean(),
+      refusalMotifFlags: zod.array(zod.string()).optional(),
       recommendations: zod.array(zod.string()),
       calculatedAt: zod.coerce.date(),
     })
@@ -627,6 +633,8 @@ export const UpdateStudentResponse = zod.object({
     .nullish(),
   arrivalDate: zod.string().nullish(),
   titreExpiryDate: zod.string().nullish(),
+  refusalReasonCode: zod.string().nullish(),
+  refusalNotes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -670,6 +678,8 @@ export const AssignStudentResponse = zod.object({
     .nullish(),
   arrivalDate: zod.string().nullish(),
   titreExpiryDate: zod.string().nullish(),
+  refusalReasonCode: zod.string().nullish(),
+  refusalNotes: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -795,6 +805,20 @@ export const UpdateChecklistItemResponse = zod.object({
   checkedAt: zod.coerce.date().nullish(),
   checkedBy: zod.number().nullish(),
   order: zod.number(),
+});
+
+export const GetStudentDocumentPrecheckParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const GetStudentDocumentPrecheckResponse = zod.object({
+  warnings: zod.array(
+    zod.object({
+      code: zod.string(),
+      severity: zod.enum(["error", "warning"]),
+      message: zod.string(),
+    }),
+  ),
 });
 
 /**
@@ -1576,6 +1600,7 @@ export const GetStudentRiskScoreResponse = zod.object({
   missingCampusFrance: zod.boolean(),
   missingAppointments: zod.boolean(),
   hasVisaRefusal: zod.boolean(),
+  refusalMotifFlags: zod.array(zod.string()).optional(),
   recommendations: zod.array(zod.string()),
   calculatedAt: zod.coerce.date(),
 });
@@ -1598,13 +1623,143 @@ export const RecalculateRiskScoreResponse = zod.object({
   missingCampusFrance: zod.boolean(),
   missingAppointments: zod.boolean(),
   hasVisaRefusal: zod.boolean(),
+  refusalMotifFlags: zod.array(zod.string()).optional(),
   recommendations: zod.array(zod.string()),
   calculatedAt: zod.coerce.date(),
 });
 
 /**
+ * @summary Contextual playbooks for a student dossier (staff)
+ */
+export const ListStudentPlaybooksParams = zod.object({
+  studentId: zod.coerce.number(),
+});
+
+export const ListStudentPlaybooksResponse = zod.object({
+  source: zod.enum(["static", "database"]),
+  playbooks: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      when: zod.string(),
+      steps: zod.array(
+        zod.object({
+          order: zod.number(),
+          title: zod.string(),
+          detail: zod.string(),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
+ * @summary List playbooks catalog (admin)
+ */
+export const ListPlaybooksAdminResponse = zod.object({
+  source: zod.enum(["static", "database"]),
+  playbooks: zod.array(
+    zod.object({
+      id: zod.number(),
+      slug: zod.string(),
+      title: zod.string(),
+      description: zod.string().nullish(),
+      phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+      isActive: zod.boolean(),
+      sortOrder: zod.number(),
+      steps: zod.array(
+        zod.object({
+          id: zod.number().optional(),
+          title: zod.string(),
+          body: zod.string(),
+          sortOrder: zod.number(),
+          checklist: zod.array(zod.string()).optional(),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
+ * @summary Create playbook (admin)
+ */
+export const CreatePlaybookBody = zod.object({
+  slug: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+  isActive: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+  steps: zod
+    .array(
+      zod.object({
+        title: zod.string(),
+        body: zod.string(),
+        sortOrder: zod.number().optional(),
+        checklist: zod.array(zod.string()).optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * @summary Update playbook (admin)
+ */
+export const UpdatePlaybookParams = zod.object({
+  playbookId: zod.coerce.number(),
+});
+
+export const UpdatePlaybookBody = zod.object({
+  slug: zod.string().optional(),
+  title: zod.string().optional(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]).optional(),
+  isActive: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+  steps: zod
+    .array(
+      zod.object({
+        title: zod.string(),
+        body: zod.string(),
+        sortOrder: zod.number().optional(),
+        checklist: zod.array(zod.string()).optional(),
+      }),
+    )
+    .optional(),
+});
+
+export const UpdatePlaybookResponse = zod.object({
+  id: zod.number(),
+  slug: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  phase: zod.enum(["admission", "entretien", "tls", "refus"]),
+  isActive: zod.boolean(),
+  sortOrder: zod.number(),
+  steps: zod.array(
+    zod.object({
+      id: zod.number().optional(),
+      title: zod.string(),
+      body: zod.string(),
+      sortOrder: zod.number(),
+      checklist: zod.array(zod.string()).optional(),
+    }),
+  ),
+});
+
+/**
+ * @summary Delete playbook (admin)
+ */
+export const DeletePlaybookParams = zod.object({
+  playbookId: zod.coerce.number(),
+});
+
+/**
  * @summary Student's own dashboard summary
  */
+export const getStudentDashboardResponseVisaReadinessScoreMin = 0;
+export const getStudentDashboardResponseVisaReadinessScoreMax = 100;
+
 export const GetStudentDashboardResponse = zod.object({
   studentId: zod.number(),
   completionScore: zod.number(),
@@ -1691,6 +1846,7 @@ export const GetStudentDashboardResponse = zod.object({
       missingCampusFrance: zod.boolean(),
       missingAppointments: zod.boolean(),
       hasVisaRefusal: zod.boolean(),
+      refusalMotifFlags: zod.array(zod.string()).optional(),
       recommendations: zod.array(zod.string()),
       calculatedAt: zod.coerce.date(),
     })
@@ -1722,6 +1878,38 @@ export const GetStudentDashboardResponse = zod.object({
       }),
     )
     .optional(),
+  visaReadiness: zod
+    .object({
+      score: zod
+        .number()
+        .min(getStudentDashboardResponseVisaReadinessScoreMin)
+        .max(getStudentDashboardResponseVisaReadinessScoreMax),
+      level: zod.enum(["low", "medium", "high"]),
+      recommendations: zod.array(zod.string()),
+    })
+    .optional()
+    .describe(
+      "Visa preparation readiness (higher score = better prepared; distinct from risk score)",
+    ),
+  timeline: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        label: zod.string(),
+        status: zod.enum(["done", "current", "upcoming", "overdue", "blocked"]),
+        dueDate: zod.string().nullish(),
+        href: zod.string().nullish(),
+        urgency: zod.enum(["low", "medium", "high"]),
+        kind: zod.enum([
+          "step",
+          "document",
+          "appointment",
+          "deadline",
+          "intake",
+        ]),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -1735,6 +1923,9 @@ export const GetAdvisorDashboardResponse = zod.object({
   highRiskStudents: zod.number(),
   todayAppointments: zod.number(),
   unresponsiveStudents: zod.number(),
+  readinessGreen: zod.number().optional(),
+  readinessAmber: zod.number().optional(),
+  readinessRed: zod.number().optional(),
   urgentStudents: zod.array(
     zod.object({
       id: zod.number(),
@@ -1760,6 +1951,8 @@ export const GetAdvisorDashboardResponse = zod.object({
       intakeDate: zod.string().nullish(),
       currentStepName: zod.string().nullish(),
       lastActivityAt: zod.coerce.date().nullish(),
+      readinessLevel: zod.enum(["low", "medium", "high"]).optional(),
+      readinessScore: zod.number().nullish(),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -1839,6 +2032,24 @@ export const GetAdminDashboardResponse = zod.object({
     }),
   ),
   visaRefused: zod.number(),
+  visaRefusedByMotif: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
+  visaRefusedByCountry: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -1874,6 +2085,22 @@ export const GetPortfolioStatsResponse = zod.object({
     }),
   ),
   byIntakeMonth: zod.array(
+    zod.object({
+      label: zod.string(),
+      count: zod.number(),
+      percentage: zod.number(),
+    }),
+  ),
+  byReadinessLevel: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        count: zod.number(),
+        percentage: zod.number(),
+      }),
+    )
+    .optional(),
+  visaRefusedByMotif: zod.array(
     zod.object({
       label: zod.string(),
       count: zod.number(),

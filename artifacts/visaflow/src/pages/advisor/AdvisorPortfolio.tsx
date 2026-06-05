@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ReadinessTrafficLight, type ReadinessLevel } from "@/components/ReadinessTrafficLight";
 import { CountryFlag } from "@/components/CountryFlag";
 import {
   AlertTriangle,
@@ -34,6 +35,7 @@ export function AdvisorPortfolio() {
   const [countryId, setCountryId] = useState("");
   const [schoolId, setSchoolId] = useState("");
   const [risk, setRisk] = useState("");
+  const [readiness, setReadiness] = useState("");
   const [sortBy, setSortBy] = useState<keyof StudentSummary>("lastActivityAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -42,6 +44,7 @@ export function AdvisorPortfolio() {
   if (countryId) params.countryId = Number(countryId);
   if (schoolId) params.schoolId = Number(schoolId);
   if (risk) params.riskLevel = risk;
+  if (readiness) params.readinessLevel = readiness;
   if (q) params.search = q;
 
   const { data: studentsRaw = [], isLoading } = useListStudents(params);
@@ -71,7 +74,7 @@ export function AdvisorPortfolio() {
         <p className="text-slate-600 mt-1">{t("portfolio.subtitle")}</p>
       </div>
 
-      <div className="grid md:grid-cols-5 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-7 gap-4">
         <KpiCard
           icon={Users}
           label={t("portfolio.students") ?? "Étudiants"}
@@ -102,10 +105,22 @@ export function AdvisorPortfolio() {
           value={dash?.todayAppointments ?? 0}
           tone="green"
         />
+        <KpiCard
+          icon={ShieldAlert}
+          label={t("portfolio.readinessGreen") ?? "Prêt (vert)"}
+          value={(dash as { readinessGreen?: number })?.readinessGreen ?? 0}
+          tone="green"
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          label={t("portfolio.readinessAmber") ?? "À surveiller"}
+          value={(dash as { readinessAmber?: number })?.readinessAmber ?? 0}
+          tone="amber"
+        />
       </div>
 
       <Card>
-        <CardContent className="p-4 grid md:grid-cols-5 gap-3">
+        <CardContent className="p-4 grid md:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="relative md:col-span-2">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
@@ -147,6 +162,12 @@ export function AdvisorPortfolio() {
             <option value="medium">{t("filter.riskMedium")}</option>
             <option value="high">{t("filter.riskHigh")}</option>
           </Select>
+          <Select value={readiness} onChange={setReadiness} testid="select-readiness">
+            <option value="">{t("filter.allReadiness")}</option>
+            <option value="low">{t("readiness.green")}</option>
+            <option value="medium">{t("readiness.amber")}</option>
+            <option value="high">{t("readiness.red")}</option>
+          </Select>
         </CardContent>
       </Card>
 
@@ -175,6 +196,7 @@ export function AdvisorPortfolio() {
                     <Th>{t("table.school")}</Th>
                     <Th>{t("table.step")}</Th>
                     <Th onClick={() => toggleSort("completionScore")}>{t("table.progress")}</Th>
+                    <Th>{t("table.readiness")}</Th>
                     <Th>{t("table.risk")}</Th>
                     <Th onClick={() => toggleSort("lastActivityAt")}>{t("table.activity")}</Th>
                   </tr>
@@ -220,6 +242,18 @@ export function AdvisorPortfolio() {
                             {s.completionScore}%
                           </span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <ReadinessTrafficLight
+                          level={
+                            ((s as { readinessLevel?: string | null }).readinessLevel ??
+                              s.riskLevel) as ReadinessLevel
+                          }
+                          score={
+                            (s as { readinessScore?: number | null }).readinessScore ??
+                            s.riskScore
+                          }
+                        />
                       </td>
                       <td className="px-4 py-3">
                         <RiskBadge

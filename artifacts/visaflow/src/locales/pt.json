@@ -12,7 +12,7 @@
     "appointments": "Compromissos",
     "postArrival": "Após a chegada",
     "messages": "Mensagens",
-    "interview": "Simulador de entrevista",
+    "interview": "Entrevista de motivação",
     "portfolio": "Meu portefólio",
     "tasks": "Minhas tarefas",
     "stats": "Estatísticas",
@@ -148,7 +148,7 @@
     "noDeadlines": "Nenhum prazo registrado para a sua nacionalidade.",
     "today": "Hoje",
     "daysLeft": "D−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "Procedimento de visto",
     "deadlineType_visa_appointment": "Consulta de visto",
     "deadlineType_school_application": "Candidatura escolar",
     "deadlineType_other": "Outro",
@@ -162,7 +162,7 @@
     "editEntry": "Editar prazo",
     "newEntry": "Novo prazo",
     "newEntryBtn": "Novo prazo",
-    "adminSubtitle": "Prazos Campus France e visto por nacionalidade.",
+    "adminSubtitle": "Prazos de procedimento de visto e admissão por nacionalidade.",
     "adminTitle": "Calendário de admissões",
     "entryCount": "{{n}} prazo(s)",
     "sortOrder": "Ordem de exibição",
@@ -196,7 +196,7 @@
   },
   "appointments": {
     "title": "Os meus compromissos",
-    "subtitle": "Suas entrevistas no Campus France e consultas consulares.",
+    "subtitle": "Seus agendamentos TLS/VFS, consulado e biometria.",
     "upcoming": "Próximas ({{n}})",
     "past": "Passadas ({{n}})",
     "noUpcoming": "Nenhuma consulta próxima",
@@ -249,7 +249,8 @@
     "riskLow": "Risco baixo",
     "riskMedium": "Risco médio",
     "riskHigh": "Risco alto",
-    "reset": "Reiniciar"
+    "reset": "Reiniciar",
+    "allReadiness": "Toda preparação"
   },
   "table": {
     "student": "Estudante",
@@ -269,7 +270,8 @@
     "file": "Ficheiro",
     "status": "Estado",
     "registered": "Registado",
-    "site": "Site"
+    "site": "Site",
+    "readiness": "Preparação visto"
   },
   "dash": {
     "studentWelcome": "Vamos criar o seu processo de visto de estudante para iniciar o seu percurso em França.",
@@ -293,6 +295,12 @@
     "postArrival": "Após a chegada a França",
     "seeAllSteps": "Ver todos os procedimentos",
     "stepsCompleted": "Etapas validadas",
+    "visaPreparation": "Preparação do visto",
+    "visaPrepCompletion": "Progresso do dossiê",
+    "visaPrepRisk": "Nível de vigilância",
+    "visaPrepActions": "Ações recomendadas",
+    "visaPrepOnTrack": "O seu dossiê está no bom caminho — continue com o seu conselheiro.",
+    "visaPrepSeeSteps": "Ver meu percurso",
     "hello": "Olá, {{name}} 👋",
     "advisorSubtitle": "Está atualmente a acompanhar {{n}} estudante(s)",
     "studentsToFollow": "Estudantes a acompanhar",
@@ -322,13 +330,17 @@
     "nTasksPlural": "{{n}} tarefas",
     "dueOn": "Prazo: {{date}}",
     "completedSection": "Concluídas ({{n}})",
-    "unblockSteps": "Desbloquear {{n}} etapa(s)",
-    "advanceStep": "Avançar em: {{name}}",
-    "prepareAppts": "Preparar {{n}} consulta(s)",
-    "completed": "concluído",
+    "unblockSteps": "Unblock {{n}} step(s)",
+    "advanceStep": "Continue: {{name}}",
+    "prepareAppts": "Prepare for {{n}} appointment(s)",
+    "completed": "Completed",
     "view": "Ver",
     "todayAppts": "Consultas hoje",
-    "createDossierHint": "Vamos criar o seu processo de visto estudantil para iniciar a sua jornada em França."
+    "createDossierHint": "Vamos criar o seu processo de visto estudantil para iniciar a sua jornada em França.",
+    "visaPrepTitle": "Preparação do visto",
+    "riskHigh": "Prioridade alta",
+    "riskMedium": "Acompanhar",
+    "riskLow": "Bom nível"
   },
   "stepDetail": {
     "back": "Voltar à lista",
@@ -390,10 +402,22 @@
     "dropzoneAria": "Arraste e solte um ficheiro aqui ou clique para procurar",
     "uploadFailed": "Falha no carregamento",
     "saveFailed": "Falha ao guardar",
-    "unknownError": "Erro desconhecido"
+    "unknownError": "Erro desconhecido",
+    "aviProvider": "Organismo AVI",
+    "aviNumber": "Número da certidão",
+    "aviNumberPh": "Ex. AVI-2024-12345",
+    "aviDate": "Data da certidão",
+    "aviAmount": "Montante bloqueado (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "Documento com mais de 3 meses — é necessário um comprovativo recente.",
+    "threeMonthExpired": "Documento expirado ou certificado AVI caducado — renove a peça."
   },
   "steps": {
-    "subtitle": "As 21 etapas do seu processo de visto de estudante para França."
+    "subtitle": "As 16 etapas do seu processo de visto (escola privada).",
+    "interviewCtaTitle": "Treine a entrevista de motivação",
+    "interviewCtaBody": "O consulado ou a escola pode perguntar sobre o seu projeto e finanças. Use o simulador.",
+    "interviewCtaButton": "Abrir simulador"
   },
   "postArrival": {
     "title": "Após a chegada",
@@ -435,7 +459,9 @@
     "nStudents": "{{n}} estudante",
     "nStudentsPlural": "{{n}} estudantes",
     "highRisk": "Alto risco",
-    "students": "Estudantes"
+    "students": "Estudantes",
+    "readinessGreen": "Preparação — verde",
+    "readinessAmber": "Preparação — âmbar"
   },
   "advisorTasks": {
     "title": "As minhas tarefas",
@@ -456,7 +482,8 @@
     "byCountry": "Estudantes por país",
     "byRisk": "Nível de risco",
     "byCompletion": "Distribuição da progressão",
-    "noData": "Sem dados"
+    "noData": "Sem dados",
+    "byReadiness": "Preparação visto (semáforo)"
   },
   "adminStudents": {
     "title": "Todos os estudantes",
@@ -570,7 +597,7 @@
     "missingDocs": "Documentos em falta",
     "rejectedDocs": "Documentos rejeitados",
     "overdueTasks": "Tarefas em atraso",
-    "missingCF": "Etapas Campus France em falta",
+    "missingCF": "Etapas do procedimento de visto (país) em falta",
     "missingAppts": "Sem compromissos futuros",
     "visaRefusal": "Recusa de visto anterior",
     "yes": "Sim",
@@ -584,11 +611,11 @@
     "noMessages": "Sem mensagens por enquanto",
     "checklistUpdated": "Lista atualizada:\n+ {{added}} documento(s) adicionado(s)\n- {{removed}} removido(s)\n{{skipped}} etapa(s) não obrigatória(s)\n{{restored}} etapa(s) restaurada(s)",
     "checklistRefreshError": "Erro ao atualizar a lista.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "Proc. visto país",
+    "aptCampusFrance": "Proc. visto país",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "O processo não pode ser submetido.",
-    "campusFranceRequired": "(Campus France obrigatório)"
+    "campusFranceRequired": "(procedimento de visto do país obrigatório)"
   },
   "docCategory": {
     "passeport": "Passaporte",
@@ -597,8 +624,9 @@
     "releve_notes": "Certidão de notas",
     "test_langue": "Teste de língua",
     "lettre_admission": "Carta de admissão",
-    "attestation_campus_france": "Atestado Campus France",
+    "attestation_campus_france": "Atestado de procedimento de visto",
     "justificatif_financier": "Comprovativo financeiro",
+    "avi": "Certificado AVI (conta bloqueada)",
     "justificatif_hebergement": "Comprovativo de alojamento",
     "assurance": "Seguro de saúde",
     "billet_avion": "Bilhete de avião",
@@ -631,7 +659,7 @@
     "saved": "Guardado ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "Proc. visto país",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "Prefeitura",
@@ -670,13 +698,13 @@
     "addCountry": "Adicionar país",
     "colCode": "Código",
     "colVisaCenter": "Centro de vistos",
-    "colCampusFrance": "Campus France",
+    "colCampusFrance": "Proc. visto país",
     "required": "Necessário",
     "notRequired": "Não necessário"
   },
   "interview": {
-    "title": "Simulador de entrevista Campus France",
-    "subtitle": "Pratique a entrevista pré-visto. A IA faz o papel de examinador.",
+    "title": "Simulador de entrevista de motivação",
+    "subtitle": "Treine para a entrevista do visto (consulado, TLS/VFS ou escola).",
     "modeText": "Modo texto",
     "modeVoice": "Modo voz",
     "modeTextDesc": "Leia a pergunta, responda por escrito.",
@@ -713,7 +741,7 @@
     "axeCoherence": "Coerência",
     "axeFrench": "Francês",
     "axeKnowledge": "Conhecimento do programa",
-    "axeReturnPlan": "Plano de regresso"
+    "axeReturnPlan": "Projeto profissional"
   },
   "depth": {
     "maritalStatus": "Estado civil",
@@ -779,7 +807,7 @@
     "equivEquivalent": "Equivalente: {{level}}",
     "equivRefShort": "Ref. {{ref}}",
     "equivStatusLabel": "Estado: {{status}}",
-    "wishCardTitle": "Desejos Études en France ({{count}}/{{max}})",
+    "wishCardTitle": "Candidaturas escola ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— ou texto livre abaixo —",
     "wishEntry": "Desejo nº{{order}} —",
     "wishStatusLabel": "estado: {{status}}"
@@ -829,5 +857,23 @@
     "specificity": "Especificidade",
     "returnPlan": "Plano de retorno",
     "overall": "Nota global"
+  },
+  "timeline": {
+    "title": "Calendário de preparação",
+    "empty": "Nenhum marco a exibir por agora.",
+    "status_done": "Concluído",
+    "status_current": "Em curso",
+    "status_upcoming": "Próximo",
+    "status_overdue": "Atrasado",
+    "status_blocked": "Bloqueado"
+  },
+  "readiness": {
+    "green": "Bom nível",
+    "amber": "Acompanhar",
+    "red": "Prioridade alta"
+  },
+  "playbook": {
+    "title": "Playbooks do conselheiro",
+    "subtitle": "Procedimentos recomendados para esta etapa."
   }
 }

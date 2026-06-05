@@ -61,6 +61,26 @@ The suite uses `@clerk/testing/playwright`:
 > enabled (Clerk Dashboard → User & Authentication → Restrictions →
 > Testing tokens). This is a one-time toggle on the dev instance.
 
+Copy `artifacts/visaflow-e2e/.env.example` to the **repo root** as `.env.local`
+and paste your real `CLERK_SECRET_KEY` (not the `sk_test_...` placeholder).
+
+### Troubleshooting `ClerkAPIResponseError: Unauthorized` on setup
+
+This almost always means the **secret key is wrong or from another Clerk instance**:
+
+1. Open [Clerk Dashboard](https://dashboard.clerk.com) → instance **careful-pipefish-44** → **Development**.
+2. **API Keys** → copy the full **Secret key** (`sk_test_…`, ~50+ characters).
+3. Ensure `VITE_CLERK_PUBLISHABLE_KEY` is the **publishable** key from the **same** instance (the one in `.replit` is correct for this repo).
+4. Enable **Testing tokens** under Restrictions.
+5. `DATABASE_URL` must be a real Postgres URL, not `postgresql://...`.
+
+Quick check (should print user count, not Unauthorized):
+
+```bash
+curl -s -H "Authorization: Bearer $CLERK_SECRET_KEY" \
+  "https://api.clerk.com/v1/users?limit=1" | head -c 200
+```
+
 ## Running
 
 ```bash

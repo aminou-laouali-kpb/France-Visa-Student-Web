@@ -39,6 +39,7 @@ export function AdvisorReports() {
   const byStatus = stats?.byStatus ?? [];
   const byCountry = stats?.byCountry ?? [];
   const byRisk = stats?.byRiskLevel ?? [];
+  const byRefusalMotif = stats?.visaRefusedByMotif ?? [];
 
   const byCompletion: CountStat[] = HISTOGRAM_BUCKETS.map((b) => {
     const count = students.filter(
@@ -126,6 +127,22 @@ export function AdvisorReports() {
                     />
                   ))}
                 </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard title={t("reports.byRefusalMotif")}>
+          {byRefusalMotif.length === 0 ? (
+            <Empty t={t} />
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={byRefusalMotif}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

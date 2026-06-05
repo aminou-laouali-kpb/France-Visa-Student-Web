@@ -12,7 +12,7 @@
     "appointments": "Rendez-vous",
     "postArrival": "Après l'arrivée",
     "messages": "Messages",
-    "interview": "Simulateur d'entretien",
+    "interview": "Entretien de motivation",
     "portfolio": "Mon portefeuille",
     "tasks": "Mes tâches",
     "stats": "Statistiques",
@@ -22,6 +22,7 @@
     "schools": "Écoles",
     "countries": "Pays",
     "workflow": "Parcours",
+    "playbooks": "Playbooks",
     "matrix": "Matrice nationalité",
     "intakeCalendar": "Calendrier admissions",
     "auditLog": "Journal d'audit",
@@ -148,7 +149,7 @@
     "noDeadlines": "Aucune échéance enregistrée pour votre nationalité.",
     "today": "Aujourd'hui",
     "daysLeft": "J−{{n}}",
-    "deadlineType_campus_france": "Campus France",
+    "deadlineType_campus_france": "Procédure visa",
     "deadlineType_visa_appointment": "Rendez-vous visa",
     "deadlineType_school_application": "Candidature école",
     "deadlineType_other": "Autre",
@@ -162,7 +163,7 @@
     "editEntry": "Modifier l'échéance",
     "newEntry": "Nouvelle échéance",
     "newEntryBtn": "Nouvelle échéance",
-    "adminSubtitle": "Échéances Campus France et visa par nationalité.",
+    "adminSubtitle": "Échéances procédure visa et admission par nationalité.",
     "adminTitle": "Calendrier des admissions",
     "entryCount": "{{n}} échéance(s)",
     "sortOrder": "Ordre d'affichage",
@@ -196,7 +197,7 @@
   },
   "appointments": {
     "title": "Mes rendez-vous",
-    "subtitle": "Vos entretiens Campus France et dépôts consulaires.",
+    "subtitle": "Vos rendez-vous TLS/VFS, consulat et démarches biométriques.",
     "upcoming": "À venir ({{n}})",
     "past": "Passés ({{n}})",
     "noUpcoming": "Aucun rendez-vous à venir",
@@ -249,7 +250,8 @@
     "riskLow": "Risque faible",
     "riskMedium": "Risque moyen",
     "riskHigh": "Risque élevé",
-    "reset": "Réinitialiser"
+    "reset": "Réinitialiser",
+    "allReadiness": "Toute préparation"
   },
   "table": {
     "student": "Étudiant",
@@ -269,7 +271,8 @@
     "file": "Fichier",
     "status": "Statut",
     "registered": "Inscrit",
-    "site": "Site"
+    "site": "Site",
+    "readiness": "Préparation visa"
   },
   "dash": {
     "studentWelcome": "Créons votre dossier visa étudiant pour démarrer votre parcours en France.",
@@ -293,6 +296,12 @@
     "postArrival": "Après l'arrivée en France",
     "seeAllSteps": "Voir toutes les démarches",
     "stepsCompleted": "Étapes validées",
+    "visaPreparation": "Préparation visa",
+    "visaPrepCompletion": "Avancement du dossier",
+    "visaPrepRisk": "Niveau de vigilance",
+    "visaPrepActions": "Actions recommandées",
+    "visaPrepOnTrack": "Votre dossier est sur la bonne voie — continuez le suivi avec votre conseiller.",
+    "visaPrepSeeSteps": "Voir mon parcours",
     "hello": "Bonjour, {{name}} 👋",
     "advisorSubtitle": "Vous suivez actuellement {{n}} étudiant(s)",
     "studentsToFollow": "Étudiants à suivre",
@@ -323,12 +332,16 @@
     "dueOn": "Échéance : {{date}}",
     "completedSection": "Terminées ({{n}})",
     "unblockSteps": "Débloquer {{n}} étape(s)",
-    "advanceStep": "Avancer sur : {{name}}",
+    "advanceStep": "Avancer : {{name}}",
     "prepareAppts": "Préparer {{n}} rendez-vous",
-    "completed": "complété",
+    "completed": "Complété",
     "view": "Voir",
     "todayAppts": "RDV aujourd'hui",
-    "createDossierHint": "Créons votre dossier visa étudiant pour démarrer votre parcours en France."
+    "createDossierHint": "Créons votre dossier visa étudiant pour démarrer votre parcours en France.",
+    "visaPrepTitle": "Préparation visa",
+    "riskHigh": "Priorité haute",
+    "riskMedium": "À surveiller",
+    "riskLow": "Bon niveau"
   },
   "stepDetail": {
     "back": "Retour à la liste",
@@ -390,10 +403,22 @@
     "dropzoneAria": "Glissez-déposez un fichier ici ou cliquez pour parcourir",
     "uploadFailed": "Échec du téléversement",
     "saveFailed": "Échec de l'enregistrement",
-    "unknownError": "Erreur inconnue"
+    "unknownError": "Erreur inconnue",
+    "aviProvider": "Organisme AVI",
+    "aviNumber": "Numéro d'attestation",
+    "aviNumberPh": "Ex. AVI-2024-12345",
+    "aviDate": "Date de l'attestation",
+    "aviAmount": "Montant bloqué (€)"
+  },
+  "precheck": {
+    "threeMonthStale": "Document datant de plus de 3 mois — un justificatif récent est requis.",
+    "threeMonthExpired": "Document expiré ou attestations AVI périmées — renouvelez la pièce."
   },
   "steps": {
-    "subtitle": "Les 21 étapes de votre dossier visa étudiant France."
+    "subtitle": "Les 16 étapes de votre dossier visa étudiant (école privée).",
+    "interviewCtaTitle": "Entraînez-vous à l'entretien de motivation",
+    "interviewCtaBody": "Le consulat ou l'école peut vous questionner sur votre projet, vos finances et votre formation. Utilisez le simulateur pour vous préparer.",
+    "interviewCtaButton": "Lancer le simulateur"
   },
   "postArrival": {
     "title": "Après l'arrivée",
@@ -435,7 +460,9 @@
     "nStudents": "{{n}} étudiant",
     "nStudentsPlural": "{{n}} étudiants",
     "highRisk": "Risque élevé",
-    "students": "Étudiants"
+    "students": "Étudiants",
+    "readinessGreen": "Préparation — vert",
+    "readinessAmber": "Préparation — orange"
   },
   "advisorTasks": {
     "title": "Mes tâches",
@@ -456,7 +483,9 @@
     "byCountry": "Étudiants par pays",
     "byRisk": "Niveau de risque",
     "byCompletion": "Répartition de la progression",
-    "noData": "Aucune donnée"
+    "noData": "Aucune donnée",
+    "byReadiness": "Préparation visa (feu tricolore)",
+    "byRefusalMotif": "Refus visa par motif"
   },
   "adminStudents": {
     "title": "Tous les étudiants",
@@ -570,7 +599,7 @@
     "missingDocs": "Documents manquants",
     "rejectedDocs": "Documents rejetés",
     "overdueTasks": "Tâches en retard",
-    "missingCF": "Étapes Campus France manquantes",
+    "missingCF": "Étapes procédure visa (pays) manquantes",
     "missingAppts": "Aucun rendez-vous à venir",
     "visaRefusal": "Antécédent de refus de visa",
     "yes": "Oui",
@@ -584,11 +613,11 @@
     "noMessages": "Aucun message pour l'instant",
     "checklistUpdated": "Liste mise à jour :\n+ {{added}} document(s) ajouté(s)\n- {{removed}} retiré(s)\n{{skipped}} étape(s) non requises\n{{restored}} étape(s) restaurée(s)",
     "checklistRefreshError": "Erreur lors du rafraîchissement.",
-    "campusFranceStep": "Campus France",
-    "aptCampusFrance": "Campus France",
+    "campusFranceStep": "Proc. visa pays",
+    "aptCampusFrance": "Proc. visa pays",
     "aptTlsVfs": "TLS / VFS",
     "cannotSubmit": "Le dossier ne peut pas être soumis.",
-    "campusFranceRequired": "(Campus France requis)"
+    "campusFranceRequired": "(procédure visa pays requise)"
   },
   "docCategory": {
     "passeport": "Passeport",
@@ -597,8 +626,9 @@
     "releve_notes": "Relevé de notes",
     "test_langue": "Test de langue",
     "lettre_admission": "Lettre d'admission",
-    "attestation_campus_france": "Attestation Campus France",
+    "attestation_campus_france": "Attestation procédure visa",
     "justificatif_financier": "Justificatif financier",
+    "avi": "Attestation AVI (compte bloqué)",
     "justificatif_hebergement": "Justificatif d'hébergement",
     "assurance": "Assurance santé",
     "billet_avion": "Billet d'avion",
@@ -631,7 +661,7 @@
     "saved": "Enregistré ✓"
   },
   "apt": {
-    "typeCampusFrance": "Campus France",
+    "typeCampusFrance": "Proc. visa pays",
     "typeTlsVfs": "TLS / VFS",
     "typeCapago": "Capago",
     "typePrefecture": "Préfecture",
@@ -670,13 +700,13 @@
     "addCountry": "Ajouter un pays",
     "colCode": "Code",
     "colVisaCenter": "Centre visa",
-    "colCampusFrance": "Campus France",
+    "colCampusFrance": "Proc. visa pays",
     "required": "Requis",
     "notRequired": "Non requis"
   },
   "interview": {
-    "title": "Simulateur d'entretien Campus France",
-    "subtitle": "Entraînez-vous à l'entretien préalable au visa. L'IA joue l'examinateur, vous évalue et vous donne un retour détaillé.",
+    "title": "Simulateur d'entretien de motivation",
+    "subtitle": "Entraînez-vous à l'entretien lié à votre visa (consulat, TLS/VFS ou école). L'IA joue l'examinateur et vous donne un retour détaillé.",
     "modeText": "Mode texte",
     "modeVoice": "Mode voix",
     "modeTextDesc": "Lisez la question, répondez par écrit. Idéal pour structurer vos idées.",
@@ -713,7 +743,7 @@
     "axeCoherence": "Cohérence",
     "axeFrench": "Français",
     "axeKnowledge": "Connaissance du programme",
-    "axeReturnPlan": "Plan de retour"
+    "axeReturnPlan": "Projet professionnel"
   },
   "depth": {
     "maritalStatus": "État civil",
@@ -779,7 +809,7 @@
     "equivEquivalent": "Équivalent : {{level}}",
     "equivRefShort": "Réf. {{ref}}",
     "equivStatusLabel": "Statut : {{status}}",
-    "wishCardTitle": "Vœux Études en France ({{count}}/{{max}})",
+    "wishCardTitle": "Candidatures école ({{count}}/{{max}})",
     "wishSchoolFreeHint": "— ou texte libre ci-dessous —",
     "wishEntry": "Vœu n°{{order}} —",
     "wishStatusLabel": "statut : {{status}}"
@@ -829,5 +859,88 @@
     "specificity": "Spécificité",
     "returnPlan": "Plan de retour",
     "overall": "Note globale"
+  },
+  "timeline": {
+    "title": "Calendrier de préparation",
+    "empty": "Aucun jalon à afficher pour le moment.",
+    "status_done": "Terminé",
+    "status_current": "En cours",
+    "status_upcoming": "À venir",
+    "status_overdue": "En retard",
+    "status_blocked": "Bloqué"
+  },
+  "readiness": {
+    "green": "Bon niveau",
+    "amber": "À surveiller",
+    "red": "Priorité haute"
+  },
+  "playbook": {
+    "title": "Playbooks conseiller",
+    "subtitle": "Procédures recommandées selon l'étape du dossier."
+  },
+  "refusal": {
+    "mapTitle": "x",
+    "mapIntro": "y",
+    "prevention": "z",
+    "advisorAlertTitle": "a",
+    "advisorAlertBody": "b",
+    "recordedMotif": "c",
+    "motifNotSet": "d",
+    "playbookTitle": "e",
+    "playbook": {
+      "gracious": "g",
+      "commission": "c",
+      "contentious": "x",
+      "generic": "y",
+      "byMotif": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7"
+      }
+    },
+    "reasonCode": "r",
+    "notes": "n",
+    "riskFlags": "f",
+    "motifs": {
+      "1": {
+        "label": "M1",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "2": {
+        "label": "M2",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "3": {
+        "label": "M3",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "4": {
+        "label": "M4",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "5": {
+        "label": "M5",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "6": {
+        "label": "M6",
+        "explanation": "e",
+        "prevention": "p"
+      },
+      "7": {
+        "label": "M7",
+        "explanation": "e",
+        "prevention": "p"
+      }
+    }
   }
 }

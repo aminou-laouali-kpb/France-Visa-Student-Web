@@ -1,8 +1,8 @@
 # Guide de l'étudiant — VisaFlow France
 
-**Tout ce que tu dois savoir pour préparer ton dossier d'études en France**
+**Votre procédure visa après admission en école privée**
 
-Bienvenue sur VisaFlow France ! Cette plateforme va t'accompagner pas à pas dans la préparation de ton dossier de candidature et de visa pour la France. Ce guide t'explique simplement comment utiliser l'application.
+Bienvenue sur VisaFlow France ! Cette plateforme vous accompagne **après réception de votre lettre d'admission** dans une école privée française : constitution du dossier consulaire, rendez-vous TLS/VFS, et installation en France.
 
 ---
 
@@ -31,9 +31,9 @@ On te recommande vivement d'activer la **double authentification** :
 Dès que tu te connectes, tu vois :
 
 - **Ton score de complétude** : un pourcentage et un anneau de progression qui montrent où tu en es.
-- **Tes prochaines étapes** : Études en France, Campus France, Visa, Post-arrivée.
+- **Tes prochaines étapes** : les **16 étapes** de ton parcours visa.
 - **Tes actions à faire** : par exemple « Corriger 1 document rejeté » ou « Téléverser ton passeport ».
-- **Tes prochains rendez-vous** : entretiens Campus France, RDV visa, etc.
+- **Tes prochains rendez-vous** : RDV **TLS/VFS**, consulat, biométrie, etc.
 
 ---
 
@@ -52,7 +52,7 @@ Dès que tu te connectes, tu vois :
 - **Tests de langue** : TCF, DELF, TOEFL, IELTS… avec date de passage, score et date d'expiration.
   > ⚠️ Si ton test expire dans moins de 90 jours, l'application te prévient pour que tu le renouvelles à temps.
 - **Équivalences de diplômes** : si tu as fait reconnaître ton diplôme par ENIC-NARIC, ajoute la référence.
-- **Vœux Études en France** : jusqu'à 7 vœux (école, programme, motivation). Tu peux choisir une école dans le catalogue ou en saisir une qui n'y figure pas.
+- **Candidatures école** : jusqu'à 7 vœux (école, programme, motivation). Tu peux choisir une école dans le catalogue ou en saisir une qui n'y figure pas.
 
 Plus ton profil est complet, plus ton score de complétude augmente — et plus ton conseiller peut t'aider efficacement.
 
@@ -113,7 +113,7 @@ Pour obtenir ton visa, tu dois prouver :
 
 C'est ici que tu rédiges les deux pièces les plus importantes de ton dossier.
 
-### Projet d'études (Études en France)
+### Projet d'études
 - Éditeur avec **compteur de mots** et **historique des versions** (tu peux revenir à une version précédente à tout moment).
 - L'IA peut t'aider :
   - **Critique en direct** : analyse de ton texte avec points forts, faiblesses, suggestions.
@@ -121,7 +121,7 @@ C'est ici que tu rédiges les deux pièces les plus importantes de ton dossier.
 - Notation automatique selon 4 critères : **Cohérence, Français, Spécificité, Plan de retour**, et une **Note globale**.
 
 ### Lettres de motivation
-- Une lettre par vœu Études en France.
+- Une lettre par candidature école.
 - Mêmes fonctionnalités : versionnage, coach IA, notation.
 
 > 💡 Conseil : ne te repose pas uniquement sur l'IA. Elle est là pour t'aider à structurer, mais le contenu doit refléter **ton parcours réel** et **ta motivation personnelle**.
@@ -141,7 +141,7 @@ C'est ici que tu rédiges les deux pièces les plus importantes de ton dossier.
 ## 8. Rendez-vous et calendrier
 
 ### Tes rendez-vous
-**Onglet : Rendez-vous** — tu vois tes RDV à venir (entretien Campus France, dépôt visa…) avec date, heure et lieu.
+**Onglet : Rendez-vous** — tu vois tes RDV à venir (TLS/VFS, consulat, dépôt visa…) avec date, heure et lieu.
 
 ### Synchroniser ton calendrier
 - Va dans **Profil → Calendrier**.

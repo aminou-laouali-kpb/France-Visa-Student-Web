@@ -47,8 +47,9 @@ export async function buildRiskNarrative(opts: {
     `Documents manquants: ${risk.missingDocuments}.`,
     `Documents rejetés: ${risk.rejectedDocuments}.`,
     `Tâches en retard: ${risk.overdueTasks}.`,
-    risk.missingCampusFrance ? "Étapes Campus France non finalisées." : null,
-    risk.missingAppointments ? "Rendez-vous visa manquant ou hors fenêtre de proximité." : null,
+    risk.missingAppointments
+      ? "Rendez-vous TLS/VFS manquant ou hors fenêtre de proximité."
+      : null,
     risk.hasVisaRefusal ? "Historique de refus de visa." : null,
     student.intakeDate ? `Rentrée: ${student.intakeDate}.` : null,
   ]
@@ -66,7 +67,7 @@ export async function buildRiskNarrative(opts: {
       {
         role: "system",
         content:
-          "Tu es un conseiller Campus France. Explique en 2 à 3 phrases en français pourquoi le dossier d'un étudiant est à risque, en pointant les facteurs concrets. Ne mentionne JAMAIS le score numérique. Termine par une action prioritaire. Réponds STRICTEMENT en JSON: {\"narrative\":\"...\"}.",
+          "Tu es un conseiller visa étudiant pour une admission en école privée française (hors Campus France). Explique en 2 à 3 phrases en français pourquoi le dossier est à risque : lettre d'admission, justificatifs financiers, pièces consulaires, rendez-vous TLS/VFS. Ne mentionne JAMAIS le score numérique ni Campus France. Termine par une action prioritaire. Réponds STRICTEMENT en JSON: {\"narrative\":\"...\"}.",
       },
       {
         role: "user",
@@ -176,11 +177,13 @@ export async function loadDossierContext(studentId: number): Promise<DossierCont
     schoolName: school?.name ?? null,
     programName: program?.name ?? null,
     risk: risk ?? null,
-    steps: steps.map((s) => ({
-      name: s.stepName,
-      status: s.status,
-      isCampusFranceStep: !!s.isCampusFranceStep,
-    })),
+    steps: steps
+      .filter((s) => !s.isCampusFranceStep)
+      .map((s) => ({
+        name: s.stepName,
+        status: s.status,
+        isCampusFranceStep: false,
+      })),
     documents: docs.map((d) => ({
       name: d.name,
       status: d.status,
@@ -224,8 +227,7 @@ export async function buildCopilotSummary(opts: {
           level: ctx.risk.level,
           missingDocuments: ctx.risk.missingDocuments,
           rejectedDocuments: ctx.risk.rejectedDocuments,
-          missingCampusFrance: ctx.risk.missingCampusFrance,
-          missingAppointments: ctx.risk.missingAppointments,
+          missingTlsAppointment: ctx.risk.missingAppointments,
           recommendations: ctx.risk.recommendations,
         }
       : null,
@@ -247,7 +249,7 @@ export async function buildCopilotSummary(opts: {
       {
         role: "system",
         content:
-          "Tu es l'assistant IA d'un conseiller Campus France. À partir de l'état du dossier, produis: (a) `missing` — pièces ou actions manquantes (max 5, courtes), (b) `risky` — points de vigilance (max 5), (c) `changed` — ce qui a bougé depuis la dernière revue (max 4), (d) `draftReply` — un message bref et cordial en français à envoyer à l'étudiant pour faire avancer le dossier (max 6 lignes), (e) `correctionRequest` — un message de demande de correction précis et actionnable (max 6 lignes). Réponds STRICTEMENT en JSON: {\"missing\":[],\"risky\":[],\"changed\":[],\"draftReply\":\"...\",\"correctionRequest\":\"...\"}.",
+          "Tu es l'assistant IA d'un conseiller visa pour étudiants admis en école privée française (procédure consulaire TLS/VFS, sans Campus France). À partir de l'état du dossier, produis: (a) `missing` — pièces ou actions manquantes (lettre d'admission, finances, passeport, etc.; max 5, courtes), (b) `risky` — points de vigilance (max 5), (c) `changed` — ce qui a bougé depuis la dernière revue (max 4), (d) `draftReply` — message bref et cordial en français à l'étudiant (max 6 lignes), (e) `correctionRequest` — demande de correction précise (max 6 lignes). Ne cite pas Campus France ni les vœux Études en France. Réponds STRICTEMENT en JSON: {\"missing\":[],\"risky\":[],\"changed\":[],\"draftReply\":\"...\",\"correctionRequest\":\"...\"}.",
       },
       { role: "user", content: factsJson },
     ],
